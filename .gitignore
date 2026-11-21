@@ -107,3 +107,17 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# paid / downloaded third-party packs (licence: not for a public repo)
+/[Aa]ssets/Synty/
+/[Aa]ssets/Synty.meta
+/[Aa]ssets/DownloadCache/
+/[Aa]ssets/DownloadCache.meta
+trailer_frames.zip
+
+# Third-party asset packs (paid / large)
+/[Aa]ssets/[Pp]lugins/
+/[Aa]ssets/[Pp]lugins.meta
+
+# local scene backups (too big for GitHub)
+Handoff/backup/

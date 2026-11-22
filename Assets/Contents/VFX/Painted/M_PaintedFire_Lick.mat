@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_PaintedFire_Lick
+  m_Shader: {fileID: 4800000, guid: d1ea3377ff3170145860586989bbd938, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _NoiseTex:
+        m_Texture: {fileID: 2800000, guid: d8f07b52ee218ae439af8ffb059e3f2e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RampTex:
+        m_Texture: {fileID: 2800000, guid: d85a6fa4ec6715948aa72ffde2e4caed, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ShapeTex:
+        m_Texture: {fileID: 2800000, guid: fc7b813d007413e449af2efd444fbcc5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Additive: 0.05
+    - _BaseFade: 0.16
+    - _CoreBoost: 0.6
+    - _DepthFade: 0.1
+    - _Distort: 0.08
+    - _EdgeCut: 0.1
+    - _EdgeSoft: 0.06
+    - _Erode: 0.9
+    - _HeatGain: 1.15
+    - _Intensity: 1.1
+    - _NoiseScale: 1.4
+    - _NoiseSpeed: 0.9
+    - _Steps: 0
+    m_Colors:
+    - _Tiles: {r: 1, g: 1, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

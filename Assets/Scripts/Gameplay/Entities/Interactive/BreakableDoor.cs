@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Services;
 using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
@@ -103,7 +104,7 @@ namespace Gameplay.Entities.Interactive
             foreach (ParticleSystem impact in _impacts)
             {
                 impact.transform.SetPositionAndRotation(point, _splinters.transform.rotation);
-                impact.Play(true);
+                EffectPlayback.Restart(impact);
             }
 
             Chopped?.Invoke(this, point);

@@ -1,5 +1,6 @@
 using Gameplay.Entities.Player;
 using Gameplay.Entities.Residents;
+using Services.Audio;
 using System;
 using System.Collections.Generic;
 using UI.Screens.Variants.Gameplay;
@@ -49,6 +50,7 @@ namespace Gameplay.Dialogue
         private Action _onFinished;
         private DialogueLine _current;
         private float _timeLeft;
+        private float _voiceLeft;
         private bool _snapCamera;
 
         public bool IsPlaying { get; private set; }
@@ -66,6 +68,8 @@ namespace Gameplay.Dialogue
         [SerializeField] private float _boundsPadding = 0.25f;
         [SerializeField] private float _cameraRadius = 0.15f;
         [SerializeField] private float _rayShortening = 0.25f;
+        [SerializeField] private float[] _orbitDistances = { 1.1f, 1.5f, 0.8f };
+        [SerializeField] private int _orbitSteps = 12;
 
         public DialogLibrary Library => _dialogLibrary;
 
@@ -100,6 +104,7 @@ namespace Gameplay.Dialogue
             IsPlaying = true;
             _snapCamera = true;
             _player.enabled = false;
+            AudioService.Instance.SetDucked(true);
 
             SetBodyVisible(true);
             _screen.SetCrosshairVisible(false);
@@ -118,6 +123,7 @@ namespace Gameplay.Dialogue
 
             _current = _lines.Dequeue();
             _timeLeft = _lineGap;
+            _voiceLeft = _dialogLibrary.TryGetClip(_current.Text, out AudioClip clip) ? clip.length + _lineGap : float.MaxValue;
             _screen.ClearDialog();
             _screen.CharacterSay(_current.Speaker, _current.Text, UntilCleared, _current.SpeakerHead);
             _snapCamera = true;
@@ -131,8 +137,9 @@ namespace Gameplay.Dialogue
             }
 
             _timeLeft -= deltaTime;
+            _voiceLeft -= deltaTime;
             bool next = Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame;
-            if (next && _timeLeft <= 0f)
+            if ((next && _timeLeft <= 0f) || _voiceLeft <= 0f)
             {
                 NextLine();
             }
@@ -190,6 +197,23 @@ namespace Gameplay.Dialogue
                 foreach (float side in faceSides)
                 {
                     Vector3 candidate = speaker - dir * dist + right * side + Vector3.up * _cameraLift;
+                    if (IsClear(candidate, target, target))
+                    {
+                        position = candidate;
+                        rotation = Quaternion.LookRotation(target - candidate, Vector3.up);
+                        return;
+                    }
+                }
+            }
+
+            // The speaker can be around a corner from the listener: orbit him until a shot actually sees his face.
+            float step = 360f / _orbitSteps;
+            foreach (float dist in _orbitDistances)
+            {
+                for (int i = 0; i < _orbitSteps; i++)
+                {
+                    Vector3 around = Quaternion.AngleAxis(step * i, Vector3.up) * -dir;
+                    Vector3 candidate = speaker + around * dist + Vector3.up * _cameraLift;
                     if (IsClear(candidate, target, target))
                     {
                         position = candidate;
@@ -279,6 +303,7 @@ namespace Gameplay.Dialogue
         private void Finish()
         {
             IsPlaying = false;
+            AudioService.Instance.SetDucked(false);
             _screen.ClearDialog();
             _screen.SetCrosshairVisible(true);
             SetBodyVisible(false);

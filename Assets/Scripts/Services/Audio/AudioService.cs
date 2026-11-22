@@ -11,12 +11,57 @@ namespace Services.Audio
         [SerializeField] private AudioSource[] _oneShotSources;
         [SerializeField] private AudioSource[] _loopSources;
 
+        [Header("Background")]
+        [SerializeField] private AudioSource _music;
+        [SerializeField] private AudioSource _streetAmbience;
+        [SerializeField] private AudioSource _buildingAmbience;
+        [SerializeField, Range(0f, 1f)] private float _musicVolume = 0.22f;
+        [SerializeField, Range(0f, 1f)] private float _ambienceVolume = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float _duckedMusic = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float _voiceDuck = 0.6f;
+        [SerializeField] private float _fadeSpeed = 1.5f;
+
         private int _nextOneShot;
+        private bool _isDucked;
+        private bool _isIndoors;
+        private float _voiceUntil;
+        private Transform _listener;
+
+        public Vector3 ListenerPosition => _listener != null ? _listener.position : transform.position;
 
         private void Awake()
         {
             InitializeSingleton(false);
+            AudioListener listener = FindAnyObjectByType<AudioListener>();
+            _listener = listener != null ? listener.transform : null;
+            _music.volume = 0f;
+            _streetAmbience.volume = 0f;
+            _buildingAmbience.volume = 0f;
+            _music.Play();
+            _streetAmbience.Play();
+            _buildingAmbience.Play();
         }
+
+        private void Update()
+        {
+            float step = Time.unscaledDeltaTime * _fadeSpeed;
+            float duck = _isDucked ? _duckedMusic : 1f;
+            if (Time.unscaledTime < _voiceUntil)
+            {
+                duck = Mathf.Min(duck, _voiceDuck);
+            }
+
+            _music.volume = Mathf.MoveTowards(_music.volume, _musicVolume * duck, step * _musicVolume);
+            _streetAmbience.volume = Mathf.MoveTowards(_streetAmbience.volume, _isIndoors ? 0f : _ambienceVolume, step * _ambienceVolume);
+            _buildingAmbience.volume = Mathf.MoveTowards(_buildingAmbience.volume, _isIndoors ? _ambienceVolume : 0f, step * _ambienceVolume);
+        }
+
+        public void SetDucked(bool isDucked) => _isDucked = isDucked;
+
+        public void SetIndoors(bool isIndoors) => _isIndoors = isIndoors;
+
+        public bool IsAudible(SoundType type, Vector3 position) =>
+            _config.TryGet(type, out AudioConfig.SoundEntry entry) && (position - ListenerPosition).sqrMagnitude <= entry.MaxDistance * entry.MaxDistance;
 
         public void Play(SoundType type, float pitch = 1f) => PlayAt(type, transform.position, pitch, true);
 
@@ -50,6 +95,7 @@ namespace Services.Audio
             _voiceSource.Stop();
             _voiceSource.clip = clip;
             _voiceSource.Play();
+            _voiceUntil = Time.unscaledTime + clip.length;
         }
 
         private void PlayAt(SoundType type, Vector3 position, float pitch, bool isFlat)

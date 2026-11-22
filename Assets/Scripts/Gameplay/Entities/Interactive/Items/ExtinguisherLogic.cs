@@ -15,17 +15,30 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _farPowerFactor = 0.4f;
         [SerializeField] private float _hitSlack = 0.9f;
 
+        [Header("Pressure")]
+        [SerializeField] private float _capacity = 6f;
+        [SerializeField] private float _rechargeDelay = 0.8f;
+        [SerializeField] private float _rechargeRate = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float _emptyPowerFactor = 0.35f;
+
+        private const int MaxRayHits = 16;
+
+        private readonly RaycastHit[] _rayHits = new RaycastHit[MaxRayHits];
         private Transform _aim;
+        private Transform _owner;
         private InventoryLogic _items;
         private ExtinguisherItem _current;
+        private float _sinceReleased;
 
         public bool IsSpraying { get; private set; }
+        public float Pressure { get; private set; } = 1f;
 
         public event Action<FireSource> FireHit;
 
         public void Init(Transform aim, InventoryLogic items)
         {
             _aim = aim;
+            _owner = aim.GetComponentInParent<CharacterController>().transform;
             _items = items;
             _items.ItemChanged += HandleItemChanged;
         }
@@ -37,6 +50,12 @@ namespace Gameplay.Entities.Interactive.Items
 
         public void Tick(bool wantsToSpray, float deltaTime)
         {
+            if (_current != null)
+            {
+                Vector3 aimPoint = _aim.position + _aim.forward * (_range * _aimRangeFactor);
+                _current.AimAt(aimPoint, deltaTime);
+            }
+
             bool spray = wantsToSpray && _current != null;
             if (spray != IsSpraying)
             {
@@ -46,11 +65,20 @@ namespace Gameplay.Entities.Interactive.Items
 
             if (!IsSpraying)
             {
+                _sinceReleased += deltaTime;
+                if (_sinceReleased > _rechargeDelay)
+                {
+                    Pressure = Mathf.Min(1f, Pressure + _rechargeRate * deltaTime);
+                }
+
                 return;
             }
 
-            Vector3 aimPoint = _aim.position + _aim.forward * (_range * _aimRangeFactor);
-            _current.Nozzle.rotation = Quaternion.LookRotation(aimPoint - _current.Nozzle.position);
+            _sinceReleased = 0f;
+            Pressure = Mathf.Max(0f, Pressure - deltaTime / _capacity);
+            bool hasImpact = CastIgnoringOwner(_aim.position, _aim.forward, _range, out RaycastHit impact);
+            _current.SetImpact(hasImpact, impact.point, _obstacleMask);
+            _current.SetPressure(Pressure);
 
             HitFires(deltaTime);
         }
@@ -89,7 +117,8 @@ namespace Gameplay.Entities.Interactive.Items
 
                 float distanceFactor = Mathf.Lerp(1f, _farPowerFactor, distance / _range);
                 float angleFactor = Mathf.Lerp(1f, 0.5f, angle / _coneAngle);
-                fire.Extinguish(_power * distanceFactor * angleFactor, deltaTime);
+                float pressureFactor = Mathf.Lerp(_emptyPowerFactor, 1f, Pressure);
+                fire.Extinguish(_power * distanceFactor * angleFactor * pressureFactor, deltaTime);
                 FireHit?.Invoke(fire);
             }
         }
@@ -101,7 +130,7 @@ namespace Gameplay.Entities.Interactive.Items
                 Vector3 point = fire.transform.position + Vector3.up * ProbeHeights[i];
                 Vector3 toPoint = point - origin;
                 float distance = toPoint.magnitude;
-                if (!Physics.Raycast(origin, toPoint / distance, out RaycastHit hit, distance, _obstacleMask, QueryTriggerInteraction.Ignore)
+                if (!CastIgnoringOwner(origin, toPoint / distance, distance, out RaycastHit hit)
                     || hit.collider.GetComponentInParent<FireSource>() != null
                     || hit.distance > distance - _hitSlack)
                 {
@@ -110,6 +139,23 @@ namespace Gameplay.Entities.Interactive.Items
             }
 
             return false;
+        }
+
+        // The aim ray starts inside the player's own capsule, which reports a hit when looking down.
+        private bool CastIgnoringOwner(Vector3 origin, Vector3 direction, float distance, out RaycastHit nearest)
+        {
+            int count = Physics.RaycastNonAlloc(origin, direction, _rayHits, distance, _obstacleMask, QueryTriggerInteraction.Ignore);
+            nearest = default;
+            nearest.distance = float.MaxValue;
+            for (int i = 0; i < count; i++)
+            {
+                if (_rayHits[i].distance < nearest.distance && !_rayHits[i].transform.IsChildOf(_owner))
+                {
+                    nearest = _rayHits[i];
+                }
+            }
+
+            return nearest.distance < float.MaxValue;
         }
 
         private static readonly float[] ProbeHeights = { 0.9f, 0.5f, 1.4f, 0.15f };

@@ -375,7 +375,8 @@ public static class BreakableDoorBaker
         smoke.transform.localScale = Vector3.one * SmokeScale;
         smoke.GetComponent<CartoonFX.CFXR_Effect>().clearBehavior = CartoonFX.CFXR_Effect.ClearBehavior.None;
         var smokeParticles = smoke.GetComponent<ParticleSystem>();
-        foreach (ParticleSystem part in smoke.GetComponentsInChildren<ParticleSystem>())
+        smoke.SetActive(false);
+        foreach (ParticleSystem part in smoke.GetComponentsInChildren<ParticleSystem>(true))
         {
             ParticleSystem.MainModule partMain = part.main;
             partMain.playOnAwake = false;

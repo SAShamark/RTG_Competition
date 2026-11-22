@@ -42,6 +42,10 @@ namespace Gameplay.Entities.Player
         [SerializeField] private Vector3 _carryLeftEuler = new(-5f, 15f, 70f);
         [SerializeField] private Vector3 _carryRightEuler = new(-5f, -15f, -70f);
         [SerializeField] private float _carrySpeed = 5f;
+        [SerializeField] private Vector3 _carryShoulderGrip = new(0f, 0.03f, 0.03f);
+        [SerializeField] private Vector3 _carryKneeGrip = new(0f, 0.01f, 0.05f);
+        [SerializeField] private Vector3 _carryLeftElbow = new(-0.25f, -0.6f, 0.35f);
+        [SerializeField] private Vector3 _carryRightElbow = new(0.3f, -0.55f, 0.25f);
         [SerializeField] private float _longGestureDuration = 0.8f;
         [SerializeField] private float _gestureDuration = 0.6f;
         [SerializeField] private float _rattleContactTime = 0.16f;
@@ -54,6 +58,9 @@ namespace Gameplay.Entities.Player
         [SerializeField] private float _rightBobUp = 0.4f;
         [SerializeField] private float _aimJitterFrequency = 47f;
         [SerializeField] private float _aimJitterAmplitude = 0.0025f;
+        [SerializeField] private Vector3 _sprayKickOffset = new(0f, 0.025f, -0.05f);
+        [SerializeField] private Vector3 _sprayKickEuler = new(-9f, 0f, 0f);
+        [SerializeField] private float _sprayKickDecay = 9f;
         [SerializeField] private Vector3 _aimLeftOffset = new Vector3(0.02f, 0.01f, 0.02f);
         [SerializeField] private float _releaseDelay = 0.12f;
         [SerializeField] private Vector3 _pushRightOffset = new Vector3(-0.1f, 0.13f, 0.3f);
@@ -107,6 +114,9 @@ namespace Gameplay.Entities.Player
         private float _toolBlend;
         private float _holdBlend;
         private bool _isLeftFist;
+        private bool _isRightFist;
+        private Transform _carryShoulder;
+        private Transform _carryKnee;
         private bool _isCarrying;
         private float _carryBlend;
         private float _bobPhase;
@@ -114,6 +124,11 @@ namespace Gameplay.Entities.Player
         private Vector2 _sway;
         private bool _isAiming;
         private float _aimBlend;
+        private float _aimPressure = 1f;
+        private float _sprayKick;
+        private bool _hasHandPose;
+        private Vector3 _handPosition;
+        private Quaternion _handRotation = Quaternion.identity;
 
         private struct GestureState
         {
@@ -133,19 +148,41 @@ namespace Gameplay.Entities.Player
             _rightHand.gameObject.SetActive(isVisible);
         }
 
-        public void SetAiming(bool isAiming) => _isAiming = isAiming;
+        public void SetAiming(bool isAiming, float pressure = 1f)
+        {
+            if (isAiming && !_isAiming)
+            {
+                _sprayKick = 1f;
+            }
+
+            _isAiming = isAiming;
+            _aimPressure = pressure;
+        }
 
         public void SetCarrying(bool isCarrying) => _isCarrying = isCarrying;
+
+        public void SetCarryGrips(Transform farShoulder, Transform farKnee)
+        {
+            _carryShoulder = farShoulder;
+            _carryKnee = farKnee;
+        }
 
         public void SetLeftGrip(Transform grip)
         {
             _leftGrip = grip;
-            _rightMesh.sharedMesh = grip != null ? _rightFist : _rightOpen;
+        }
+
+        public void SetHandPose(bool hasPose, Vector3 position, Vector3 euler)
+        {
+            _hasHandPose = hasPose;
+            _handPosition = position;
+            _handRotation = Quaternion.Euler(euler);
         }
 
         public void Play(HandGesture gesture, Action onContact)
         {
-            if (gesture == HandGesture.None)
+            bool isHoldingTool = _leftGrip != null && gesture != HandGesture.Chop;
+            if (gesture == HandGesture.None || isHoldingTool)
             {
                 onContact?.Invoke();
                 return;
@@ -189,12 +226,14 @@ namespace Gameplay.Entities.Player
             Vector3 leftEuler = _leftRestEuler;
             Vector3 rightEuler = _rightRestEuler;
 
+            _sprayKick = Mathf.MoveTowards(_sprayKick, 0f, deltaTime * _sprayKickDecay);
             _aimBlend = Mathf.MoveTowards(_aimBlend, _isAiming ? 1f : 0f, deltaTime * _aimSpeed);
+            float jitter = Mathf.Sin(Time.time * _aimJitterFrequency) * _aimJitterAmplitude * _aimBlend * _aimPressure;
+            Vector3 sprayShake = new Vector3(jitter, jitter * 0.5f, 0f) + _sprayKickOffset * _sprayKick;
             if (_aimBlend > 0f)
             {
-                float jitter = Mathf.Sin(Time.time * _aimJitterFrequency) * _aimJitterAmplitude * _aimBlend;
-                right += _aimOffset * _aimBlend + new Vector3(jitter, jitter * 0.5f, 0f);
-                rightEuler += _aimEuler * _aimBlend;
+                right += _aimOffset * _aimBlend + sprayShake;
+                rightEuler += _aimEuler * _aimBlend + _sprayKickEuler * _sprayKick;
                 left += _aimLeftOffset * _aimBlend;
             }
 
@@ -209,19 +248,28 @@ namespace Gameplay.Entities.Player
             }
 
             bool hasGrip = _leftGrip != null && _leftGrip.gameObject.activeInHierarchy;
-            bool isTwoHanded = hasGrip && _gesture.Type == HandGesture.Chop;
+            bool isTwoHanded = hasGrip && (_gesture.Type == HandGesture.Chop || _hasHandPose);
             _holdBlend = Mathf.MoveTowards(_holdBlend, hasGrip ? 1f : 0f, deltaTime * _holdBlendSpeed);
             _toolBlend = Mathf.MoveTowards(_toolBlend, isTwoHanded ? 1f : 0f, deltaTime * _toolBlendSpeed);
             float hold = Easing.Smooth(_holdBlend);
             float twoHands = Easing.Smooth(_toolBlend);
             if (hold > 0f)
             {
-                right += Vector3.Lerp(_oneHandRightOffset, _toolRightOffset, twoHands) * hold;
-                rightEuler += Vector3.Lerp(_oneHandRightEuler, _toolRightEuler, twoHands) * hold;
+                float chop = _gesture.Type == HandGesture.Chop ? twoHands : 0f;
+                right += Vector3.Lerp(_oneHandRightOffset, _toolRightOffset, chop) * hold;
+                rightEuler += Vector3.Lerp(_oneHandRightEuler, _toolRightEuler, chop) * hold;
                 left += _oneHandLeftOffset * (hold * (1f - twoHands));
             }
 
-            SetLeftFist(twoHands > 0f);
+            float pose = _hasHandPose ? hold : 0f;
+            if (pose > 0f)
+            {
+                right = Vector3.Lerp(right, _handPosition + common + new Vector3(bobX, bobY, 0f) + sprayShake, pose);
+            }
+
+            bool hasCarryGrips = _carryShoulder != null && _carryBlend > 0f;
+            SetLeftFist(twoHands > 0f || hasCarryGrips);
+            SetRightFist(hasGrip || hasCarryGrips);
 
             ApplyGesture(deltaTime, ref left, ref right, ref leftEuler, ref rightEuler);
 
@@ -229,11 +277,44 @@ namespace Gameplay.Entities.Player
             _rightHand.localPosition = right;
             _leftHand.localRotation = Quaternion.Euler(leftEuler);
             _rightHand.localRotation = Quaternion.Euler(rightEuler);
+            if (pose > 0f && _gesture.Type == HandGesture.None)
+            {
+                Quaternion posed = _handRotation * Quaternion.Euler(_sprayKickEuler * _sprayKick);
+                _rightHand.localRotation = Quaternion.Slerp(_rightHand.localRotation, posed, pose);
+            }
 
-            if (hasGrip && twoHands > 0f)
+            if (_leftGrip != null && twoHands > 0f)
             {
                 AttachLeftToGrip(twoHands);
             }
+
+            if (hasCarryGrips)
+            {
+                float k = Easing.Smooth(_carryBlend);
+                Transform space = _leftHand.parent;
+                AttachToBody(_leftHand, space.InverseTransformPoint(_carryShoulder.position) + _carryShoulderGrip, _carryLeftElbow, k);
+                AttachToBody(_rightHand, space.InverseTransformPoint(_carryKnee.position) + _carryKneeGrip, _carryRightElbow, k);
+            }
+        }
+
+        // Forearm runs from the elbow under the body; palm faces up so the curled fingers wrap the far side.
+        private void AttachToBody(Transform hand, Vector3 grip, Vector3 elbow, float weight)
+        {
+            Quaternion aim = Quaternion.LookRotation(grip - elbow, Vector3.down);
+            Vector3 position = grip - aim * _fistCenter;
+            hand.localPosition = Vector3.Lerp(hand.localPosition, position, weight);
+            hand.localRotation = Quaternion.Slerp(hand.localRotation, aim, weight);
+        }
+
+        private void SetRightFist(bool isFist)
+        {
+            if (_isRightFist == isFist)
+            {
+                return;
+            }
+
+            _isRightFist = isFist;
+            _rightMesh.sharedMesh = isFist ? _rightFist : _rightOpen;
         }
 
         private void SetLeftFist(bool isFist)
@@ -252,7 +333,8 @@ namespace Gameplay.Entities.Player
             Transform space = _leftHand.parent;
             Vector3 grip = space.InverseTransformPoint(_leftGrip.position);
             Vector3 across = space.InverseTransformDirection(_leftGrip.up);
-            Vector3 forward = Vector3.ProjectOnPlane(_rightHand.localRotation * Vector3.forward, across).normalized;
+            Vector3 reach = _hasHandPose ? space.InverseTransformDirection(_leftGrip.forward) : _rightHand.localRotation * Vector3.forward;
+            Vector3 forward = Vector3.ProjectOnPlane(reach, across).normalized;
             Quaternion aim = Quaternion.LookRotation(forward, Vector3.Cross(forward, across));
             Vector3 position = grip - aim * _fistCenter;
 

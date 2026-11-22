@@ -109,5 +109,6 @@ namespace Gameplay.Dialogue
         SlotCount = 105,
         RescuedCount = 106,
         NavWindow = 107,
+        ToastGasFeedsFire = 108,
     }
 }

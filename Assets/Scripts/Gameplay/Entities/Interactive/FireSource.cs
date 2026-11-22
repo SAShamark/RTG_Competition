@@ -15,6 +15,7 @@ namespace Gameplay.Entities.Interactive
         [SerializeField, Range(0f, 1f)] private float _intensity = 1f;
         [SerializeField] private float _toughness = 1f;
         [SerializeField] private float _heatRadius = 2.5f;
+        [SerializeField] private float _heatHeight = 2.5f;
 
         [Header("Reignite")]
         [SerializeField] private bool _reignite;
@@ -32,6 +33,21 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private float _flickerAmount = 0.25f;
         [SerializeField] private ParticleSystem _extinguishPuff;
 
+        [Header("Under spray")]
+        [SerializeField] private ParticleSystem _steam;
+        [SerializeField] private ParticleSystem _smolder;
+        [SerializeField] private GameObject _scorch;
+        [SerializeField] private ParticleSystem _embers;
+        [SerializeField] private ParticleSystem _splash;
+        [SerializeField] private int _outSteamBurst = 30;
+        [SerializeField] private int _outSplashBurst = 40;
+        [SerializeField] private float _sprayedWindow = 0.15f;
+        [SerializeField] private float _squash = 0.35f;
+        [SerializeField] private float _wobbleSpeed = 14f;
+        [SerializeField] private float _wobbleAngle = 8f;
+        [SerializeField] private float _sprayedFlicker = 0.6f;
+        [SerializeField] private float _sprayBlendSpeed = 6f;
+
         [Header("Gameplay")]
         [SerializeField] private Collider _blocker;
         [SerializeField] private float _minVisual = 0.15f;
@@ -39,8 +55,14 @@ namespace Gameplay.Entities.Interactive
         private float[] _baseRates;
         private Vector3 _baseScale;
         private ISoundLoop _loop = SilentLoop.Instance;
+        private float _loopVolume;
         private float _sinceSprayed = NeverSprayed;
         private float _noiseSeed;
+        private float _steamRate;
+        private float _embersRate;
+        private float _splashRate;
+        private float _sprayBlend;
+        private ISoundLoop _sizzle = SilentLoop.Instance;
 
         public static IReadOnlyList<FireSource> Active => ActiveList;
 
@@ -62,6 +84,10 @@ namespace Gameplay.Entities.Interactive
             }
 
             _baseScale = _visualRoot.localScale;
+            _steamRate = _steam.emission.rateOverTimeMultiplier;
+            _embersRate = _embers.emission.rateOverTimeMultiplier;
+            _splashRate = _splash.emission.rateOverTimeMultiplier;
+            _scorch.SetActive(false);
             IsOut = _intensity <= 0f;
             ApplyVisuals();
         }
@@ -95,6 +121,7 @@ namespace Gameplay.Entities.Interactive
         public void Ignite(float intensity = 1f)
         {
             IsOut = false;
+            _smolder.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             foreach (ParticleSystem particles in _particles)
             {
                 particles.Play(false);
@@ -111,8 +138,16 @@ namespace Gameplay.Entities.Interactive
                 return 0f;
             }
 
-            float distance = Vector3.Distance(point, transform.position);
-            return _intensity * Mathf.Clamp01(1f - distance / _heatRadius);
+            Vector3 offset = point - transform.position;
+            if (offset.y < 0f || offset.y > _heatHeight)
+            {
+                return 0f;
+            }
+
+            // Horizontal distance (the head is well above the fire base); square root makes heat build up early.
+            offset.y = 0f;
+            float closeness = Mathf.Clamp01(1f - offset.magnitude / _heatRadius);
+            return _intensity * Mathf.Sqrt(closeness);
         }
 
         private void Update()
@@ -123,11 +158,59 @@ namespace Gameplay.Entities.Interactive
                 SetIntensity(_intensity + _reigniteSpeed * Time.deltaTime);
             }
 
+            UpdateLoop();
+            bool sprayed = !IsOut && _sinceSprayed < _sprayedWindow;
+            _sprayBlend = Mathf.MoveTowards(_sprayBlend, sprayed ? 1f : 0f, Time.deltaTime * _sprayBlendSpeed);
+            UpdateSprayReaction(sprayed);
+
             if (!IsOut)
             {
                 float noise = Mathf.PerlinNoise(_noiseSeed, Time.time * _flickerSpeed) - 0.5f;
-                _light.intensity = _lightIntensity * _intensity * (1f + noise * 2f * _flickerAmount);
+                float flicker = Mathf.Lerp(_flickerAmount, _sprayedFlicker, _sprayBlend);
+                _light.intensity = _lightIntensity * _intensity * (1f + noise * 2f * flicker);
             }
+        }
+
+        private void UpdateSprayReaction(bool sprayed)
+        {
+            var steamEmission = _steam.emission;
+            steamEmission.rateOverTimeMultiplier = _steamRate * _sprayBlend * Mathf.Max(_intensity, _minVisual);
+            var embersEmission = _embers.emission;
+            embersEmission.rateOverTimeMultiplier = _embersRate * _sprayBlend * _intensity;
+            var splashEmission = _splash.emission;
+            splashEmission.rateOverTimeMultiplier = _splashRate * _sprayBlend;
+            if (sprayed && !_steam.isEmitting)
+            {
+                _steam.Play(false);
+                _embers.Play(false);
+                _splash.Play(false);
+            }
+
+            if (sprayed && !_sizzle.IsPlaying)
+            {
+                _sizzle = AudioService.Instance.PlayLoop(SoundType.FireSizzle, transform);
+            }
+
+            _sizzle.SetVolume(_sprayBlend);
+            if (_sprayBlend <= 0f && _sizzle.IsPlaying)
+            {
+                _sizzle.Stop();
+                _sizzle = SilentLoop.Instance;
+                _steam.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+                _embers.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+                _splash.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+            }
+
+            if (IsOut)
+            {
+                return;
+            }
+
+            float wobble = (Mathf.PerlinNoise(Time.time * _wobbleSpeed, _noiseSeed) - 0.5f) * 2f * _wobbleAngle * _sprayBlend;
+            Vector3 scale = _baseScale * Mathf.Lerp(_minVisualScale, 1f, _intensity);
+            scale.y *= 1f - _squash * _sprayBlend;
+            _visualRoot.localScale = scale;
+            _visualRoot.localRotation = Quaternion.Euler(wobble, 0f, wobble * 0.5f);
         }
 
         private void SetIntensity(float value)
@@ -146,6 +229,12 @@ namespace Gameplay.Entities.Interactive
             {
                 IsOut = true;
                 _extinguishPuff.Play(true);
+                _smolder.Play(true);
+                _steam.Emit(_outSteamBurst);
+                _splash.Emit(_outSplashBurst);
+                _scorch.transform.localRotation = Quaternion.Euler(90f, UnityEngine.Random.Range(0f, 360f), 0f);
+                _scorch.SetActive(true);
+                AudioService.Instance.PlayAt(SoundType.FireOut, transform.position);
 
                 Extinguished?.Invoke(this);
             }
@@ -174,7 +263,15 @@ namespace Gameplay.Entities.Interactive
 
             _blocker.enabled = _intensity > 0f;
 
-            if (_intensity <= 0f)
+            _loopVolume = visual;
+            UpdateLoop();
+        }
+
+        // Only nearby fires hold one of the shared loop sources, so the spray and gas loops never run out.
+        private void UpdateLoop()
+        {
+            bool audible = _intensity > 0f && AudioService.Instance.IsAudible(SoundType.FireLoop, transform.position);
+            if (!audible)
             {
                 _loop.Stop();
                 _loop = SilentLoop.Instance;
@@ -186,7 +283,7 @@ namespace Gameplay.Entities.Interactive
                 _loop = AudioService.Instance.PlayLoop(SoundType.FireLoop, transform);
             }
 
-            _loop.SetVolume(visual);
+            _loop.SetVolume(_loopVolume);
         }
     }
 }

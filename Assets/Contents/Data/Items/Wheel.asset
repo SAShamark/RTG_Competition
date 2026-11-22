@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Items.ItemDefinition
   _type: 3
   _displayName: "\u043C\u0430\u0445\u043E\u0432\u0438\u043A"
-  _icon: {fileID: 21300000, guid: e0fa3fb9a2ffa0849a373b7c61110394, type: 3}
+  _icon: {fileID: 21300000, guid: 2f59e6c5e038a6c4d8e39302c4ca01b4, type: 3}

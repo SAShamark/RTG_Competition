@@ -15,142 +15,277 @@ MonoBehaviour:
   _sounds:
   - _type: 1
     _clips:
-    - {fileID: 8300000, guid: a5b87eecd166212488583631e05ef9df, type: 3}
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
+    - {fileID: 8300000, guid: 0b2bf3230f46dd44dadea576c308f40b, type: 3}
+    - {fileID: 8300000, guid: e00c2f2903f6d30408eef08c80289e0a, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
     _maxDistance: 18
   - _type: 2
     _clips:
-    - {fileID: 8300000, guid: ca0a2da4a4287d342af06c735c4fe26b, type: 3}
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
+    - {fileID: 8300000, guid: ea2642d1d5f6cb949b6b952e4359b298, type: 3}
+    - {fileID: 8300000, guid: b29e9ea61d669c94f9bf6b3b6066b2a8, type: 3}
+    - {fileID: 8300000, guid: 253f19e4e293ee3439a45360a25e1687, type: 3}
+    - {fileID: 8300000, guid: 9711a3e928ea67348a287e72129dc2e3, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
     _maxDistance: 18
   - _type: 3
     _clips:
-    - {fileID: 8300000, guid: 910f33ea7829ca54fbfee7b849b53c0b, type: 3}
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 18
+    - {fileID: 8300000, guid: 98e711f38a9c22e4d9c961898a5b5151, type: 3}
+    - {fileID: 8300000, guid: c04cd75f0a14d3e49beb82df7a9a3aaf, type: 3}
+    - {fileID: 8300000, guid: 4fe1aba89bcf3474488ebdbe06fecd16, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 14
   - _type: 4
-    _clips: []
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 25
+    _clips:
+    - {fileID: 8300000, guid: c912c8627ac5055408311f16611c3118, type: 3}
+    _volume: 0.85
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 18
   - _type: 5
-    _clips: []
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 25
+    _clips:
+    - {fileID: 8300000, guid: a5fc3be6b2db077418c0ea693f6f4fed, type: 3}
+    _volume: 0.85
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 18
   - _type: 6
     _clips:
-    - {fileID: 8300000, guid: eacb24cb8f0aadc4bbe5fca95be838b1, type: 3}
-    _volume: 0.6
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 9
+    - {fileID: 8300000, guid: 46b04fb1d6cee61498a3c3892dc8af28, type: 3}
+    _volume: 0.75
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 16
   - _type: 7
     _clips:
-    - {fileID: 8300000, guid: 973f955289fb71246b3902971af040cd, type: 3}
-    _volume: 0.6
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 9
+    - {fileID: 8300000, guid: 8de053ad5fad4d64cb21393bf8eefffd, type: 3}
+    - {fileID: 8300000, guid: 721699e617820244f9eb170a5dea98bd, type: 3}
+    _volume: 0.9
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 22
   - _type: 8
     _clips:
-    - {fileID: 8300000, guid: 910f33ea7829ca54fbfee7b849b53c0b, type: 3}
-    _volume: 0.6
+    - {fileID: 8300000, guid: e554b3c3d8955074f869f5425218fbe8, type: 3}
+    _volume: 0.7
     _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 500
+    _spatialBlend: 0.85
+    _maxDistance: 14
   - _type: 9
-    _clips: []
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 25
+    _clips:
+    - {fileID: 8300000, guid: 1872865aa1dc1574f8b97b8ae78ee5d0, type: 3}
+    _volume: 0.75
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 14
   - _type: 10
-    _clips: []
-    _volume: 1
+    _clips:
+    - {fileID: 8300000, guid: e5f55867f3bb99d41aef3dc92997787f, type: 3}
+    _volume: 0.85
     _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 25
+    _spatialBlend: 0.85
+    _maxDistance: 14
   - _type: 11
     _clips:
-    - {fileID: 8300000, guid: a4a5801695968ec45b460be0949c096c, type: 3}
-    _volume: 1
+    - {fileID: 8300000, guid: a9c3f45105aab224da0c3b1bf37e44f6, type: 3}
+    _volume: 0.8
     _pitch: {x: 1, y: 1}
-    _spatialBlend: 0
-    _maxDistance: 500
+    _spatialBlend: 0.5
+    _maxDistance: 14
   - _type: 12
     _clips:
-    - {fileID: 8300000, guid: a4a5801695968ec45b460be0949c096c, type: 3}
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 0
-    _maxDistance: 500
+    - {fileID: 8300000, guid: 2240c0f989f56de4d9616e06c2c1238d, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.5
+    _maxDistance: 14
   - _type: 13
     _clips:
-    - {fileID: 8300000, guid: eacb24cb8f0aadc4bbe5fca95be838b1, type: 3}
-    _volume: 0.6
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 500
+    - {fileID: 8300000, guid: c9189d3de2025f647ad385e1846ed90d, type: 3}
+    - {fileID: 8300000, guid: 08e2902605a16ad4285ca01ffc540f95, type: 3}
+    _volume: 0.75
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 16
   - _type: 14
     _clips:
-    - {fileID: 8300000, guid: 15c16e60399b0b64eb32bd2e2979d074, type: 3}
-    _volume: 1
+    - {fileID: 8300000, guid: b2242438b1491984484d03ea7bb6723b, type: 3}
+    _volume: 0.9
     _pitch: {x: 1, y: 1}
-    _spatialBlend: 0
-    _maxDistance: 500
+    _spatialBlend: 0.85
+    _maxDistance: 26
   - _type: 15
     _clips:
-    - {fileID: 8300000, guid: 3e30067facfddc942b14e12d9e6686f8, type: 3}
-    _volume: 0.35
+    - {fileID: 8300000, guid: 73432cd5752c0b448929fd392c5f776b, type: 3}
+    _volume: 0.45
     _pitch: {x: 1, y: 1}
     _spatialBlend: 1
-    _maxDistance: 7
+    _maxDistance: 12
   - _type: 16
     _clips:
-    - {fileID: 8300000, guid: a4a5801695968ec45b460be0949c096c, type: 3}
+    - {fileID: 8300000, guid: 63cf98cd2d9accc46a6b2321b901d49f, type: 3}
+    - {fileID: 8300000, guid: a4325dfca18d8434ca6f46d60f251d7a, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 16
+  - _type: 17
+    _clips:
+    - {fileID: 8300000, guid: 06338133466f17947ac10bc5baba4e88, type: 3}
+    _volume: 0.75
+    _pitch: {x: 0.95, y: 1.05}
+    _spatialBlend: 1
+    _maxDistance: 8
+  - _type: 18
+    _clips:
+    - {fileID: 8300000, guid: a79108fa16e9dc14a9ab458861d76fc6, type: 3}
     _volume: 0.6
     _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 9
-  - _type: 17
-    _clips: []
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 25
-  - _type: 18
-    _clips: []
-    _volume: 1
-    _pitch: {x: 1, y: 1}
-    _spatialBlend: 1
-    _maxDistance: 25
+    _spatialBlend: 0.7
+    _maxDistance: 18
   - _type: 19
     _clips:
-    - {fileID: 8300000, guid: 68e0496a46689ac4680b1a26a7c638d0, type: 3}
-    _volume: 1
-    _pitch: {x: 0.92, y: 1.08}
-    _spatialBlend: 0.6
-    _maxDistance: 40
+    - {fileID: 8300000, guid: 25e33848eb59c9147a6803c5d17914e9, type: 3}
+    _volume: 0.85
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 30
   - _type: 20
     _clips:
     - {fileID: 8300000, guid: ace76e678528e3b40862286d2083c3d7, type: 3}
     _volume: 0.6
-    _pitch: {x: 1, y: 1}
+    _pitch: {x: 0.96, y: 1.04}
     _spatialBlend: 1
     _maxDistance: 14
   - _type: 21
     _clips:
-    - {fileID: 8300000, guid: f040dcc41246000459efcf829bda8eca, type: 3}
+    - {fileID: 8300000, guid: 6a544c21d7891bb4bbe1f18bd680ce37, type: 3}
     _volume: 1
     _pitch: {x: 1, y: 1}
-    _spatialBlend: 0.3
-    _maxDistance: 500
+    _spatialBlend: 0
+    _maxDistance: 80
+  - _type: 22
+    _clips:
+    - {fileID: 8300000, guid: 05bb66daee4fb9d44aa1961baa8bea89, type: 3}
+    _volume: 0.9
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 20
+  - _type: 23
+    _clips:
+    - {fileID: 8300000, guid: 83b6675cc6370204d9b0085897733e29, type: 3}
+    _volume: 0.75
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.7
+    _maxDistance: 18
+  - _type: 24
+    _clips:
+    - {fileID: 8300000, guid: 115176aac5e3c2d41badf67b4ef42630, type: 3}
+    _volume: 0.6
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.7
+    _maxDistance: 18
+  - _type: 25
+    _clips:
+    - {fileID: 8300000, guid: 275fe1b34687ca44ea6264408b7ae885, type: 3}
+    _volume: 0.55
+    _pitch: {x: 1, y: 1}
+    _spatialBlend: 1
+    _maxDistance: 12
+  - _type: 26
+    _clips:
+    - {fileID: 8300000, guid: e4ce7b314068b0d4cb487406021a4c36, type: 3}
+    _volume: 0.75
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 1
+    _maxDistance: 18
+  - _type: 27
+    _clips:
+    - {fileID: 8300000, guid: 02e75f01e0ff1ec40b279071f1fb2d14, type: 3}
+    - {fileID: 8300000, guid: fd5ff1135004f0b41b61e3c67b037661, type: 3}
+    - {fileID: 8300000, guid: f0f5ab4a75a342f46916bd979637b08a, type: 3}
+    - {fileID: 8300000, guid: 31c5cfdfd8e27c14ca7833ed2151529a, type: 3}
+    - {fileID: 8300000, guid: d40b85f49fe2dcc4b85367c1c0fd0d7d, type: 3}
+    _volume: 0.35
+    _pitch: {x: 0.9, y: 1.1}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 28
+    _clips:
+    - {fileID: 8300000, guid: a08aecafe2ff11548bb4d64abd63dfa0, type: 3}
+    - {fileID: 8300000, guid: 8eacb468c3f148c4aa397d3a5f20f12f, type: 3}
+    - {fileID: 8300000, guid: 6cbebae5596a6934f9e02b159f1fb155, type: 3}
+    - {fileID: 8300000, guid: bafcba24980f13f418fbdb34df21bbad, type: 3}
+    - {fileID: 8300000, guid: 957e5773fd111c342a9c11ea327ccded, type: 3}
+    _volume: 0.35
+    _pitch: {x: 0.9, y: 1.1}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 29
+    _clips:
+    - {fileID: 8300000, guid: 41ee313c4e914a54dae53b15108a518e, type: 3}
+    - {fileID: 8300000, guid: 2ea98f3622740904ab7d7a5c5d7ae3d4, type: 3}
+    _volume: 0.6
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 30
+    _clips:
+    - {fileID: 8300000, guid: 7a62f3973b7244c409c593578ac70728, type: 3}
+    _volume: 0.45
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 31
+    _clips:
+    - {fileID: 8300000, guid: a573cac8f7bc2c340917b6c1b0141588, type: 3}
+    _volume: 0.6
+    _pitch: {x: 1, y: 1}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 32
+    _clips:
+    - {fileID: 8300000, guid: 27c16fdf051e3f448ae6e15e0e24800e, type: 3}
+    _volume: 0.7
+    _pitch: {x: 1, y: 1}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 33
+    _clips:
+    - {fileID: 8300000, guid: 57a31212fb2759a4ca7a29aa8cf6a1cc, type: 3}
+    - {fileID: 8300000, guid: 398cd0687d1d72a4da217a6aa67b1e6c, type: 3}
+    - {fileID: 8300000, guid: 6b528ff2ae2c42c42a629cef0f7b61f9, type: 3}
+    _volume: 0.55
+    _pitch: {x: 0.93, y: 1.07}
+    _spatialBlend: 0
+    _maxDistance: 10
+  - _type: 34
+    _clips:
+    - {fileID: 8300000, guid: 9589b11d05b44464c8248f607d175b6a, type: 3}
+    - {fileID: 8300000, guid: 625a3bcf0f88c7042a3f33e2d83984e3, type: 3}
+    - {fileID: 8300000, guid: 8b991a1b0413bb841ba9f8bcca36d8bd, type: 3}
+    _volume: 0.9
+    _pitch: {x: 0.93, y: 1.07}
+    _spatialBlend: 0.6
+    _maxDistance: 18
+  - _type: 35
+    _clips:
+    - {fileID: 8300000, guid: a0a06f847336aca4f81a4a4efcb885e0, type: 3}
+    - {fileID: 8300000, guid: 0ed33d2b30661434c9c863911ae2c1c6, type: 3}
+    - {fileID: 8300000, guid: 63e1131e425a0234784d8eba1717a579, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.93, y: 1.07}
+    _spatialBlend: 0.6
+    _maxDistance: 18
+  - _type: 36
+    _clips:
+    - {fileID: 8300000, guid: 6b5bbae635cf0e1429fa06b009d2eb7e, type: 3}
+    _volume: 0.9
+    _pitch: {x: 1, y: 1}
+    _spatialBlend: 0.8
+    _maxDistance: 30

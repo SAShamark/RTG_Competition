@@ -1,6 +1,7 @@
 using Gameplay.Dialogue;
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Player;
+using Services.Audio;
 using System;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ namespace Gameplay.Entities.Interactive.Items
             }
 
             IsTaken = true;
+            AudioService.Instance.Play(SoundType.ItemPickup);
             OnCollected();
             Taken?.Invoke(this);
         }

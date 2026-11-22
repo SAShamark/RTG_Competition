@@ -1,6 +1,7 @@
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
 using Gameplay.Entities.Residents;
+using Services.Audio;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -25,6 +26,7 @@ namespace Gameplay.Entities.Player
         [SerializeField] private HandsAnimationControl _hands = new();
         [SerializeField] private InventoryLogic _heldItem = new();
         [SerializeField] private ExtinguisherLogic _extinguisher = new();
+        [SerializeField] private PlayerAudioLogic _audio = new();
         [SerializeField] private AxeLogic _axe = new();
         [SerializeField] private CarryLogic _carry = new();
         [SerializeField] private float _throwSpeed = 6.5f;
@@ -104,6 +106,7 @@ namespace Gameplay.Entities.Player
             _interactionLogic.Init(transform, Head);
             _interactionLogic.SetFilter(target => !_carry.IsCarrying || target is IUsableWhileCarrying);
             _extinguisher.Init(Head, _heldItem);
+            _audio.Init(transform, Head);
             _axe.Init(Head, _heldItem);
             _heldItem.ItemChanged += HandleItemChanged;
             _carry.Init(transform);
@@ -117,12 +120,21 @@ namespace Gameplay.Entities.Player
             _carry.CarryChanged -= HandleCarryChanged;
         }
 
-        void HandleItemChanged(ItemType type) => _hands.SetLeftGrip(_heldItem.HeldTool != null ? _heldItem.HeldTool.LeftGrip : null);
+        void HandleItemChanged(ItemType type)
+        {
+            AudioService.Instance.Play(SoundType.ItemSwitch);
+            ToolItem tool = _heldItem.HeldTool;
+            _hands.SetLeftGrip(tool != null ? tool.LeftGrip : null);
+            _hands.SetHandPose(tool != null && tool.HasHandPose, tool != null ? tool.HandPosition : Vector3.zero, tool != null ? tool.HandEuler : Vector3.zero);
+        }
 
         void HandleCarryChanged(Rescuable resident)
         {
             _heldItem.SetHidden(resident != null || _prop != null);
-            _hands.SetVisible(resident == null);
+            Animator body = resident != null ? resident.Animator : null;
+            _hands.SetCarryGrips(
+                body != null ? body.GetBoneTransform(HumanBodyBones.LeftUpperArm) : null,
+                body != null ? body.GetBoneTransform(HumanBodyBones.LeftLowerLeg) : null);
         }
 
         void OnEnable()
@@ -130,7 +142,7 @@ namespace Gameplay.Entities.Player
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             _pitch = NormalizeAngle(Head.localEulerAngles.x);
-            _hands.SetVisible(!_carry.IsCarrying);
+            _hands.SetVisible(true);
         }
 
         void OnDisable()
@@ -163,6 +175,7 @@ namespace Gameplay.Entities.Player
             _vy = _cc.isGrounded ? -2f : _vy + Gravity * Time.deltaTime;
             move.y = _vy;
             _cc.Move(move * Time.deltaTime);
+            _audio.Tick(_cc.isGrounded, speed > WalkSpeed, Time.deltaTime);
 
             _interactionLogic.Tick();
             IInteractable target = _interactionLogic.Current;
@@ -177,7 +190,7 @@ namespace Gameplay.Entities.Player
             }
 
             if (holdingProp && mouse.leftButton.wasPressedThisFrame && !_hands.IsBusy) ReleaseProp(true);
-            else if (!carrying && !holdingProp && _axe.IsReady && mouse.leftButton.wasPressedThisFrame && !_hands.IsBusy) _hands.Play(HandGesture.Chop, _axe.Strike);
+            else if (!carrying && !holdingProp && _axe.IsReady && mouse.leftButton.wasPressedThisFrame && !_hands.IsBusy) { AudioService.Instance.Play(SoundType.AxeSwing); _hands.Play(HandGesture.Chop, _axe.Strike); }
 
             if (carrying && kb.gKey.wasPressedThisFrame && !_hands.IsBusy) _carry.PutDown();
             else if (!holdingProp && kb.gKey.wasPressedThisFrame && !_hands.IsBusy && _heldItem.HeldTool != null) _heldItem.Drop(Head);
@@ -186,7 +199,7 @@ namespace Gameplay.Entities.Player
             if (!carrying && !holdingProp && kb.digit2Key.wasPressedThisFrame) _heldItem.SelectSlot(1);
             if (!carrying && !holdingProp && kb.digit3Key.wasPressedThisFrame) _heldItem.SelectSlot(2);
             _extinguisher.Tick(mouse.leftButton.isPressed && !_hands.IsBusy && !carrying && !holdingProp, Time.deltaTime);
-            _hands.SetAiming(_extinguisher.IsSpraying);
+            _hands.SetAiming(_extinguisher.IsSpraying, _extinguisher.Pressure);
             _hands.SetCarrying(_carry.IsCarrying);
 
             float planarSpeed = new Vector2(move.x, move.z).magnitude;

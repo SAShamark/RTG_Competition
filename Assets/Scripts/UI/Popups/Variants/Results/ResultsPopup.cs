@@ -1,6 +1,6 @@
-using Gameplay.Dialogue;
 using Gameplay.Entities.Residents;
 using Services;
+using Services.Audio;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,11 +19,10 @@ namespace UI.Popups.Variants.Results
 
     public sealed class ResultsPopup : BasePopup
     {
-        private const float PhotoSlotAspect = 1004f / 434f;
+        private const float PhotoSlotAspect = 1001f / 455f;
         private const int DepthBits = 24;
 
         [Header("Timing")]
-        [SerializeField] private TextLibrary _texts;
         [SerializeField] private float _fadeTime = 1.0f;
 
         [Header("Layout")]
@@ -33,11 +32,10 @@ namespace UI.Popups.Variants.Results
         [SerializeField] private RawImage _photo;
         [SerializeField] private Text _fireValue;
         [SerializeField] private Text _peopleValue;
-        [SerializeField] private Text _moneyValue;
         [SerializeField] private Text _timeText;
         [SerializeField] private Button _replay;
-        [SerializeField] private int _photoWidth = 1200;
-        [SerializeField] private int _photoHeight = 500;
+        [SerializeField] private int _photoWidth = 1320;
+        [SerializeField] private int _photoHeight = 600;
         [SerializeField] private float _dimAlpha = 0.35f;
         [SerializeField] private Color _shadeColor = new(0.05f, 0.03f, 0.02f);
         [SerializeField] private float _fadeAlpha = 0.8f;
@@ -111,6 +109,8 @@ namespace UI.Popups.Variants.Results
                 return;
             }
 
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             _time += Time.unscaledDeltaTime;
             _black.color = new Color(_shadeColor.r, _shadeColor.g, _shadeColor.b, Mathf.Clamp01(_time / _fadeTime) * (_dimOnly ? _dimAlpha : _fadeAlpha));
 
@@ -123,12 +123,15 @@ namespace UI.Popups.Variants.Results
             float count = Mathf.Clamp01((_time - _fadeTime - 0.5f) / _countTime);
             _fireValue.text = $"{Mathf.RoundToInt(_results.FirePercent * count)}%";
             _peopleValue.text = $"{Mathf.RoundToInt(_results.Rescued * count)}";
-            _moneyValue.text = _texts.Format(TextId.ResultsMoney, Mathf.RoundToInt(_results.MoneyFound * count));
             int seconds = Mathf.RoundToInt(_results.TimeSeconds * count);
-            _timeText.text = _texts.Format(TextId.ResultsTime, seconds / 60, seconds % 60, _results.Rescued, _results.RescueTotal);
+            _timeText.text = $"{seconds / 60:00}:{seconds % 60:00}";
         }
 
-        private static void Replay() => SceneManager.LoadScene(Mathf.Max(0, SceneManager.GetActiveScene().buildIndex));
+        private static void Replay()
+        {
+            AudioService.Instance.Play(SoundType.UiConfirm);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().path);
+        }
 
         private void OnDestroy()
         {

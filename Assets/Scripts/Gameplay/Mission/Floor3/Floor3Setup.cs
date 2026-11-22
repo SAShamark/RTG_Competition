@@ -13,6 +13,7 @@ namespace Gameplay.Mission.Floor3
         [SerializeField] private EvacuationWindow _window;
         [SerializeField] private FireSource _stoveFire;
         [SerializeField] private GasValve _valve;
+        [SerializeField] private ParticleSystem _gasLeak;
         [SerializeField] private StackItem _handle;
         [SerializeField] private PushableBlocker _fridge;
         [SerializeField] private Door _pantryDoor;
@@ -34,6 +35,7 @@ namespace Gameplay.Mission.Floor3
         public EvacuationWindow Window => _window;
         public FireSource StoveFire => _stoveFire;
         public GasValve Valve => _valve;
+        public ParticleSystem GasLeak => _gasLeak;
         public StackItem Handle => _handle;
         public PushableBlocker Fridge => _fridge;
         public Door PantryDoor => _pantryDoor;

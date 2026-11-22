@@ -21,6 +21,8 @@ namespace Gameplay
     [Serializable]
     public sealed class GameplayManager
     {
+        private const float AllFiresOutPercent = 100f;
+
         [SerializeField] private FirstPersonController _player;
         [SerializeField] private Transform _playerBody;
         [SerializeField] private TextLibrary _texts;
@@ -45,6 +47,7 @@ namespace Gameplay
         [SerializeField] private UncleBurstCutscene _uncleBurstCutscene;
         [SerializeField] private EvacuationThrowCutscene _throwCutscene;
         [SerializeField] private FinaleCutscene _finale;
+        [SerializeField] private GasBurstCutscene _gasBurstCutscene;
         [SerializeField] private ResultsPhotoRig _photoRig = new();
 
         private GameplayScreen _screen;
@@ -125,7 +128,8 @@ namespace Gameplay
             _entrance.SceneTriggered -= HandleEntranceTriggered;
             _floor2.Finished -= _floor3.Begin;
             _floor2.SafePuzzleRequested -= ShowSafePuzzle;
-            _floor3.Finished -= PlayFinale;
+            _floor3.Finished -= PlayGasBurst;
+            _gasBurstCutscene.Finished -= PlayFinale;
             _valveRoom.Solved -= _floor3Setup.Valve.ForceClose;
             _floor3Setup.PantryDoor.LockedAttempt -= HandlePantryLocked;
 
@@ -140,6 +144,13 @@ namespace Gameplay
             _stats.Dispose();
             _fog.Dispose();
             _cinematics.Dispose();
+        }
+
+        private void PlayGasBurst()
+        {
+            _screen.SetCrosshairVisible(false);
+            _gasBurstCutscene.Play(_player);
+            _cinematics.Present(_gasBurstCutscene);
         }
 
         public void PlayFinale()
@@ -158,7 +169,7 @@ namespace Gameplay
             _cinematics.Present(_finale);
         }
 
-        public void ShowResults() => ShowResults(null);
+        public void ShowResults() => ShowResults(null, _stats.FirePercentOut);
 
         private void InitializeEntrance(MissionContext context)
         {
@@ -202,7 +213,8 @@ namespace Gameplay
             _floor3 = new Floor3Controller(_floor3Setup, context);
             _floor3.Init();
             _floor2.Finished += _floor3.Begin;
-            _floor3.Finished += PlayFinale;
+            _floor3.Finished += PlayGasBurst;
+            _gasBurstCutscene.Finished += PlayFinale;
 
             _wheelSearch = new WheelSearchController(_screen, new[] { _floor2Setup.Flywheel, _floor3Setup.Handle }, _valveRoom, _floor3, _texts);
             _wheelSearch.Initialize();
@@ -309,10 +321,10 @@ namespace Gameplay
         private void HandleFinaleFinished()
         {
             _finale.Finished -= HandleFinaleFinished;
-            ShowResults(_finale.CapturedFrame);
+            ShowResults(_finale.CapturedFrame, AllFiresOutPercent);
         }
 
-        private void ShowResults(Texture photo)
+        private void ShowResults(Texture photo, float firePercent)
         {
             _stats.Stop();
             _player.enabled = false;
@@ -324,7 +336,7 @@ namespace Gameplay
                 RescueTotal = _rescueTotal,
                 MoneyFound = _stats.MoneyFound,
                 TimeSeconds = _stats.Time,
-                FirePercent = _stats.FirePercentOut,
+                FirePercent = firePercent,
             }, photo, _photoRig);
         }
     }

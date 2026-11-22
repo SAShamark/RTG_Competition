@@ -11,7 +11,8 @@ namespace Gameplay.Mission.Floor3
 {
     public sealed class Floor3Controller : StageController
     {
-        private const float EscapeDelay = 2.6f;
+        private const float BurstDelay = 1.2f;
+        private const float GasHintSprayTime = 1f;
 
         private enum Step { Waiting, FindNeighbor, Kitchen, Evacuate, Done }
 
@@ -19,10 +20,10 @@ namespace Gameplay.Mission.Floor3
         private Step _step = Step.Waiting;
         private bool _seenNeighbor;
         private bool _gasHinted;
+        private float _stoveSprayTime;
         private bool _hasHandle;
         private bool _gasClosed;
         private float _burstTimer = -1f;
-        private float _blastTimer = -1f;
 
         public override bool IsActive => _step != Step.Waiting && _step != Step.Done;
 
@@ -146,25 +147,16 @@ namespace Gameplay.Mission.Floor3
 
         private void TickBlast(float deltaTime)
         {
-            if (_burstTimer > 0f)
+            if (_burstTimer <= 0f)
             {
-                _burstTimer -= deltaTime;
-                if (_burstTimer <= 0f)
-                {
-                    _setup.Valve.Burst();
-                    _screen.ShowToast(_texts[TextId.ToastGasBurst]);
-                    _screen.Say(_dialogue.Library.Get("M07"));
-                    _screen.SetObjective(_texts[TextId.ObjectiveRun]);
-                    _blastTimer = EscapeDelay;
-                }
+                return;
             }
-            else if (_blastTimer > 0f)
+
+            _burstTimer -= deltaTime;
+            if (_burstTimer <= 0f)
             {
-                _blastTimer -= deltaTime;
-                if (_blastTimer <= 0f)
-                {
-                    Finish();
-                }
+                _screen.SetObjective(_texts[TextId.ObjectiveRun]);
+                Finish();
             }
         }
 
@@ -178,12 +170,7 @@ namespace Gameplay.Mission.Floor3
             _seenNeighbor = true;
             _step = Step.Kitchen;
             _screen.SetObjective(_texts[TextId.ObjectiveReachNeighbor]);
-            Talk(new[]
-            {
-                _dialogue.Line("N02", _setup.Neighbor.Head, _playerHead),
-                _dialogue.Line("M05", _playerHead, _setup.Neighbor.Head),
-                _dialogue.Line("N03", _setup.Neighbor.Head, _playerHead),
-            }, ShowPantryRoute);
+            _screen.Say(_dialogue.Library.Get("N02"), _setup.Neighbor.Head);
         }
 
         private void ShowPantryRoute()
@@ -205,7 +192,19 @@ namespace Gameplay.Mission.Floor3
                 return;
             }
 
+            _stoveSprayTime += Time.deltaTime;
+            if (_stoveSprayTime < GasHintSprayTime)
+            {
+                return;
+            }
+
             _gasHinted = true;
+            _screen.ShowToast(_texts[TextId.ToastGasFeedsFire]);
+            Talk(new[]
+            {
+                _dialogue.Line("M05", _playerHead, _setup.Neighbor.Head),
+                _dialogue.Line("N03", _setup.Neighbor.Head, _playerHead),
+            }, ShowPantryRoute);
         }
 
         private void HandleHandleTaken(ItemPickup handle)
@@ -217,6 +216,7 @@ namespace Gameplay.Mission.Floor3
         private void HandleGasClosed()
         {
             _gasClosed = true;
+            _setup.GasLeak.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             _screen.Say(_dialogue.Library.Get("N04"));
             _setup.StoveFire.SetReignite(false);
             _screen.SetObjective(_setup.StoveFire.IsOut ? _texts[TextId.ObjectiveEvacuateNeighbor] : _texts[TextId.ObjectivePutOutKitchen]);
@@ -280,7 +280,7 @@ namespace Gameplay.Mission.Floor3
             _nav.Clear();
             _screen.SetObjective(_texts[TextId.ObjectiveLeaveBuilding]);
             _screen.Say(_dialogue.Library.Get("P09"));
-            _burstTimer = EscapeDelay;
+            _burstTimer = BurstDelay;
         }
 
 

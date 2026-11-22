@@ -166,8 +166,7 @@ namespace Gameplay.Mission
             _sawGrandma = true;
             _step = Step.TalkToGrandma;
             _screen.SetObjective(_texts[TextId.ObjectiveReachGrandma]);
-            Talk(
-                _dialogue.Line("G01", _setup.Grandma.Head, _playerHead));
+            _screen.Say(_dialogue.Library.Get("G01"), _setup.Grandma.Head);
         }
 
         private void HandleDoorFireOut(FireSource fire)

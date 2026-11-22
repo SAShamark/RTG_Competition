@@ -8,6 +8,8 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 {
     public sealed class PartnerDialogWidget : MonoBehaviour
     {
+        private const float NoVoice = -1f;
+
         [SerializeField] private DialogLibrary _dialogs;
         [SerializeField] private CanvasGroup _group;
         [SerializeField] private Text _text;
@@ -69,6 +71,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
                 Line next = _queue.Dequeue();
                 _line = next.Text;
                 _hold = next.Hold;
+                _voiceLeft = _dialogs.TryGetClip(next.Text, out AudioClip clip) ? clip.length : NoVoice;
                 _typed = 0f;
                 bool other = !string.IsNullOrEmpty(next.Speaker);
                 _prefix = $"<b><color={_otherSpeakerColor}>{(other ? next.Speaker : _partnerName)}:</color></b> ";
@@ -99,19 +102,22 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 
             FollowAnchor();
 
+            _voiceLeft -= Time.unscaledDeltaTime;
             _typed += Time.unscaledDeltaTime * _charsPerSecond;
             int count = Mathf.Min(_line.Length, Mathf.FloorToInt(_typed));
             _text.text = _prefix + _line.Substring(0, count);
             if (count >= _line.Length)
             {
                 _hold -= Time.unscaledDeltaTime;
-                if (_hold <= 0f)
+                bool voiceDone = _voiceLeft != NoVoice && _voiceLeft <= 0f;
+                if (voiceDone || (_voiceLeft == NoVoice && _hold <= 0f))
                 {
                     _line = null;
                 }
             }
         }
 
+        private float _voiceLeft;
         private float _baseHeight;
         private float _baseTextHeight;
 

@@ -9,6 +9,9 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private Vector3 _holdEuler;
         [SerializeField] private float _lostDepth = 4f;
         [SerializeField] private Transform _leftGrip;
+        [SerializeField] private bool _hasHandPose;
+        [SerializeField] private Vector3 _handPosition;
+        [SerializeField] private Vector3 _handEuler;
 
         private Transform _worldParent;
         [SerializeField] private Rigidbody _body;
@@ -18,6 +21,9 @@ namespace Gameplay.Entities.Interactive.Items
         public Vector3 HoldPosition => _holdPosition;
         public Vector3 HoldEuler => _holdEuler;
         public Transform LeftGrip => _leftGrip;
+        public bool HasHandPose => _hasHandPose;
+        public Vector3 HandPosition => _handPosition;
+        public Vector3 HandEuler => _handEuler;
 
         protected override bool Store(IItemHolder holder) => holder.TakeTool(this);
 

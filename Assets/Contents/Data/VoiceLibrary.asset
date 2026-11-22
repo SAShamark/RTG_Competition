@@ -130,8 +130,8 @@ MonoBehaviour:
       _clip: {fileID: 0}
       _hold: 3
     - _id: G10
-      _text: "\u0410-\u0410-\u0410-\u0410-\u0410!"
-      _clip: {fileID: 0}
+      _text: "А-а-а-а-а!"
+      _clip: {fileID: 8300000, guid: 7ac848c77dcc445ebce53e10e12573df, type: 3}
       _hold: 3
   - _character: 3
     _displayName: "\u0421\u0443\u0441\u0456\u0434"
@@ -156,10 +156,10 @@ MonoBehaviour:
     - _id: N05
       _text: "\u0410 \u0446\u0435 \u0431\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u043E?"
       _clip: {fileID: 8300000, guid: 2f0b2e3e8d9ddcf49b936c10e33db553, type: 3}
-      _hold: 3
+      _hold: 4
     - _id: N06
       _text: "\u0410-\u0410-\u0410-\u0410-\u0410!"
-      _clip: {fileID: 0}
+      _clip: {fileID: 8300000, guid: 32c8a06cefd44ddba33346a5c353b5c1, type: 3}
       _hold: 3
   - _character: 4
     _displayName: "\u0414\u044F\u0434\u044C\u043A\u043E"

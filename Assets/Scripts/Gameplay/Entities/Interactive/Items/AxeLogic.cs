@@ -1,3 +1,4 @@
+using Services.Audio;
 using System;
 using UnityEngine;
 
@@ -31,6 +32,9 @@ namespace Gameplay.Entities.Interactive.Items
                 Missed?.Invoke();
                 return;
             }
+
+            bool isChoppable = hit.collider.GetComponentInParent<IChoppable>() != null || hit.collider.GetComponentInChildren<IChoppable>() != null;
+            AudioService.Instance.PlayAt(isChoppable ? SoundType.AxeHitWood : SoundType.AxeHitHard, hit.point);
 
             foreach (IChoppable target in hit.collider.GetComponentsInParent<IChoppable>())
             {

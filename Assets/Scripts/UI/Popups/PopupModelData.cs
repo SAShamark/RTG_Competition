@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UI.Popups
 {
     [Serializable]
-    public class PopupModelData
+    public sealed class PopupModelData
     {
         [SerializeField] private PopupTypes _popupType;
         [SerializeField] private BasePopup _template;

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UI
 {
     [CreateAssetMenu(fileName = "UIConfig", menuName = "ScriptableObjects/UI/UI config", order = 1)]
-    public class WindowsConfig : ScriptableObject
+    public sealed class WindowsConfig : ScriptableObject
     {
         [SerializeField] private ScreenModelData[] _screenModels;
         [SerializeField] private PopupModelData[] _popupModels;

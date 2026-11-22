@@ -1,4 +1,4 @@
-﻿namespace UI.Screens.Base
+namespace UI.Screens.Base
 {
     public class BaseSubscreen : BaseWindow
     {

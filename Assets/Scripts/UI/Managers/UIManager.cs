@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UI.Managers
 {
-    public class UIManager : MonoSingleton<UIManager>
+    public sealed class UIManager : MonoSingleton<UIManager>
     {
         [SerializeField] private ScreensManager _screensManager;
         [SerializeField] private PopupsManager _popupsManager;

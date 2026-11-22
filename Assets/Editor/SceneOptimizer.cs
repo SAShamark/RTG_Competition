@@ -1,3 +1,5 @@
+using Gameplay.Entities.Environment;
+using Gameplay.Entities.Interactive;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -11,6 +13,7 @@ using UnityEngine.Rendering;
 public static class SceneOptimizer
 {
     const string RootName = "--- Combined (generated) ---";
+    const string OriginalsFile = "Assets/Contents/Generated/CombinedOriginals.txt";
     const string MeshDir = "Assets/Contents/Generated/Combined";
     const float Cell = 12f;
 
@@ -78,7 +81,8 @@ public static class SceneOptimizer
             meshes++;
         }
 
-        root.AddComponent<Game.World.CombinedRegistry>().Originals = disabled.ToArray();
+        System.IO.File.WriteAllLines(OriginalsFile, disabled.ConvertAll(r => GlobalObjectId.GetGlobalObjectIdSlow(r).ToString()));
+        AssetDatabase.ImportAsset(OriginalsFile);
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkSceneDirty(root.scene);
         return $"merged {used} renderers into {meshes} meshes";
@@ -89,12 +93,15 @@ public static class SceneOptimizer
     {
         var root = GameObject.Find(RootName);
         if (root == null) return;
-        var registry = root.GetComponent<Game.World.CombinedRegistry>();
-        if (registry != null && registry.Originals != null)
+        if (System.IO.File.Exists(OriginalsFile))
         {
-            foreach (var r in registry.Originals)
+            foreach (string line in System.IO.File.ReadAllLines(OriginalsFile))
             {
-                if (r != null) { Undo.RecordObject(r, "uncombine"); r.enabled = true; }
+                if (GlobalObjectId.TryParse(line, out GlobalObjectId id) && GlobalObjectId.GlobalObjectIdentifierToObjectSlow(id) is MeshRenderer r)
+                {
+                    Undo.RecordObject(r, "uncombine");
+                    r.enabled = true;
+                }
             }
         }
         Object.DestroyImmediate(root);
@@ -109,8 +116,8 @@ public static class SceneOptimizer
         var mf = r.GetComponent<MeshFilter>();
         if (mf == null || mf.sharedMesh == null) return false;
         if (r.sharedMaterials.Length != 1 || r.sharedMaterial == null) return false;
-        if (r.GetComponentInParent<Game.World.Door>() != null) return false;
-        if (r.GetComponentInParent<Game.World.ChainLock>() != null) return false;
+        if (r.GetComponentInParent<Door>() != null) return false;
+        if (r.GetComponentInParent<ChainLock>() != null) return false;
         // invisible blockers keep their renderer disabled on purpose: never touch them
         var t = r.transform;
         while (t != null)

@@ -8,12 +8,12 @@ using Object = UnityEngine.Object;
 namespace UI.Screens
 {
     [Serializable]
-    public class ScreensManager : BaseWindowsManager<BaseScreen>, IScreensManager
+    public sealed class ScreensManager : BaseWindowsManager<BaseScreen>, IScreensManager
     {
         private readonly Dictionary<ScreenTypes, ScreenModelData> _screenModelsParsed = new();
         private readonly Dictionary<ScreenTypes, BaseScreen> _screens = new();
         private readonly Stack<BaseScreen> _previousScreens = new();
-        public event Action<ScreenTypes> OnScreenShowed;
+        public event Action<ScreenTypes> ScreenShowed;
 
         public BaseScreen GetScreen(ScreenTypes screenType)
         {
@@ -63,7 +63,7 @@ namespace UI.Screens
                 AddScreen(screenTypes);
             }
 
-            OnScreenShowed?.Invoke(screenTypes);
+            ScreenShowed?.Invoke(screenTypes);
         }
 
         private void AddScreen(ScreenTypes screenType)

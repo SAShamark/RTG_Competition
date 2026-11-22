@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UI.Managers;
@@ -8,14 +8,14 @@ using Object = UnityEngine.Object;
 namespace UI.Popups
 {
     [Serializable]
-    public class PopupsManager : BaseWindowsManager<BasePopup>, IPopupsManager
+    public sealed class PopupsManager : BaseWindowsManager<BasePopup>, IPopupsManager
     {
         [SerializeField] private GameObject _popupFader;
 
         private Dictionary<PopupTypes, PopupModelData> _popupModelsParsed = new();
         private List<BasePopup> _currentPopups = new();
-        public event Action<PopupTypes> OnPopupShowed;
-        public event Action<PopupTypes> OnPopupHidden;
+        public event Action<PopupTypes> PopupShowed;
+        public event Action<PopupTypes> PopupHidden;
 
         public override void OnConfigLoaded(WindowsConfig windowConfig)
         {
@@ -51,7 +51,13 @@ namespace UI.Popups
             basePopup.PopupData = popupModelData;
 
             AddPopup(basePopup);
-            OnPopupShowed?.Invoke(popupType);
+            PopupShowed?.Invoke(popupType);
+        }
+
+        public T ShowPopup<T>(PopupTypes popupType) where T : BasePopup
+        {
+            ShowPopup(popupType);
+            return (T)GetTopPopup();
         }
 
         public void HidePopup(PopupTypes popupType)
@@ -60,7 +66,7 @@ namespace UI.Popups
             if (currentPopup != null)
             {
                 RemovePopup(currentPopup);
-                OnPopupHidden?.Invoke(popupType);
+                PopupHidden?.Invoke(popupType);
             }
             else
             {

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UI.Screens
 {
     [Serializable]
-    public class ScreenModelData
+    public sealed class ScreenModelData
     {
         [SerializeField] private ScreenTypes _screenType;
         [SerializeField] private BaseScreen _template;

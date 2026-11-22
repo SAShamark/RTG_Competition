@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UI.Managers.Components
 {
     [RequireComponent(typeof(RectTransform))]
-    public class SafeAreaFitter : MonoBehaviour
+    public sealed class SafeAreaFitter : MonoBehaviour
     {
         [SerializeField] private bool _isHorizontalControl = true;
         [SerializeField] private bool _isVerticalControl;

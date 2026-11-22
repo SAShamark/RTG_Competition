@@ -6,7 +6,7 @@ namespace UI.Screens
 {
     public interface IScreensManager
     {
-        event Action<ScreenTypes> OnScreenShowed;
+        event Action<ScreenTypes> ScreenShowed;
         void ShowScreen(ScreenTypes screenTypes, bool isPrevious = false);
         void ShowPreviousScreen();
         void RemoveAllScreens();

@@ -6,5 +6,7 @@ namespace UI.Popups
         Settings = 1,
         Loading = 2,
         LevelComplete = 4,
+        Lockpick = 5,
+        SafePuzzle = 6,
     }
 }

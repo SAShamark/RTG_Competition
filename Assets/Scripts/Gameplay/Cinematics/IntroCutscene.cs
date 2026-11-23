@@ -1,3 +1,4 @@
+using Gameplay.Cinematics.IntroDrift;
 using Gameplay.Entities.Player;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -11,6 +12,7 @@ namespace Gameplay.Cinematics
         [SerializeField, FormerlySerializedAs("Player")] private FirstPersonController _player;
         [SerializeField, FormerlySerializedAs("PlayOnStart")] private bool _playOnStart = true;
         [SerializeField, FormerlySerializedAs("EnableOnFinish")] private GameObject[] _enableOnFinish;
+        [SerializeField] private IntroDriftControl _drift;
         [SerializeField] private CinematicSettings _settings = new CinematicSettings(0f, 2f, titleLine: "вул. Липова, 12", titleSubLine: "18:47  ·  виклик №112  ·  «щось горить»", titleTime: 0.4f, titleDuration: 1.95f);
         [SerializeField] private SubtitleCue[] _subtitles =
         {
@@ -35,7 +37,14 @@ namespace Gameplay.Cinematics
             }
 
             TryBegin();
-            PlayTimeline();
+            _drift.Finished += HandleDriftFinished;
+            _drift.Play();
+        }
+
+        public override void Skip()
+        {
+            _drift.Skip();
+            base.Skip();
         }
 
         private void Update()
@@ -46,8 +55,16 @@ namespace Gameplay.Cinematics
             }
         }
 
+        private void HandleDriftFinished()
+        {
+            _drift.Finished -= HandleDriftFinished;
+            PlayTimeline();
+            _director.Evaluate();
+        }
+
         protected override void OnStopped()
         {
+            _drift.StopEffects();
             _player.enabled = true;
             foreach (GameObject target in _enableOnFinish)
             {

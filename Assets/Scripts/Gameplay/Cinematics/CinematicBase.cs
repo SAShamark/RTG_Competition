@@ -26,7 +26,7 @@ namespace Gameplay.Cinematics
         public event Action Started;
         public event Action Finished;
 
-        public void Skip()
+        public virtual void Skip()
         {
             if (!IsPlaying)
             {

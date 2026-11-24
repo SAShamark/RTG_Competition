@@ -1,3 +1,4 @@
+using Services;
 using System;
 using UnityEngine;
 
@@ -52,7 +53,7 @@ namespace Gameplay.Entities.Environment
 
             // Braking = loss of ground speed per second, smoothed because the animation is sampled per frame.
             float brake = (_speed - speed) / deltaTime;
-            _brake = Mathf.Lerp(_brake, brake, 1f - Mathf.Exp(-_smoothing * deltaTime));
+            _brake = Mathf.Lerp(_brake, brake, Easing.Damp(_smoothing, deltaTime));
             _speed = speed;
 
             float strength = Mathf.InverseLerp(_brakeStart, _brakeFull, _brake) * Mathf.Clamp01(speed / _speedFull);

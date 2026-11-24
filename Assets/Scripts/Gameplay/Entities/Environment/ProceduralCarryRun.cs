@@ -1,3 +1,4 @@
+using Services;
 using UnityEngine;
 
 namespace Gameplay.Entities.Environment
@@ -68,12 +69,12 @@ namespace Gameplay.Entities.Environment
             Vector3 velocity = (transform.position - _lastPosition) / dt;
             velocity.y = 0f;
             _lastPosition = transform.position;
-            _speed = Mathf.Lerp(_speed, velocity.magnitude, 1f - Mathf.Exp(-_speedSharpness * dt));
+            _speed = Mathf.Lerp(_speed, velocity.magnitude, Easing.Damp(_speedSharpness, dt));
 
             if (velocity.sqrMagnitude > _minMoveSqr)
             {
                 Quaternion look = Quaternion.LookRotation(velocity.normalized, Vector3.up);
-                _model.rotation = Quaternion.Slerp(_model.rotation, look, 1f - Mathf.Exp(-_turnSpeed * dt));
+                _model.rotation = Quaternion.Slerp(_model.rotation, look, Easing.Damp(_turnSpeed, dt));
             }
 
             float moving = Mathf.Clamp01(_speed / 2f);

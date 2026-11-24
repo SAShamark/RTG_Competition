@@ -33,5 +33,8 @@ namespace Services
 
         // 4u(1 − u): 0 at the ends, 1 in the middle
         public static float Parabola(float u) => 4f * u * (1f - u);
+
+        // 1 − e^(−k·dt): frame-rate independent lerp factor
+        public static float Damp(float sharpness, float deltaTime) => 1f - Mathf.Exp(-sharpness * deltaTime);
     }
 }

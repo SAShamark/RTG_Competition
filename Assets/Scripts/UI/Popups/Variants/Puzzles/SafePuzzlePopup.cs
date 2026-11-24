@@ -1,41 +1,36 @@
 using Gameplay.Dialogue;
 using Services.Audio;
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace UI.Popups.Variants.Puzzles
 {
-    public sealed class SafePuzzlePopup : BasePopup
+    public sealed class SafePuzzlePopup : PuzzlePopup
     {
         private const int RingCount = 3;
-
         private const int Steps = 12;
         private const float StepAngle = 360f / Steps;
-        [SerializeField] private TextLibrary _texts;
+
+        private static readonly int[] StartStep = { 4, 9, 7 };
+
         [SerializeField] private Color _gold = new(1f, 0.68f, 0.18f, 1f);
         [SerializeField] private float _turnTime = 0.15f;
 
         [SerializeField] private float[] _ringInner = { 0.54f, 0.38f, 0f };
         [SerializeField] private float[] _ringOuter = { 1f, 0.63f, 0.38f };
 
-        private static readonly int[] StartStep = { 4, 9, 7 };
-
         [Header("Layout")]
         [SerializeField] private RectTransform _dial;
         [SerializeField] private RectTransform[] _rings = new RectTransform[3];
-        private readonly int[] _step = new int[RingCount];
-        private readonly float[] _angle = new float[RingCount];
-        [SerializeField] private Text _status;
         [SerializeField] private Image _glow;
-        [SerializeField] private RectTransform _hintRow;
         [SerializeField] private float _dialRadius = 235f;
         [SerializeField] private float _glowSpeed = 1.6f;
         [SerializeField] private float _glowMax = 0.6f;
         [SerializeField] private float _solvedDelay = 1.6f;
-        private Action _onSolved;
-        private Action _onClosed;
+
+        private readonly int[] _step = new int[RingCount];
+        private readonly float[] _angle = new float[RingCount];
         private bool _isSolved;
         private float _solvedTime = -1f;
 
@@ -53,27 +48,9 @@ namespace UI.Popups.Variants.Puzzles
             }
         }
 
-        public void Open(Action onSolved, Action onClosed)
-        {
-            _onSolved = onSolved;
-            _onClosed = onClosed;
-            _dragRing = -1;
-            _canvas.gameObject.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            _status.text = string.Empty;
-            _hintRow.gameObject.SetActive(true);
-        }
+        protected override bool ShowsCursor => true;
 
-        private void Close(bool solved)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            Action callback = solved ? _onSolved : _onClosed;
-            _onSolved = _onClosed = null;
-            callback?.Invoke();
-            CloseTrigger();
-        }
+        protected override void OnOpened() => _dragRing = -1;
 
         private void Update()
         {
@@ -97,7 +74,7 @@ namespace UI.Popups.Variants.Puzzles
                 _glow.color = new Color(_gold.r, _gold.g, _gold.b, Mathf.PingPong(_solvedTime * _glowSpeed, _glowMax));
                 if (_solvedTime > _solvedDelay)
                 {
-                    Close(true);
+                    Finish(true);
                 }
 
                 return;
@@ -107,7 +84,7 @@ namespace UI.Popups.Variants.Puzzles
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 _dragRing = -1;
-                Close(false);
+                Finish(false);
                 return;
             }
 
@@ -147,9 +124,7 @@ namespace UI.Popups.Variants.Puzzles
                 _isSolved = true;
                 _solvedTime = 0f;
                 AudioService.Instance.Play(SoundType.SafeSolved);
-                _hintRow.gameObject.SetActive(false);
-
-                _status.text = _texts[TextId.StatusSafeSolved];
+                ShowSolved(TextId.StatusSafeSolved);
             }
         }
 

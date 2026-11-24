@@ -32,8 +32,6 @@ namespace UI.Popups
 
                 _closeButton.onClick.AddListener(CloseTrigger);
             }
-
-            Debug.Log($"{gameObject.name} popup showed");
         }
 
         public virtual async void CloseTrigger()

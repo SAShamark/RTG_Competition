@@ -1,5 +1,5 @@
 using Gameplay.Dialogue;
-using Gameplay.Entities.Player;
+using Gameplay.Entities.Characters.Player;
 using UnityEngine;
 
 namespace Gameplay.Entities.Interactive

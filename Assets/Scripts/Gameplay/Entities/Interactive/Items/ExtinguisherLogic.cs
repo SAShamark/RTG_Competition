@@ -12,6 +12,7 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _power = 1.4f;
         [SerializeField] private LayerMask _obstacleMask = ~0;
         [SerializeField] private float _aimRangeFactor = 0.7f;
+        [SerializeField] private float _minAimDistance = 1.2f;
         [SerializeField] private float _farPowerFactor = 0.4f;
         [SerializeField] private float _hitSlack = 0.9f;
 
@@ -20,6 +21,7 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _rechargeDelay = 0.8f;
         [SerializeField] private float _rechargeRate = 0.35f;
         [SerializeField, Range(0f, 1f)] private float _emptyPowerFactor = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float _resumePressure = 0.2f;
 
         private const int MaxRayHits = 16;
 
@@ -29,9 +31,11 @@ namespace Gameplay.Entities.Interactive.Items
         private InventoryLogic _items;
         private ExtinguisherItem _current;
         private float _sinceReleased;
+        private bool _isEmpty;
 
         public bool IsSpraying { get; private set; }
         public float Pressure { get; private set; } = 1f;
+        public bool IsEmpty => _isEmpty;
 
         public event Action<FireSource> FireHit;
 
@@ -50,13 +54,16 @@ namespace Gameplay.Entities.Interactive.Items
 
         public void Tick(bool wantsToSpray, float deltaTime)
         {
+            bool hasImpact = false;
+            RaycastHit impact = default;
             if (_current != null)
             {
-                Vector3 aimPoint = _aim.position + _aim.forward * (_range * _aimRangeFactor);
-                _current.AimAt(aimPoint, deltaTime);
+                hasImpact = CastIgnoringOwner(_aim.position, _aim.forward, _range, out impact);
+                float aimDistance = hasImpact ? Mathf.Max(impact.distance, _minAimDistance) : _range * _aimRangeFactor;
+                _current.AimAt(_aim.position + _aim.forward * aimDistance, deltaTime);
             }
 
-            bool spray = wantsToSpray && _current != null;
+            bool spray = wantsToSpray && _current != null && !_isEmpty;
             if (spray != IsSpraying)
             {
                 IsSpraying = spray;
@@ -71,13 +78,15 @@ namespace Gameplay.Entities.Interactive.Items
                     Pressure = Mathf.Min(1f, Pressure + _rechargeRate * deltaTime);
                 }
 
+                _isEmpty &= Pressure < _resumePressure;
+
                 return;
             }
 
             _sinceReleased = 0f;
             Pressure = Mathf.Max(0f, Pressure - deltaTime / _capacity);
-            bool hasImpact = CastIgnoringOwner(_aim.position, _aim.forward, _range, out RaycastHit impact);
-            _current.SetImpact(hasImpact, impact.point, _obstacleMask);
+            _isEmpty = Pressure <= 0f;
+            _current.SetImpact(hasImpact, impact.point, impact.normal, impact.collider, _obstacleMask);
             _current.SetPressure(Pressure);
 
             HitFires(deltaTime);

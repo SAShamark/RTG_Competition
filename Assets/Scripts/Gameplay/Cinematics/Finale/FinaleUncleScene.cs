@@ -1,6 +1,6 @@
 using Gameplay.Entities.Interactive;
-using Gameplay.Entities.Residents;
 using System;
+using Gameplay.Entities.Characters.Residents;
 using Services;
 using UnityEngine;
 

@@ -1,12 +1,9 @@
-using Gameplay;
 using UnityEngine;
 
 [DefaultExecutionOrder(100)]
 public sealed class EntryPoint : MonoBehaviour
 {
     [SerializeField] private GameManager _gameManager = new();
-
-    public GameplayManager Gameplay => _gameManager.Gameplay;
 
     private void Start()
     {

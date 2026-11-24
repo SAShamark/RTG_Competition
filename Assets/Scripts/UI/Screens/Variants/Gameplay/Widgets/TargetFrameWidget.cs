@@ -1,3 +1,5 @@
+using System;
+using Services;
 using UnityEngine;
 
 namespace UI.Screens.Variants.Gameplay.Widgets
@@ -14,14 +16,16 @@ namespace UI.Screens.Variants.Gameplay.Widgets
         [SerializeField] private float _maxOffset = 160f;
         [SerializeField] private float _followSharpness = 18f;
 
+        private Camera _camera;
         private Transform _target;
         private Renderer[] _renderers;
         private RectTransform _canvasRect;
         private Vector2 _position;
         private Vector2 _size;
 
-        private void Awake()
+        public void Init(Camera camera)
         {
+            _camera = camera;
             _canvasRect = (RectTransform)GetComponentInParent<Canvas>().rootCanvas.transform;
             _frame.gameObject.SetActive(false);
         }
@@ -29,7 +33,10 @@ namespace UI.Screens.Variants.Gameplay.Widgets
         public void SetTarget(Component target)
         {
             _target = target != null ? target.transform : null;
-            _renderers = _target != null ? _target.GetComponentsInChildren<Renderer>() : null;
+            // Particle systems report the bounds of everything they have sprayed, which would blow the frame up.
+            _renderers = _target != null
+                ? Array.FindAll(_target.GetComponentsInChildren<Renderer>(), renderer => renderer is not ParticleSystemRenderer)
+                : null;
             if (_target == null)
             {
                 _frame.gameObject.SetActive(false);
@@ -38,8 +45,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 
         private void LateUpdate()
         {
-            Camera cam = Camera.main;
-            if (_target == null || cam == null || _renderers == null || _renderers.Length == 0)
+            if (_target == null || _renderers == null || _renderers.Length == 0)
             {
                 return;
             }
@@ -55,7 +61,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             for (int i = 0; i < BoxCorners; i++)
             {
                 Vector3 sign = new((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1);
-                Vector3 screen = cam.WorldToScreenPoint(bounds.center + Vector3.Scale(bounds.extents, sign));
+                Vector3 screen = _camera.WorldToScreenPoint(bounds.center + Vector3.Scale(bounds.extents, sign));
                 if (screen.z < MinDepth)
                 {
                     _frame.gameObject.SetActive(false);
@@ -74,7 +80,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 
             bool first = !_frame.gameObject.activeSelf;
             _frame.gameObject.SetActive(true);
-            float k = first ? 1f : 1f - Mathf.Exp(-_followSharpness * Time.unscaledDeltaTime);
+            float k = first ? 1f : Easing.Damp(_followSharpness, Time.unscaledDeltaTime);
             _position = Vector2.Lerp(_position, center, k);
             _size = Vector2.Lerp(_size, size, k);
             _frame.anchoredPosition = _position;

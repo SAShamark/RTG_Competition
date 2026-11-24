@@ -9,13 +9,13 @@ namespace Gameplay.Entities.Interactive.Items
         public const int SlotCount = 3;
 
         [SerializeField] private Transform _handSocket;
-        [SerializeField] private float _dropForward = 0.7f;
-        [SerializeField] private float _dropDown = 0.3f;
+        [SerializeField] private Transform _bodySocket;
         [SerializeField] private float _dropSpeed = 2.5f;
 
         private readonly InventoryEntry _hand = new();
         private readonly InventoryEntry[] _slots = { new(), new(), new() };
         private bool _hidden;
+        private bool _useBodySocket;
 
         public ItemType HeldItem => _hand.Type;
         public ToolItem HeldTool => _hand.Tool;
@@ -50,6 +50,15 @@ namespace Gameplay.Entities.Interactive.Items
             ShowHandBody();
         }
 
+        public void SetBodyHold(bool useBodySocket)
+        {
+            _useBodySocket = useBodySocket;
+            if (_hand.Tool != null)
+            {
+                Attach(_hand.Tool);
+            }
+        }
+
         public bool Take(ToolItem tool)
         {
             InventoryEntry target = FreeEntry();
@@ -59,15 +68,7 @@ namespace Gameplay.Entities.Interactive.Items
                 return false;
             }
 
-            Transform item = tool.transform;
-            item.SetParent(_handSocket, false);
-            item.localPosition = tool.HoldPosition;
-            item.localRotation = Quaternion.Euler(tool.HoldEuler);
-            foreach (Renderer itemRenderer in item.GetComponentsInChildren<Renderer>())
-            {
-                itemRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
-
+            Attach(tool);
             target.Set(tool.Definition, tool, 1);
             Changed(target == _hand);
             return true;
@@ -150,8 +151,23 @@ namespace Gameplay.Entities.Interactive.Items
 
             _hand.Clear();
             dropped.gameObject.SetActive(true);
-            dropped.Release(head.position + head.forward * _dropForward - Vector3.up * _dropDown, head.forward * _dropSpeed + Vector3.up);
+            dropped.Release(dropped.transform.position, head.forward * _dropSpeed + Vector3.up);
             Changed(true);
+        }
+
+        private void Attach(ToolItem tool)
+        {
+            bool inBodyHand = _useBodySocket && tool.HoldInBodyHand;
+            Transform item = tool.transform;
+            item.SetParent(inBodyHand ? _bodySocket : _handSocket, false);
+            item.localPosition = inBodyHand ? tool.BodyHoldPosition : tool.HoldPosition;
+            item.localRotation = Quaternion.Euler(inBodyHand ? tool.BodyHoldEuler : tool.HoldEuler);
+
+            var shadows = _useBodySocket ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+            foreach (Renderer itemRenderer in item.GetComponentsInChildren<Renderer>(true))
+            {
+                itemRenderer.shadowCastingMode = shadows;
+            }
         }
 
         private InventoryEntry FreeEntry()
@@ -192,6 +208,11 @@ namespace Gameplay.Entities.Interactive.Items
 
         private void Changed(bool handChanged)
         {
+            if (handChanged && _hand.Tool != null)
+            {
+                Attach(_hand.Tool);
+            }
+
             ShowHandBody();
             InventoryChanged?.Invoke();
             if (handChanged)

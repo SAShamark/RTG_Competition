@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Gameplay.Dialogue
 {
     [Serializable]
     public sealed class DialogLine
     {
-        [SerializeField, FormerlySerializedAs("Id")] private string _id;
-        [TextArea, SerializeField, FormerlySerializedAs("Text")] private string _text;
-        [SerializeField, FormerlySerializedAs("Clip")] private AudioClip _clip;
+        [SerializeField] private string _id;
+        [TextArea, SerializeField] private string _text;
+        [SerializeField] private AudioClip _clip;
         [SerializeField, Min(0.5f)] private float _hold = 3f;
 
         public string Id => _id;
@@ -22,10 +21,10 @@ namespace Gameplay.Dialogue
     [Serializable]
     public sealed class CharacterDialogs
     {
-        [SerializeField, FormerlySerializedAs("Character")] private CharactersType _character;
+        [SerializeField] private CharactersType _character;
         [SerializeField] private string _displayName;
         [SerializeField] private Color _color = new(1f, 0.76f, 0.29f);
-        [SerializeField, FormerlySerializedAs("Lines")] private List<DialogLine> _lines = new();
+        [SerializeField] private List<DialogLine> _lines = new();
 
         public CharactersType Character => _character;
         public string DisplayName => _displayName;

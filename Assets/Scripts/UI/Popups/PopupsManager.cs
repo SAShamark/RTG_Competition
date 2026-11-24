@@ -136,9 +136,9 @@ namespace UI.Popups
         {
             if (_currentPopups is { Count: > 0 })
             {
-                foreach (BasePopup popup in _currentPopups)
+                for (int i = _currentPopups.Count - 1; i >= 0; i--)
                 {
-                    RemovePopup(popup);
+                    RemovePopup(_currentPopups[i]);
                 }
             }
         }

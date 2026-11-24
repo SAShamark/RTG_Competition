@@ -12,6 +12,16 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private bool _hasHandPose;
         [SerializeField] private Vector3 _handPosition;
         [SerializeField] private Vector3 _handEuler;
+        [SerializeField] private Vector3 _handAimPosition;
+        [SerializeField] private Vector3 _handAimEuler;
+
+        [Header("Third person")]
+        [SerializeField] private bool _holdInBodyHand;
+        [SerializeField] private Vector3 _bodyHoldPosition;
+        [SerializeField] private Vector3 _bodyHoldEuler;
+        [SerializeField] private bool _hasAimHold;
+        [SerializeField] private Vector3 _bodyAimPosition;
+        [SerializeField] private Vector3 _bodyAimEuler;
 
         private Transform _worldParent;
         [SerializeField] private Rigidbody _body;
@@ -24,6 +34,14 @@ namespace Gameplay.Entities.Interactive.Items
         public bool HasHandPose => _hasHandPose;
         public Vector3 HandPosition => _handPosition;
         public Vector3 HandEuler => _handEuler;
+        public Vector3 HandAimPosition => _handAimPosition;
+        public Vector3 HandAimEuler => _handAimEuler;
+        public bool HoldInBodyHand => _holdInBodyHand;
+        public Vector3 BodyHoldPosition => _bodyHoldPosition;
+        public Vector3 BodyHoldEuler => _bodyHoldEuler;
+        public bool HasAimHold => _hasAimHold;
+        public Vector3 BodyAimPosition => _bodyAimPosition;
+        public Vector3 BodyAimEuler => _bodyAimEuler;
 
         protected override bool Store(IItemHolder holder) => holder.TakeTool(this);
 

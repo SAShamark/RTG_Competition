@@ -1,7 +1,7 @@
 using Gameplay.Dialogue;
 using Gameplay.Entities.Interactive.Items;
-using Gameplay.Entities.Player;
 using System;
+using Gameplay.Entities.Characters.Player;
 using Services;
 using Services.Audio;
 using Services.Motion;

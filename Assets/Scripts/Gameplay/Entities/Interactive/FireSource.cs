@@ -1,6 +1,7 @@
 using Services.Audio;
 using System;
 using System.Collections.Generic;
+using Gameplay.Entities.Interactive.Items;
 using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
@@ -48,6 +49,15 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private float _sprayedFlicker = 0.6f;
         [SerializeField] private float _sprayBlendSpeed = 6f;
 
+        [Header("Powder")]
+        [SerializeField] private float _powderProbeRadius = 0.35f;
+        [SerializeField, Min(1)] private int _powderProbeCount = 8;
+        [SerializeField] private float _powderCoverDepth = 0.015f;
+        [SerializeField, Range(0f, 1f)] private float _powderCoverFraction = 0.6f;
+        [SerializeField] private float _powderCheckInterval = 0.25f;
+        [SerializeField] private float _meltRadius = 0.9f;
+        [SerializeField] private float _meltRate = 0.012f;
+
         [Header("Gameplay")]
         [SerializeField] private Collider _blocker;
         [SerializeField] private float _minVisual = 0.15f;
@@ -63,12 +73,14 @@ namespace Gameplay.Entities.Interactive
         private float _splashRate;
         private float _sprayBlend;
         private ISoundLoop _sizzle = SilentLoop.Instance;
+        private float _sincePowderCheck;
 
         public static IReadOnlyList<FireSource> Active => ActiveList;
 
         public float Intensity => _intensity;
         public bool IsOut { get; private set; }
         public float HeatRadius => _heatRadius;
+        public bool IsSuppressedByPowder { get; private set; }
 
         public event Action<FireSource> Extinguished;
         public event Action<FireSource> Reignited;
@@ -103,6 +115,14 @@ namespace Gameplay.Entities.Interactive
             if (!IsOut && !_reignite)
             {
                 SetIntensity(0f);
+            }
+        }
+
+        public void Grow(float amount)
+        {
+            if (!IsOut && !IsSuppressedByPowder)
+            {
+                SetIntensity(Mathf.Min(1f, _intensity + amount));
             }
         }
 
@@ -153,7 +173,8 @@ namespace Gameplay.Entities.Interactive
         private void Update()
         {
             _sinceSprayed += Time.deltaTime;
-            if (_reignite && _intensity > 0f && _intensity < 1f && _sinceSprayed > _reigniteDelay)
+            UpdatePowder(Time.deltaTime);
+            if (_reignite && !IsSuppressedByPowder && _intensity > 0f && _intensity < 1f && _sinceSprayed > _reigniteDelay)
             {
                 SetIntensity(_intensity + _reigniteSpeed * Time.deltaTime);
             }
@@ -169,6 +190,35 @@ namespace Gameplay.Entities.Interactive
                 float flicker = Mathf.Lerp(_flickerAmount, _sprayedFlicker, _sprayBlend);
                 _light.intensity = _lightIntensity * _intensity * (1f + noise * 2f * flicker);
             }
+        }
+
+        private void UpdatePowder(float deltaTime)
+        {
+            Vector3 center = transform.position;
+            if (!IsOut)
+            {
+                PowderSnowChunk.MeltAll(center, _meltRadius, _meltRate * _intensity * deltaTime);
+            }
+
+            _sincePowderCheck += deltaTime;
+            if (_sincePowderCheck < _powderCheckInterval)
+            {
+                return;
+            }
+
+            _sincePowderCheck = 0f;
+            int covered = 0;
+            for (int i = 0; i < _powderProbeCount; i++)
+            {
+                float angle = i * Mathf.PI * 2f / _powderProbeCount;
+                Vector3 probe = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * _powderProbeRadius;
+                if (PowderSnowChunk.SampleDepth(probe) >= _powderCoverDepth)
+                {
+                    covered++;
+                }
+            }
+
+            IsSuppressedByPowder = (float)covered / _powderProbeCount >= _powderCoverFraction;
         }
 
         private void UpdateSprayReaction(bool sprayed)

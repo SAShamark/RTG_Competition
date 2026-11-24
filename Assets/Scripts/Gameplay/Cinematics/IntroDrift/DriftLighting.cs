@@ -1,4 +1,5 @@
 using System;
+using Gameplay.Entities.Environment;
 using Services;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField] private Color _sunColor = new(1f, 0.6f, 0.35f);
         [SerializeField, Min(0f)] private float _sunIntensity = 2.4f;
         [SerializeField, Range(0f, 2f)] private float _ambientScale = 0.8f;
+        [SerializeField] private TruckControl _truck;
         [SerializeField] private Light[] _lightBars;
         [SerializeField, Min(0f)] private float _lightBarRange = 18f;
         [SerializeField] private Light _smokeLight;
@@ -46,10 +48,15 @@ namespace Gameplay.Cinematics.IntroDrift
 
             _applied = true;
             _release = -1f;
+            _truck.IsLightBarOn = false;
             Apply(1f);
         }
 
-        public void BeginRelease() => _release = 0f;
+        public void BeginRelease()
+        {
+            _release = 0f;
+            _truck.IsLightBarOn = true;
+        }
 
         public void TickRelease(float deltaTime)
         {
@@ -71,6 +78,7 @@ namespace Gameplay.Cinematics.IntroDrift
             }
 
             Apply(0f);
+            _truck.IsLightBarOn = true;
             _applied = false;
             _release = -1f;
         }

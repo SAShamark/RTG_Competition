@@ -1,3 +1,4 @@
+using Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,7 +22,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 
         private void Update()
         {
-            _shown = Mathf.Lerp(_shown, _target, 1f - Mathf.Exp(-_smoothing * Time.deltaTime));
+            _shown = Mathf.Lerp(_shown, _target, Easing.Damp(_smoothing, Time.deltaTime));
             float flicker = _shown > VisibleThreshold ? Mathf.Sin(Time.time * _flickerFrequency) * _flickerAmount * _shown : 0f;
             Color c = _image.color;
             c.a = Mathf.Clamp01(_shown * _maxAlpha + flicker);

@@ -1,9 +1,8 @@
 using Gameplay.Dialogue;
+using Gameplay.Entities.Characters.Player;
+using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
-using Gameplay.Entities.Player;
-using Gameplay.Entities.Residents;
-using Gameplay.Mission;
 using UI.Screens.Variants.Gameplay.Widgets;
 using UI.Screens.Base;
 using UnityEngine;
@@ -12,7 +11,6 @@ namespace UI.Screens.Variants.Gameplay
 {
     public sealed class GameplayScreen : BaseScreen
     {
-
         [SerializeField] private GameObject _hudRoot;
         [SerializeField] private GameObject _crosshair;
 
@@ -25,18 +23,20 @@ namespace UI.Screens.Variants.Gameplay
         [SerializeField] private HotbarWidget _hotbar;
         [SerializeField] private NavMarkerWidget _navMarker;
         [SerializeField] private HotbarSlot _activeSlot;
+        [SerializeField] private GameObject _activePanel;
         [SerializeField] private HotbarSlot _radio;
         [SerializeField] private GameObject _dropHint;
         [SerializeField] private ToastWidget _toasts;
         [SerializeField] private HeatVignetteWidget _heat;
+        [SerializeField] private PressureGaugeWidget _pressure;
 
         private FirstPersonController _player;
         private FireHeatLogic _fireHeat;
-        private EvacuationController _evacuation;
         private TextLibrary _texts;
-        private int _rescueTotal;
         private bool _extinguisherHintShown;
         private bool _carryHintShown;
+        private ClutterItem _heldProp;
+        private Rescuable _carriedResident;
 
         public HotbarWidget Hotbar => _hotbar;
         public NavMarkerWidget NavMarker => _navMarker;
@@ -57,17 +57,6 @@ namespace UI.Screens.Variants.Gameplay
         public void HideRescued() => _rescued.Hide();
 
         public void PulseRadio() => _radio.Pulse();
-
-        public void SetHeldProp(Sprite icon) => _activeSlot.SetItem(icon, 1);
-
-        public void SetInventory(InventoryEntry hand, InventoryEntry[] slots)
-        {
-            _activeSlot.SetItem(Icon(hand), hand.Count);
-            for (int i = 0; i < slots.Length; i++)
-            {
-                _hotbar.SetItem(i, Icon(slots[i]), slots[i].Count);
-            }
-        }
 
         private static Sprite Icon(InventoryEntry entry) => entry.IsEmpty ? null : entry.Definition.Icon;
 
@@ -106,16 +95,19 @@ namespace UI.Screens.Variants.Gameplay
             _partner.Say(phrase.Text, phrase.Hold, phrase.Speaker, anchor);
         }
 
+        public bool IsDialogBusy => _partner.IsBusy;
+
         public void ClearDialog() => _partner.Clear();
 
         public void ShowToast(string message) => _toasts.Show(message);
 
-        public void Init(FirstPersonController player, FireHeatLogic fireHeat, EvacuationController evacuation, int rescueTotal, TextLibrary texts)
+        public void Init(FirstPersonController player, FireHeatLogic fireHeat, TextLibrary texts, Camera camera)
         {
+            _targetFrame.Init(camera);
+            _partner.Init(camera);
             _player = player;
             _fireHeat = fireHeat;
-            _evacuation = evacuation;
-            _rescueTotal = rescueTotal;
+            _pressure.Init(player.Extinguisher, player.Axe);
             _texts = texts;
             HideRescued();
             SetHeat(0f);
@@ -129,8 +121,6 @@ namespace UI.Screens.Variants.Gameplay
             _player.Items.InventoryFull += HandleInventoryFull;
             _player.PropChanged += HandlePropChanged;
             _player.Carry.CarryChanged += HandleCarryChanged;
-            _evacuation.ResidentRescued += HandleRescued;
-            _evacuation.ThrowFinished += HandleThrowFinished;
         }
 
         public void Dispose()
@@ -143,49 +133,48 @@ namespace UI.Screens.Variants.Gameplay
             _player.Items.InventoryFull -= HandleInventoryFull;
             _player.PropChanged -= HandlePropChanged;
             _player.Carry.CarryChanged -= HandleCarryChanged;
-            _evacuation.ResidentRescued -= HandleRescued;
-            _evacuation.ThrowFinished -= HandleThrowFinished;
         }
 
         private void RefreshInventory()
         {
-            var slots = new InventoryEntry[InventoryLogic.SlotCount];
-            for (int i = 0; i < slots.Length; i++)
+            for (int i = 0; i < InventoryLogic.SlotCount; i++)
             {
-                slots[i] = _player.Items.Slot(i);
+                InventoryEntry slot = _player.Items.Slot(i);
+                _hotbar.SetItem(i, Icon(slot), slot.Count);
             }
 
-            SetInventory(_player.Items.Hand, slots);
-            SetDropHint(_player.Items.HeldTool != null && !_player.Carry.IsCarrying);
+            RefreshHand();
         }
 
         private void HandlePropChanged(ClutterItem prop)
         {
-            if (prop == null)
-            {
-                RefreshInventory();
-                return;
-            }
-
-            SetHeldProp(prop.Icon);
-            SetDropHint(false);
+            _heldProp = prop;
+            RefreshHand();
         }
 
         private void HandleCarryChanged(Rescuable resident)
         {
-            if (resident == null)
-            {
-                RefreshInventory();
-                return;
-            }
-
-            SetHeldProp(resident.Icon);
-            SetDropHint(true);
-            if (!_carryHintShown)
+            _carriedResident = resident;
+            RefreshHand();
+            if (resident != null && !_carryHintShown)
             {
                 _carryHintShown = true;
                 ShowToast(_texts[TextId.ToastCarryHint]);
             }
+        }
+
+        private void RefreshHand()
+        {
+            InventoryEntry hand = _player.Items.Hand;
+            bool isCarrying = _carriedResident != null;
+            bool isHoldingProp = _heldProp != null;
+            Sprite icon = isCarrying ? _carriedResident.Icon : isHoldingProp ? _heldProp.Icon : Icon(hand);
+
+            _activePanel.SetActive(icon != null);
+            _activeSlot.SetSelected(icon != null);
+            _activeSlot.SetItem(icon, isCarrying || isHoldingProp ? 1 : hand.Count);
+            SetDropHint(isCarrying || (!isHoldingProp && _player.Items.HeldTool != null));
+            _pressure.SetItem(isCarrying || isHoldingProp ? default : hand.Type);
         }
 
         private void HandleItemChanged(ItemType item)
@@ -198,13 +187,5 @@ namespace UI.Screens.Variants.Gameplay
         }
 
         private void HandleInventoryFull() => ShowToast(_texts[TextId.ToastInventoryFull]);
-
-        private void HandleRescued(Rescuable resident, int rescued) => ShowRescued(rescued, _rescueTotal);
-
-        private void HandleThrowFinished()
-        {
-            SetCrosshairVisible(true);
-            ShowToast(_texts.Format(TextId.ToastRescuedCount, _evacuation.Rescued, _rescueTotal));
-        }
     }
 }

@@ -8,6 +8,12 @@ namespace Gameplay.Entities.Environment
         [SerializeField] private WheelSpinLogic _wheels = new();
         [SerializeField] private TyreSmokeLogic _tyreSmoke = new();
 
+        public bool IsLightBarOn
+        {
+            get => _lightBar.IsOn;
+            set => _lightBar.IsOn = value;
+        }
+
         private void Awake()
         {
             _lightBar.Init();

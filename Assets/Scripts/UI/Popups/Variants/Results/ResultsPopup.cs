@@ -1,7 +1,7 @@
-using Gameplay.Entities.Residents;
 using Services;
 using Services.Audio;
 using System.Collections;
+using Gameplay.Entities.Characters.Residents;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;

@@ -15,15 +15,20 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField] private DriftSmokeLogic _smoke = new();
         [SerializeField] private SlowMotionCredit _slowMotion = new();
         [SerializeField] private DriftAudio _audio = new();
+        [SerializeField] private DriftBeat _beat = new();
+        [SerializeField] private DriftPulse _pulse = new();
+        [SerializeField, Min(0f)] private float _pulseFromMusicTime = 1.35f;
         [SerializeField] private DriftLighting _lighting = new();
         [SerializeField] private DriftPostFX _postFX = new();
         [SerializeField] private ScreenFade _fade;
         [SerializeField, Min(0.01f)] private float _fadeTime = 0.5f;
+        [SerializeField, Min(0f)] private float _startDelay = 1.5f;
 
         private float _distance;
         private bool _slowMotionStarted;
         private int _heldFrames;
         private float _fadeIn = -1f;
+        private float _delay = -1f;
 
         public bool IsPlaying { get; private set; }
 
@@ -42,6 +47,14 @@ namespace Gameplay.Cinematics.IntroDrift
         public void Play()
         {
             IsPlaying = true;
+            _fadeIn = -1f;
+            _fade.SetAlpha(1f);
+            _delay = _startDelay;
+        }
+
+        private void BeginDrift()
+        {
+            _delay = -1f;
             _distance = 0f;
             _slowMotionStarted = false;
             _heldFrames = 0;
@@ -49,6 +62,8 @@ namespace Gameplay.Cinematics.IntroDrift
             _fade.SetAlpha(0f);
             _shot.Begin();
             _audio.Begin();
+            _beat.Reset();
+            _pulse.Begin();
             _lighting.Begin();
             _postFX.Begin();
             Place();
@@ -57,10 +72,17 @@ namespace Gameplay.Cinematics.IntroDrift
 
         public void Skip()
         {
-            if (IsPlaying)
+            if (!IsPlaying)
             {
-                Finish();
+                return;
             }
+
+            if (_delay >= 0f)
+            {
+                BeginDrift();
+            }
+
+            Finish();
         }
 
         public void StopEffects()
@@ -109,6 +131,18 @@ namespace Gameplay.Cinematics.IntroDrift
                 return;
             }
 
+            if (_delay >= 0f)
+            {
+                _delay -= Mathf.Min(Time.unscaledDeltaTime, _maxStep);
+
+                if (_delay < 0f)
+                {
+                    BeginDrift();
+                }
+
+                return;
+            }
+
             // The first frames of the scene can hitch for seconds; hold the opening pose and cap the step so the truck never jumps.
             if (_heldFrames < _holdFrames)
             {
@@ -116,6 +150,13 @@ namespace Gameplay.Cinematics.IntroDrift
                 Place();
                 return;
             }
+
+            if (_beat.TryDetect(_audio.Music, Time.unscaledDeltaTime, out _) && _audio.Music.time >= _pulseFromMusicTime)
+            {
+                _pulse.Kick();
+            }
+
+            _pulse.Tick(Time.unscaledDeltaTime);
 
             _slowMotion.Tick(Mathf.Min(Time.unscaledDeltaTime, _maxStep));
             _audio.Tick(_slowMotion.Slowness);
@@ -155,6 +196,7 @@ namespace Gameplay.Cinematics.IntroDrift
             DriftPose pose = _path.Sample(_distance);
             _truck.SetPositionAndRotation(pose.Position, pose.Rotation);
             _smoke.SetSlip(0f);
+            _pulse.Stop();
             _slowMotion.Stop();
             _audio.BeginTail();
             _lighting.BeginRelease();
@@ -169,6 +211,7 @@ namespace Gameplay.Cinematics.IntroDrift
         {
             if (IsPlaying)
             {
+                _pulse.Stop();
                 _slowMotion.Stop();
             }
         }

@@ -30,7 +30,6 @@ namespace Gameplay.Cinematics.IntroDrift
 
         [Header("Shake")]
         [SerializeField] private float _driftKickForce = 0.8f;
-
         public void Begin()
         {
             _camera.Priority.Value = _priority;
@@ -40,7 +39,6 @@ namespace Gameplay.Cinematics.IntroDrift
         public void End() => _camera.gameObject.SetActive(false);
 
         public void Kick() => _impulse.GenerateImpulseWithForce(_driftKickForce);
-
         public void Tick(DriftPose pose, float fromTurnIn, float distance)
         {
             DriftCameraRig rig = DriftCameraRig.Lerp(_opening, _tracking, Easing.Smooth(distance / _openingDistance));

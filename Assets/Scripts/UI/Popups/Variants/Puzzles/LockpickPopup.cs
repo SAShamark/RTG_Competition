@@ -1,61 +1,42 @@
 using Gameplay.Dialogue;
 using Services.Audio;
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace UI.Popups.Variants.Puzzles
 {
-    public sealed class LockpickPopup : BasePopup
+    public sealed class LockpickPopup : PuzzlePopup
     {
         private const float FullTurn = 90f;
         private const float PickRange = 85f;
-        [SerializeField] private TextLibrary _texts;
+
         [SerializeField] private float _sensitivity = 0.25f;
         [SerializeField] private float _tolerance = 9f;
         [SerializeField] private float _feelRange = 55f;
         [SerializeField] private float _turnSpeed = 140f;
 
-
         [Header("Layout")]
         [SerializeField] private RectTransform _cylinder;
         [SerializeField] private RectTransform _pick;
-        [SerializeField] private RectTransform _hintRow;
-        [SerializeField] private Text _status;
         [SerializeField] private float _sweetSpotRange = 70f;
         [SerializeField] private float _openDelay = 0.8f;
         [SerializeField] private float _stuckShakeFrequency = 70f;
         [SerializeField] private float _stuckShakeAngle = 2.5f;
         [SerializeField] private float _returnSpeedFactor = 1.5f;
-        private Action _onOpened;
-        private Action _onClosed;
+
         private float _pickAngle;
         private float _sweetSpot;
         private float _turn;
         private float _openTime = -1f;
 
-        public void Open(Action onOpened, Action onClosed)
+        protected override bool ShowsCursor => false;
+
+        protected override void OnOpened()
         {
-            _onOpened = onOpened;
-            _onClosed = onClosed;
-            _sweetSpot = UnityEngine.Random.Range(-_sweetSpotRange, _sweetSpotRange);
+            _sweetSpot = Random.Range(-_sweetSpotRange, _sweetSpotRange);
             _pickAngle = 0f;
             _turn = 0f;
             _openTime = -1f;
-            _canvas.gameObject.SetActive(true);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            _status.text = string.Empty;
-            _hintRow.gameObject.SetActive(true);
-        }
-
-        private void Close(bool opened)
-        {
-            Action callback = opened ? _onOpened : _onClosed;
-            _onOpened = _onClosed = null;
-            callback?.Invoke();
-            CloseTrigger();
         }
 
         private void Update()
@@ -66,7 +47,7 @@ namespace UI.Popups.Variants.Puzzles
                 _openTime += dt;
                 if (_openTime > _openDelay)
                 {
-                    Close(true);
+                    Finish(true);
                 }
 
                 return;
@@ -74,7 +55,7 @@ namespace UI.Popups.Variants.Puzzles
 
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                Close(false);
+                Finish(false);
                 return;
             }
 
@@ -107,8 +88,7 @@ namespace UI.Popups.Variants.Puzzles
             if (_turn >= FullTurn - 0.5f)
             {
                 _openTime = 0f;
-                _status.text = _texts[TextId.StatusLockOpened];
-                _hintRow.gameObject.SetActive(false);
+                ShowSolved(TextId.StatusLockOpened);
                 AudioService.Instance.Play(SoundType.LockpickOpen);
             }
         }

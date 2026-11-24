@@ -18,8 +18,6 @@ namespace UI
             _animator.SetBool(IsEnable, false);
             int clipTime = Mathf.FloorToInt(ClipDataProvider.ClipDuration(_animator, clipName) *
                                             ValueConstants.MILLISECONDS_IN_SECOND);
-            await Task.Delay(clipTime);
-
             try
             {
                 await Task.Delay(clipTime);

@@ -1,8 +1,9 @@
-using Gameplay.Entities.Player;
-using Gameplay.Entities.Residents;
+using Services;
 using Services.Audio;
 using System;
 using System.Collections.Generic;
+using Gameplay.Entities.Characters.Player;
+using Gameplay.Entities.Characters.Residents;
 using UI.Screens.Variants.Gameplay;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -27,7 +28,6 @@ namespace Gameplay.Dialogue
         }
     }
 
-
     [Serializable]
     public sealed class DialogueDirector
     {
@@ -41,19 +41,6 @@ namespace Gameplay.Dialogue
         [SerializeField] private float _charsPerSecond = 45f;
         [SerializeField] private float _holdAfterTyping = 1.6f;
         [SerializeField] private float _moveSharpness = 6f;
-
-        private readonly Queue<DialogueLine> _lines = new();
-        private GameplayScreen _screen;
-        private FirstPersonController _player;
-        private Renderer[] _playerBody;
-        private ShadowCastingMode[] _bodyModes;
-        private Action _onFinished;
-        private DialogueLine _current;
-        private float _timeLeft;
-        private float _voiceLeft;
-        private bool _snapCamera;
-
-        public bool IsPlaying { get; private set; }
 
         [SerializeField] private DialogLibrary _dialogLibrary;
         [SerializeField] private float _lineGap = 0.25f;
@@ -71,6 +58,20 @@ namespace Gameplay.Dialogue
         [SerializeField] private float[] _orbitDistances = { 1.1f, 1.5f, 0.8f };
         [SerializeField] private int _orbitSteps = 12;
 
+        private readonly Queue<DialogueLine> _lines = new();
+        private AudioService _audio;
+        private GameplayScreen _screen;
+        private FirstPersonController _player;
+        private Renderer[] _playerBody;
+        private ShadowCastingMode[] _bodyModes;
+        private Action _onFinished;
+        private DialogueLine _current;
+        private float _timeLeft;
+        private float _voiceLeft;
+        private bool _snapCamera;
+        private bool _isWaiting;
+
+        public bool IsPlaying { get; private set; }
         public DialogLibrary Library => _dialogLibrary;
 
         public DialogueLine Line(string id, Transform speaker, Transform listener)
@@ -79,8 +80,9 @@ namespace Gameplay.Dialogue
             return new DialogueLine(phrase.Speaker, speaker, listener, phrase.Text);
         }
 
-        public void Init(GameplayScreen screen, FirstPersonController player, Transform playerBody)
+        public void Init(GameplayScreen screen, FirstPersonController player, Transform playerBody, AudioService audio)
         {
+            _audio = audio;
             _screen = screen;
             _player = player;
             _playerBody = playerBody.GetComponentsInChildren<Renderer>(true);
@@ -96,15 +98,27 @@ namespace Gameplay.Dialogue
             }
 
             _onFinished += onFinished;
-            if (IsPlaying)
+            if (IsPlaying || _isWaiting)
             {
                 return;
             }
 
+            if (_screen.IsDialogBusy)
+            {
+                _isWaiting = true;
+                return;
+            }
+
+            Begin();
+        }
+
+        private void Begin()
+        {
+            _isWaiting = false;
             IsPlaying = true;
             _snapCamera = true;
             _player.enabled = false;
-            AudioService.Instance.SetDucked(true);
+            _audio.SetDucked(true);
 
             SetBodyVisible(true);
             _screen.SetCrosshairVisible(false);
@@ -123,7 +137,7 @@ namespace Gameplay.Dialogue
 
             _current = _lines.Dequeue();
             _timeLeft = _lineGap;
-            _voiceLeft = _dialogLibrary.TryGetClip(_current.Text, out AudioClip clip) ? clip.length + _lineGap : float.MaxValue;
+            _voiceLeft = _dialogLibrary.TryGetClip(_current.Text, out AudioClip clip) ? clip.length : float.MaxValue;
             _screen.ClearDialog();
             _screen.CharacterSay(_current.Speaker, _current.Text, UntilCleared, _current.SpeakerHead);
             _snapCamera = true;
@@ -131,6 +145,12 @@ namespace Gameplay.Dialogue
 
         public void Tick(float deltaTime)
         {
+            if (_isWaiting && !_screen.IsDialogBusy)
+            {
+                Begin();
+                return;
+            }
+
             if (!IsPlaying)
             {
                 return;
@@ -168,7 +188,7 @@ namespace Gameplay.Dialogue
             }
 
             Quaternion aim = Quaternion.LookRotation(speaker + Vector3.down * _headAimDrop - cam.position, Vector3.up);
-            cam.rotation = Quaternion.Slerp(cam.rotation, aim, 1f - Mathf.Exp(-_moveSharpness * Time.deltaTime));
+            cam.rotation = Quaternion.Slerp(cam.rotation, aim, Easing.Damp(_moveSharpness, Time.deltaTime));
         }
 
         private void ChooseShot(Vector3 speaker, Vector3 listener, Vector3 dir, Vector3 right, out Vector3 position, out Quaternion rotation)
@@ -303,7 +323,7 @@ namespace Gameplay.Dialogue
         private void Finish()
         {
             IsPlaying = false;
-            AudioService.Instance.SetDucked(false);
+            _audio.SetDucked(false);
             _screen.ClearDialog();
             _screen.SetCrosshairVisible(true);
             SetBodyVisible(false);

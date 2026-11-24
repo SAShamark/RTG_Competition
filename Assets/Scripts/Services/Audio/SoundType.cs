@@ -39,5 +39,8 @@ namespace Services.Audio
         AxeHitWood = 34,
         AxeHitHard = 35,
         Scream = 36,
+        AxeHitMetal = 37,
+        AxeHitGlass = 38,
+        AxeHitSoft = 39,
     }
 }

@@ -1,7 +1,8 @@
+using Gameplay.Dialogue;
 using Gameplay.Cinematics.Finale;
+using Gameplay.Entities.Characters.Player;
+using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
-using Gameplay.Entities.Player;
-using Gameplay.Entities.Residents;
 using Services.Motion;
 using Services;
 using Services.Audio;
@@ -78,6 +79,7 @@ namespace Gameplay.Cinematics
         private Vector3 _launch, _landing, _safe, _outward, _shotPosition;
         private Quaternion _safeRotation;
         private RenderTexture _frame;
+        private Camera _mainCamera;
         private float _flashPeak;
 
         private enum Shot
@@ -131,6 +133,8 @@ namespace Gameplay.Cinematics
             _flashPeak = _blastLight.intensity;
         }
 
+        public void Init(Camera camera) => _mainCamera = camera;
+
         public void Play(FirstPersonController player)
         {
             if (!TryBegin())
@@ -155,9 +159,9 @@ namespace Gameplay.Cinematics
 
             _subtitles = new[]
             {
-                new SubtitleCue(SafeTime - _safeLineLead, _landHold + _safeLineExtra, "P10"),
-                new SubtitleCue(PeeTime + _uncleScene.RunIn + _uncleLineDelay, _uncleLineDuration, "U02"),
-                new SubtitleCue(OrbitTime + _orbitLineDelay, _orbitLineDuration, "U03"),
+                new SubtitleCue(SafeTime - _safeLineLead, _landHold + _safeLineExtra, DialogIds.PartnerSuperhero),
+                new SubtitleCue(PeeTime + _uncleScene.RunIn + _uncleLineDelay, _uncleLineDuration, DialogIds.UncleProfessional),
+                new SubtitleCue(OrbitTime + _orbitLineDelay, _orbitLineDuration, DialogIds.UncleSavedEveryone),
             };
 
             _camera.transform.SetPositionAndRotation(head.position, head.rotation);
@@ -251,7 +255,7 @@ namespace Gameplay.Cinematics
             }
 
             Vector3 target = _stunt.transform.position + Vector3.up * _stuntAimHeight;
-            cam.rotation = Quaternion.Slerp(cam.rotation, Quaternion.LookRotation(target - cam.position, Vector3.up), 1f - Mathf.Exp(-_aimSharpness * Time.deltaTime));
+            cam.rotation = Quaternion.Slerp(cam.rotation, Quaternion.LookRotation(target - cam.position, Vector3.up), Easing.Damp(_aimSharpness, Time.deltaTime));
         }
 
         private void SetShot(Shot shot)
@@ -300,16 +304,15 @@ namespace Gameplay.Cinematics
 
         private void CaptureFrame()
         {
-            Camera main = Camera.main;
             if (_frame == null)
             {
                 _frame = new RenderTexture(Screen.width, Screen.height, DepthBits);
             }
 
-            RenderTexture previous = main.targetTexture;
-            main.targetTexture = _frame;
-            main.Render();
-            main.targetTexture = previous;
+            RenderTexture previous = _mainCamera.targetTexture;
+            _mainCamera.targetTexture = _frame;
+            _mainCamera.Render();
+            _mainCamera.targetTexture = previous;
         }
 
         protected override void OnStopped()

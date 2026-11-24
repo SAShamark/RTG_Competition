@@ -34,6 +34,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
         private RectTransform _rect;
         private Vector2 _restPosition;
         private Transform _anchor;
+        private Camera _camera;
 
         private readonly Queue<Line> _queue = new();
         private string _line;
@@ -50,6 +51,10 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             _baseHeight = _rect.sizeDelta.y;
             _baseTextHeight = _text.rectTransform.rect.height;
         }
+
+        public bool IsBusy => _line != null || _queue.Count > 0;
+
+        public void Init(Camera camera) => _camera = camera;
 
         public void Say(string line, float hold, string speaker = null, Transform anchor = null)
         {
@@ -106,11 +111,20 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             _typed += Time.unscaledDeltaTime * _charsPerSecond;
             int count = Mathf.Min(_line.Length, Mathf.FloorToInt(_typed));
             _text.text = _prefix + _line.Substring(0, count);
+            if (_voiceLeft != NoVoice)
+            {
+                if (_voiceLeft <= 0f)
+                {
+                    _line = null;
+                }
+
+                return;
+            }
+
             if (count >= _line.Length)
             {
                 _hold -= Time.unscaledDeltaTime;
-                bool voiceDone = _voiceLeft != NoVoice && _voiceLeft <= 0f;
-                if (voiceDone || (_voiceLeft == NoVoice && _hold <= 0f))
+                if (_hold <= 0f)
                 {
                     _line = null;
                 }
@@ -136,13 +150,12 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 
         private void FollowAnchor()
         {
-            Camera cam = Camera.main;
-            if (_anchor == null || cam == null)
+            if (_anchor == null)
             {
                 return;
             }
 
-            Vector3 screen = cam.WorldToScreenPoint(_anchor.position + _anchorOffset);
+            Vector3 screen = _camera.WorldToScreenPoint(_anchor.position + _anchorOffset);
             if (screen.z <= 0f)
             {
                 return;

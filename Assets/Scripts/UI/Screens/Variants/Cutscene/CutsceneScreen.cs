@@ -169,7 +169,7 @@ namespace UI.Screens.Variants.Cutscene
             int active = -1;
             for (int i = 0; i < cues.Length; i++)
             {
-                if (t >= cues[i].Time && t <= cues[i].Time + cues[i].Duration)
+                if (t >= cues[i].Time && t <= cues[i].Time + CueDuration(cues[i]))
                 {
                     active = i;
                 }
@@ -187,10 +187,13 @@ namespace UI.Screens.Variants.Cutscene
 
             _cueIndex = active;
             float local = active >= 0 ? t - cues[active].Time : 0f;
-            float target = active >= 0 ? Mathf.Min(Easing.Smooth(local / _subtitleFadeIn), Easing.Smooth((cues[active].Duration - local) / _subtitleFadeOut)) : 0f;
+            float target = active >= 0 ? Mathf.Min(Easing.Smooth(local / _subtitleFadeIn), Easing.Smooth((CueDuration(cues[active]) - local) / _subtitleFadeOut)) : 0f;
             _subtitleGroup.alpha = active >= 0 ? target : Mathf.MoveTowards(_subtitleGroup.alpha, 0f, Time.deltaTime * _subtitleHideSpeed);
             _subtitleRect.anchoredPosition = _subtitleRest + Vector2.down * (1f - _subtitleGroup.alpha) * _subtitleDrop;
         }
+
+        private float CueDuration(SubtitleCue cue) =>
+            _dialogs.TryGetClip(_dialogs.Get(cue.LineId).Text, out AudioClip clip) ? clip.length : cue.Duration;
 
         private void UpdateSkip(float t)
         {

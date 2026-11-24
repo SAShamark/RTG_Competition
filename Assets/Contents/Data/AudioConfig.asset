@@ -289,3 +289,31 @@ MonoBehaviour:
     _pitch: {x: 1, y: 1}
     _spatialBlend: 0.8
     _maxDistance: 30
+  - _type: 37
+    _clips:
+    - {fileID: 8300000, guid: a0a06f847336aca4f81a4a4efcb885e0, type: 3}
+    - {fileID: 8300000, guid: 0ed33d2b30661434c9c863911ae2c1c6, type: 3}
+    - {fileID: 8300000, guid: 63e1131e425a0234784d8eba1717a579, type: 3}
+    _volume: 0.8
+    _pitch: {x: 1.35, y: 1.55}
+    _spatialBlend: 0.6
+    _maxDistance: 18
+  - _type: 38
+    _clips:
+    - {fileID: 8300000, guid: 8de053ad5fad4d64cb21393bf8eefffd, type: 3}
+    - {fileID: 8300000, guid: 721699e617820244f9eb170a5dea98bd, type: 3}
+    _volume: 0.9
+    _pitch: {x: 1.4, y: 1.65}
+    _spatialBlend: 0.85
+    _maxDistance: 22
+  - _type: 39
+    _clips:
+    - {fileID: 8300000, guid: 02e75f01e0ff1ec40b279071f1fb2d14, type: 3}
+    - {fileID: 8300000, guid: fd5ff1135004f0b41b61e3c67b037661, type: 3}
+    - {fileID: 8300000, guid: f0f5ab4a75a342f46916bd979637b08a, type: 3}
+    - {fileID: 8300000, guid: 31c5cfdfd8e27c14ca7833ed2151529a, type: 3}
+    - {fileID: 8300000, guid: d40b85f49fe2dcc4b85367c1c0fd0d7d, type: 3}
+    _volume: 0.35
+    _pitch: {x: 0.5, y: 0.6}
+    _spatialBlend: 0
+    _maxDistance: 10

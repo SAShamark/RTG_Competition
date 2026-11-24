@@ -26,8 +26,17 @@ namespace Gameplay.Entities.Environment
 
         public void Init() => _block = new MaterialPropertyBlock();
 
+        public bool IsOn { get; set; } = true;
+
         public void Tick(float time)
         {
+            if (!IsOn)
+            {
+                Set(_left, _leftLamp, false, _redColor);
+                Set(_right, _rightLamp, false, _blueColor);
+                return;
+            }
+
             // double flash per side, like real light bars
             float phase = Mathf.Repeat(time * _frequency, 1f);
             bool flash = Mathf.Repeat(phase * FlashesPerSide, 1f) < FlashDuty;

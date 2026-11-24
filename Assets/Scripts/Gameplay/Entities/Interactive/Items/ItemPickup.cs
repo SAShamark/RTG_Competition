@@ -1,8 +1,8 @@
 using Gameplay.Dialogue;
 using Gameplay.Entities.Interactive;
-using Gameplay.Entities.Player;
 using Services.Audio;
 using System;
+using Gameplay.Entities.Characters.Player;
 using UnityEngine;
 
 namespace Gameplay.Entities.Interactive.Items

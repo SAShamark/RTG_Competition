@@ -1,5 +1,7 @@
+using Gameplay.Dialogue;
+using Gameplay.Entities.Characters.Player;
+using Services;
 using Gameplay.Entities.Interactive;
-using Gameplay.Entities.Player;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -23,7 +25,7 @@ namespace Gameplay.Cinematics
         [SerializeField] private CinematicSettings _settings = new CinematicSettings(0.45f, 1.2f);
         [SerializeField] private SubtitleCue[] _subtitles =
         {
-            new SubtitleCue(LineTime, LineDuration, "U01"),
+            new SubtitleCue(LineTime, LineDuration, DialogIds.UncleMakeWay),
         };
 
         [Header("Path")]
@@ -37,14 +39,16 @@ namespace Gameplay.Cinematics
         [SerializeField] private float _maxPitchDown = 25f;
 
         private FirstPersonController _player;
+        private Camera _camera;
         private Vector3[] _path;
 
         public override CinematicSettings Settings => _settings;
         public override SubtitleCue[] Subtitles => _subtitles;
         protected override float Duration => _duration;
 
-        public void Init(FirstPersonController player)
+        public void Init(FirstPersonController player, Camera camera)
         {
+            _camera = camera;
             _player = player;
             _actors.SetActive(false);
         }
@@ -132,7 +136,7 @@ namespace Gameplay.Cinematics
             Vector3 e = desired.eulerAngles;
             float pitch = e.x > 180f ? e.x - 360f : e.x;
             desired = Quaternion.Euler(Mathf.Clamp(pitch, _maxPitchUp, _maxPitchDown), e.y, 0f);
-            Quaternion smoothed = Quaternion.Slerp(cam.rotation, desired, 1f - Mathf.Exp(-_lookSharpness * Time.deltaTime));
+            Quaternion smoothed = Quaternion.Slerp(cam.rotation, desired, Easing.Damp(_lookSharpness, Time.deltaTime));
             cam.rotation = Quaternion.RotateTowards(cam.rotation, smoothed, _maxTurnSpeed * Time.deltaTime);
 
             Vector3 camEuler = cam.rotation.eulerAngles;
@@ -180,13 +184,12 @@ namespace Gameplay.Cinematics
 
         private bool IsActorSeen()
         {
-            Camera cam = Camera.main;
-            if (cam.TryGetComponent(out CinemachineBrain brain) && brain.IsBlending)
+            if (_camera.TryGetComponent(out CinemachineBrain brain) && brain.IsBlending)
             {
                 return true;
             }
 
-            GeometryUtility.CalculateFrustumPlanes(cam, _frustum);
+            GeometryUtility.CalculateFrustumPlanes(_camera, _frustum);
             foreach (Renderer actorRenderer in _actorRenderers)
             {
                 Bounds bounds = actorRenderer.bounds;

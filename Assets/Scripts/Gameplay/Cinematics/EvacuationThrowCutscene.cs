@@ -1,9 +1,9 @@
 using Gameplay.Entities.Environment;
 using Gameplay.Entities.Interactive;
-using Gameplay.Entities.Player;
-using Gameplay.Entities.Residents;
 using Services;
 using System;
+using Gameplay.Entities.Characters.Player;
+using Gameplay.Entities.Characters.Residents;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -209,7 +209,7 @@ namespace Gameplay.Cinematics
             Vector3 target = _resident.transform.position + _resident.transform.rotation * Vector3.up * _resident.BodyCenterHeight
                 + _lookOffset;
             Quaternion desired = Quaternion.LookRotation(target - cam.position, Vector3.up);
-            cam.rotation = Quaternion.Slerp(cam.rotation, desired, 1f - Mathf.Exp(-_lookSharpness * Time.deltaTime));
+            cam.rotation = Quaternion.Slerp(cam.rotation, desired, Easing.Damp(_lookSharpness, Time.deltaTime));
         }
 
         private void CutOutside()

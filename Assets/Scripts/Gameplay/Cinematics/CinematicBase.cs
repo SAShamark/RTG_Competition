@@ -2,7 +2,6 @@ using System;
 using Services;
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.Serialization;
 using UnityEngine.Timeline;
 
 namespace Gameplay.Cinematics
@@ -11,7 +10,7 @@ namespace Gameplay.Cinematics
     {
         private const float EndTolerance = 0.02f;
 
-        [SerializeField, FormerlySerializedAs("Director")] protected PlayableDirector _director;
+        [SerializeField] protected PlayableDirector _director;
 
         private TimelineAsset _clock;
 

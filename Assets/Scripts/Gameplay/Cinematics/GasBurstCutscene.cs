@@ -1,5 +1,6 @@
+using Gameplay.Dialogue;
+using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Interactive;
-using Gameplay.Entities.Player;
 using Services;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace Gameplay.Cinematics
         [SerializeField] private CinematicSettings _settings = new(0.35f, 0f);
         [SerializeField] private SubtitleCue[] _subtitles =
         {
-            new(0.7f, 1.6f, "M07"),
+            new(0.7f, 1.6f, DialogIds.PlayerJumpWindow),
         };
 
         private FirstPersonController _player;

@@ -9,12 +9,14 @@ namespace Gameplay.Cinematics
     public sealed class CinematicPresenter : IDisposable
     {
         private readonly UIManager _uiManager;
+        private readonly AudioService _audio;
         private ICinematic _presented;
         private Action _presentedFinished;
 
-        public CinematicPresenter(UIManager uiManager)
+        public CinematicPresenter(UIManager uiManager, AudioService audio)
         {
             _uiManager = uiManager;
+            _audio = audio;
         }
 
         public void Present(ICinematic cinematic)
@@ -23,7 +25,7 @@ namespace Gameplay.Cinematics
             _presented = cinematic;
             _presentedFinished = () => HandleFinished(cinematic);
             cinematic.Finished += _presentedFinished;
-            AudioService.Instance.SetDucked(true);
+            _audio.SetDucked(true);
             _uiManager.ScreensManager.ShowScreen(ScreenTypes.Intro);
             var cutsceneScreen = (CutsceneScreen)_uiManager.ScreensManager.GetScreen(ScreenTypes.Intro);
             cutsceneScreen.Present(cinematic);
@@ -52,7 +54,7 @@ namespace Gameplay.Cinematics
             }
 
             Release();
-            AudioService.Instance.SetDucked(false);
+            _audio.SetDucked(false);
             _uiManager.ScreensManager.ShowScreen(ScreenTypes.Gameplay);
         }
     }

@@ -11,24 +11,21 @@ namespace Gameplay.Mission.Floor3
         private readonly GameplayScreen _screen;
         private readonly PipeValve[] _valves;
         private readonly Func<bool> _spendWheel;
-        private bool _solved;
-
-        public bool IsSolved => _solved;
-        public int WheelsUsed { get; private set; }
-
-        public event Action WheelUsed;
-
-        public event Action Solved;
-
         private readonly TextLibrary _texts;
 
         public ValveRoomController(GameplayScreen screen, PipeValve[] valves, Func<bool> spendWheel, TextLibrary texts)
         {
-            _texts = texts;
             _screen = screen;
             _valves = valves;
             _spendWheel = spendWheel;
+            _texts = texts;
         }
+
+        public bool IsSolved { get; private set; }
+        public int WheelsUsed { get; private set; }
+
+        public event Action WheelUsed;
+        public event Action Solved;
 
         public void Init()
         {
@@ -66,7 +63,7 @@ namespace Gameplay.Mission.Floor3
 
         private void HandleTurned(PipeValve valve)
         {
-            if (_solved)
+            if (IsSolved)
             {
                 return;
             }
@@ -93,7 +90,7 @@ namespace Gameplay.Mission.Floor3
                 }
             }
 
-            _solved = true;
+            IsSolved = true;
             _screen.ShowToast(_texts[TextId.ToastGasClosed]);
             Solved?.Invoke();
         }

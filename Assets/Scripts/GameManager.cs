@@ -9,8 +9,6 @@ public sealed class GameManager
 {
     [SerializeField] private GameplayManager _gameplay = new();
 
-    public GameplayManager Gameplay => _gameplay;
-
     public void Initialize()
     {
         UIManager uiManager = UIManager.Instance;

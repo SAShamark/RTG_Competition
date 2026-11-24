@@ -1,3 +1,4 @@
+using Services;
 using Gameplay.Entities.Interactive;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace Gameplay.Entities.Environment
         [SerializeField] private float _headingSmoothing = 0.2f;
         [SerializeField] private float _groundProbeHeight = 1.2f;
         [SerializeField] private float _groundProbeDistance = 3f;
+        [SerializeField] private float _stepHeight = 0.2f;
+        [SerializeField] private float _heightSharpness = 18f;
 
         private Vector3 _lastTargetPos;
         private float _footOffset;
@@ -69,7 +72,10 @@ namespace Gameplay.Entities.Environment
         private void OnEnable()
         {
             _lastTargetPos = _target.position;
-            transform.position = DesiredPosition();
+            Vector3 start = DesiredFlat();
+            float top = Mathf.Max(_groundY, _target.position.y) + _groundProbeHeight;
+            start.y = GroundAt(start, top, Mathf.Max(_groundY, _target.position.y)) + _footOffset;
+            transform.position = start;
         }
 
         private void LateUpdate()
@@ -82,29 +88,32 @@ namespace Gameplay.Entities.Environment
             }
 
             _lastTargetPos = _target.position;
-            Vector3 desired = DesiredPosition();
-            transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-_followSharpness * Time.deltaTime));
+            Vector3 current = transform.position;
+            Vector3 next = Vector3.Lerp(current, DesiredFlat(), Easing.Damp(_followSharpness, Time.deltaTime));
+            float feet = current.y - _footOffset;
+            float ground = GroundAt(next, feet + _stepHeight, feet);
+            next.y = Mathf.Lerp(current.y, ground + _footOffset, Easing.Damp(_heightSharpness, Time.deltaTime));
+            transform.position = next;
             transform.rotation = Quaternion.LookRotation(_heading, Vector3.up) * Quaternion.Euler(0f, 90f, 0f) * _tilt;
             MeasureFeet();
             _measured = true;
         }
 
-        private Vector3 DesiredPosition()
+        private Vector3 DesiredFlat()
         {
             Quaternion frame = Quaternion.LookRotation(_heading, Vector3.up);
-            Vector3 p = _target.position + frame * _offset;
-            p.y = GroundAt(p, Mathf.Max(_groundY, _target.position.y)) + _footOffset;
-            return p;
+            return _target.position + frame * _offset;
         }
 
-        private float GroundAt(Vector3 p, float fallback)
+        private float GroundAt(Vector3 p, float probeTop, float fallback)
         {
-            RaycastHit[] hits = Physics.RaycastAll(p + Vector3.up * _groundProbeHeight, Vector3.down, _groundProbeDistance, ~0, QueryTriggerInteraction.Ignore);
+            var origin = new Vector3(p.x, probeTop, p.z);
+            RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, _groundProbeDistance, ~0, QueryTriggerInteraction.Ignore);
             float best = float.MinValue;
             foreach (RaycastHit hit in hits)
             {
                 Transform t = hit.collider.transform;
-                if (t.IsChildOf(transform) || (t.IsChildOf(_target.root)) || hit.collider is CharacterController
+                if (t.IsChildOf(transform) || t.IsChildOf(transform.parent) || hit.collider is CharacterController
                     || hit.collider.GetComponentInParent<Door>() != null)
                 {
                     continue;

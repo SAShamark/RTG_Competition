@@ -28,7 +28,7 @@ namespace Gameplay.Cinematics.Finale
         {
             float u = Easing.Smooth(time / duration);
             Vector3 bob = Vector3.up * Mathf.Abs(Mathf.Sin(time * _runBobFrequency)) * _runBobHeight * (1f - u);
-            Quaternion rotation = Quaternion.Slerp(cam.rotation, _rotation, 1f - Mathf.Exp(-_runTurnSharpness * Time.deltaTime));
+            Quaternion rotation = Quaternion.Slerp(cam.rotation, _rotation, Easing.Damp(_runTurnSharpness, Time.deltaTime));
             cam.SetPositionAndRotation(Vector3.Lerp(_from, _to, u) + bob, rotation);
         }
     }

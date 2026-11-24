@@ -1,5 +1,5 @@
-using Gameplay.Entities.Residents;
 using System;
+using Gameplay.Entities.Characters.Residents;
 using UnityEngine;
 
 namespace UI.Popups.Variants.Results

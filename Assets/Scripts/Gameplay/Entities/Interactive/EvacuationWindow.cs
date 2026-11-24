@@ -1,7 +1,7 @@
 using Gameplay.Dialogue;
 using Gameplay.Entities.Environment;
-using Gameplay.Entities.Player;
 using System;
+using Gameplay.Entities.Characters.Player;
 using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
@@ -27,7 +27,6 @@ namespace Gameplay.Entities.Interactive
         public override HandGesture Gesture => HandGesture.None;
 
         public event Action<EvacuationWindow> ThrowRequested;
-        public event Action<EvacuationWindow> NotReady;
 
         public void Init(CarryLogic carry)
         {
@@ -49,13 +48,10 @@ namespace Gameplay.Entities.Interactive
 
         protected override void OnInteract(Transform interactor)
         {
-            if (!_isReady)
+            if (_isReady)
             {
-                NotReady?.Invoke(this);
-                return;
+                ThrowRequested?.Invoke(this);
             }
-
-            ThrowRequested?.Invoke(this);
         }
 
         public void Open()

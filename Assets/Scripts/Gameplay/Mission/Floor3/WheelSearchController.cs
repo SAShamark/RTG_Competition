@@ -12,22 +12,20 @@ namespace Gameplay.Mission.Floor3
         private readonly GameplayScreen _screen;
         private readonly StackItem[] _wheels;
         private readonly ValveRoomController _valveRoom;
-        private readonly Floor3Controller _floor3;
+        private readonly TextLibrary _texts;
+
         private bool _isNeeded;
         private bool _isShown;
 
-        private readonly TextLibrary _texts;
-
-        public WheelSearchController(GameplayScreen screen, StackItem[] wheels, ValveRoomController valveRoom, Floor3Controller floor3, TextLibrary texts)
+        public WheelSearchController(GameplayScreen screen, StackItem[] wheels, ValveRoomController valveRoom, TextLibrary texts)
         {
-            _texts = texts;
             _screen = screen;
             _wheels = wheels;
             _valveRoom = valveRoom;
-            _floor3 = floor3;
+            _texts = texts;
         }
 
-        public void Initialize()
+        public void Init()
         {
             foreach (StackItem wheel in _wheels)
             {
@@ -35,7 +33,6 @@ namespace Gameplay.Mission.Floor3
             }
 
             _valveRoom.WheelUsed += Refresh;
-            _floor3.WheelsNeeded += HandleNeeded;
         }
 
         public void Dispose()
@@ -46,7 +43,6 @@ namespace Gameplay.Mission.Floor3
             }
 
             _valveRoom.WheelUsed -= Refresh;
-            _floor3.WheelsNeeded -= HandleNeeded;
         }
 
         private void HandleTaken(ItemPickup item)
@@ -59,7 +55,7 @@ namespace Gameplay.Mission.Floor3
             Refresh();
         }
 
-        private void HandleNeeded()
+        public void Begin()
         {
             _isNeeded = true;
             Refresh();

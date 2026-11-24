@@ -1,7 +1,7 @@
 using System;
+using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
-using Gameplay.Entities.Residents;
 using UnityEngine;
 
 namespace Gameplay.Mission.Floor3

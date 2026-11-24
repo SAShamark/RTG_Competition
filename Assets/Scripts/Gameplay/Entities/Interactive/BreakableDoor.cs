@@ -48,6 +48,7 @@ namespace Gameplay.Entities.Interactive
         private int _breachTotal;
         private int _breachKnocked;
 
+        public bool IsChopped { get; private set; }
         public bool IsBreached { get; private set; }
 
         public event Action<BreakableDoor, Vector3> Chopped;
@@ -107,6 +108,7 @@ namespace Gameplay.Entities.Interactive
                 EffectPlayback.Restart(impact);
             }
 
+            IsChopped = true;
             Chopped?.Invoke(this, point);
 
             if (!IsBreached && _breachKnocked >= _breachTotal * _breachRatio)

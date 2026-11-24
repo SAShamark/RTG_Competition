@@ -1,3 +1,4 @@
+using Services;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -59,7 +60,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
                 float fadeOut = Mathf.Clamp01((_lifetime - item.Age) / _fadeOutTime);
                 item.Group.alpha = Mathf.Min(fadeIn, fadeOut);
                 Vector2 target = _template.anchoredPosition + Vector2.down * (_spacing * i) + Vector2.left * (1f - fadeIn) * _slideDistance;
-                item.Rect.anchoredPosition = Vector2.Lerp(item.Rect.anchoredPosition, target, 1f - Mathf.Exp(-_followSharpness * Time.unscaledDeltaTime));
+                item.Rect.anchoredPosition = Vector2.Lerp(item.Rect.anchoredPosition, target, Easing.Damp(_followSharpness, Time.unscaledDeltaTime));
             }
         }
     }

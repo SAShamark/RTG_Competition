@@ -30,9 +30,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _Ambient: 0.6
-    - _Density: 2.5
-    - _EdgeNoise: 0.2
-    - _Erode: 0.3
+    - _Density: 1.4
+    - _EdgeNoise: 0.55
+    - _Erode: 0.75
     - _LightTint: 0.35
     - _Lit: 0.25
     - _NearFade: 0.1

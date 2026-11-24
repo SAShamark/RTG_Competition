@@ -1,7 +1,7 @@
+using Gameplay.Dialogue;
 using Gameplay.Cinematics.IntroDrift;
-using Gameplay.Entities.Player;
+using Gameplay.Entities.Characters.Player;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Gameplay.Cinematics
 {
@@ -9,14 +9,14 @@ namespace Gameplay.Cinematics
     {
         private const float PartnerLineTime = 2.45f;
 
-        [SerializeField, FormerlySerializedAs("Player")] private FirstPersonController _player;
-        [SerializeField, FormerlySerializedAs("PlayOnStart")] private bool _playOnStart = true;
-        [SerializeField, FormerlySerializedAs("EnableOnFinish")] private GameObject[] _enableOnFinish;
+        [SerializeField] private FirstPersonController _player;
+        [SerializeField] private bool _playOnStart = true;
+        [SerializeField] private GameObject[] _enableOnFinish;
         [SerializeField] private IntroDriftControl _drift;
         [SerializeField] private CinematicSettings _settings = new CinematicSettings(0f, 2f, titleLine: "вул. Липова, 12", titleSubLine: "18:47  ·  виклик №112  ·  «щось горить»", titleTime: 0.4f, titleDuration: 1.95f);
         [SerializeField] private SubtitleCue[] _subtitles =
         {
-            new SubtitleCue(PartnerLineTime, PartnerLineTime, "P01"),
+            new SubtitleCue(PartnerLineTime, PartnerLineTime, DialogIds.PartnerSlowDown),
         };
 
         public override CinematicSettings Settings => _settings;

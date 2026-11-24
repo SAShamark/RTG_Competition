@@ -77,7 +77,8 @@ MonoBehaviour:
   _projector: {fileID: 4563327401926442778}
   _sizeRange: {x: 0.28, y: 0.42}
   _depth: 0.04
+  _proxyInset: 0.12
   _fullGrowth: 1.25
-  _startDensity: 0.25
-  _minFade: 0.35
+  _startDensity: 0.45
+  _minFade: 0.5
   _fadeOutDuration: 0.7

@@ -79608,7 +79608,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IntroCutscene
   _director: {fileID: 168043891}
-  _player: {fileID: 2105696792}
+  _player: {fileID: 911507753}
   _playOnStart: 1
   _enableOnFinish:
   - {fileID: 1368507484}
@@ -79657,7 +79657,7 @@ PlayableDirector:
     value: {fileID: 0}
   m_ExposedReferences:
     m_References:
-    - ce640df26636e96458872785f5df9b99: {fileID: 1010238017}
+    - ce640df26636e96458872785f5df9b99: {fileID: 911507756}
     - 8f2f05203b286b344b44e74e94b9037d: {fileID: 1760066802}
 --- !u!1 &168062349
 GameObject:
@@ -263406,12 +263406,12 @@ GameObject:
   - component: {fileID: 553960875}
   - component: {fileID: 553960874}
   m_Layer: 0
-  m_Name: Axe
+  m_Name: Axe_OLD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &553960873
 Transform:
   m_ObjectHideFlags: 0
@@ -263449,6 +263449,8 @@ MonoBehaviour:
   _hasHandPose: 0
   _handPosition: {x: 0, y: 0, z: 0}
   _handEuler: {x: 0, y: 0, z: 0}
+  _handAimPosition: {x: 0, y: 0, z: 0}
+  _handAimEuler: {x: 0, y: 0, z: 0}
   _holdInBodyHand: 0
   _bodyHoldPosition: {x: 0, y: 0, z: 0}
   _bodyHoldEuler: {x: 0, y: 0, z: 0}
@@ -271039,8 +271041,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.EntryPoint
   _gameManager:
     _gameplay:
-      _player: {fileID: 2105696792}
-      _playerBody: {fileID: 526271165}
+      _player: {fileID: 911507753}
+      _playerBody: {fileID: 911507755}
       _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
       _fireHeat:
         _riseSpeed: 3
@@ -271121,7 +271123,7 @@ MonoBehaviour:
           _doors:
           - {fileID: 1807408166}
           - {fileID: 1521499340}
-          _axe: {fileID: 553960874}
+          _axe: {fileID: 1247356640}
           _chainLock: {fileID: 20249377}
           _insidePoint: {fileID: 2078779859}
           _doorPoint: {fileID: 456069641}
@@ -290856,6 +290858,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 911507754}
   - {fileID: 2105696793}
   - {fileID: 685977217}
   - {fileID: 702963037}
@@ -432615,6 +432618,103 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4286679931285256, guid: 32592fb99bd76432bbf5ba80e54e26bd, type: 3}
   m_PrefabInstance: {fileID: 911468324}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &911507752
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 610091846}
+    m_Modifications:
+    - target: {fileID: 1581724305737739508, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_Name
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 2189164342866503503, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2189164342866503503, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: _view._startView
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 5.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -18.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9795777
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.20106587
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+--- !u!114 &911507753 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2189164342866503503, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+  m_PrefabInstance: {fileID: 911507752}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b7ad2d443475624da565024ab02538f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FirstPersonController
+--- !u!4 &911507754 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6535428551265950527, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+  m_PrefabInstance: {fileID: 911507752}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &911507755 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7080047481574707949, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+  m_PrefabInstance: {fileID: 911507752}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &911507756 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6436514220561026317, guid: 67d87067029577645bdebfc15fbc6a47, type: 3}
+  m_PrefabInstance: {fileID: 911507752}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
 --- !u!1 &912030880
 GameObject:
   m_ObjectHideFlags: 0
@@ -433612,6 +433712,7 @@ Transform:
   - {fileID: 1860308288}
   - {fileID: 1272101312}
   - {fileID: 1092171962}
+  - {fileID: 1247356639}
   - {fileID: 553960873}
   m_Father: {fileID: 1156375384}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -597808,6 +597909,79 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1247110810}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1247356638
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 914160971}
+    m_Modifications:
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.56
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6965102436871315101, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+      propertyPath: m_Name
+      value: Axe
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+--- !u!4 &1247356639 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1224166953487727474, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+  m_PrefabInstance: {fileID: 1247356638}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1247356640 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2344460459190591154, guid: 3c31c173d3825724ea6bf0501b15f3ef, type: 3}
+  m_PrefabInstance: {fileID: 1247356638}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35d1dbd8ef5a35b4b9738d78698cb288, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Items.Pickable
 --- !u!1 &1247432053
 GameObject:
   m_ObjectHideFlags: 0
@@ -1012065,12 +1012239,12 @@ GameObject:
   - component: {fileID: 2105696794}
   - component: {fileID: 2105696792}
   m_Layer: 9
-  m_Name: Player
+  m_Name: Player_OLD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2105696792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1012087,6 +1012261,8 @@ MonoBehaviour:
   _aim: {fileID: 0}
   _walkSpeed: 3.2
   _runSpeed: 5.5
+  _backwardRunFactor: 0.76
+  _strafeRunFactor: 0.8
   _mouseSensitivity: 0.12
   _gravity: -18
   _interactionLogic:
@@ -1012103,11 +1012279,28 @@ MonoBehaviour:
     _rightRest: {x: 0.24, y: -0.285, z: 0.05}
     _leftRestEuler: {x: -8, y: 8, z: 25}
     _rightRestEuler: {x: -8, y: -8, z: -25}
-    _bobFrequency: 1.9
     _bobAmplitude: {x: 0.012, y: 0.018}
     _swayAmount: 0.0009
     _swaySmoothing: 10
     _breathAmplitude: 0.004
+    _runSwingStart: 0.7
+    _walkSwing: 0.3
+    _swingReach: 0.05
+    _swingLift: 0.03
+    _swingPitch: 2
+    _runRaise: -0.03
+    _toolSwing: 0.35
+    _fistSwing: 0.5
+    _tossDuration: 0.45
+    _tossContactTime: 0.2
+    _tossWindupShare: 0.5
+    _tossWindupOffset: {x: 0.03, y: -0.03, z: -0.08}
+    _tossReleaseOffset: {x: -0.03, y: 0.07, z: 0.16}
+    _tossWindupPitch: 8
+    _tossReleasePitch: -18
+    _viewHalfTan: 0.7
+    _sleeveRadius: 0.09
+    _reachCross: 0.02
     _aimOffset: {x: -0.04, y: 0.04, z: 0.08}
     _aimEuler: {x: -6, y: -10, z: 20}
     _aimSpeed: 8
@@ -1012125,7 +1012318,6 @@ MonoBehaviour:
     _rattleContactTime: 0.16
     _contactTime: 0.2
     _moveBlendSpeed: 4
-    _runBobMultiplier: 1.6
     _breathFrequency: 1.6
     _maxSway: 0.05
     _rightBobDown: 0.6
@@ -1012159,8 +1012351,6 @@ MonoBehaviour:
     _oneHandRightEuler: {x: -25, y: -6, z: -62}
     _oneHandLeftOffset: {x: -0.05, y: -0.25, z: -0.05}
     _holdBlendSpeed: 5
-    _toolRightOffset: {x: -0.04, y: 0.06, z: 0.12}
-    _toolRightEuler: {x: -6, y: -8, z: -35}
     _fistCenter: {x: 0, y: -0.045, z: 0.345}
     _leftMesh: {fileID: 163230796}
     _rightMesh: {fileID: 741751627}
@@ -1012169,6 +1012359,8 @@ MonoBehaviour:
     _rightOpen: {fileID: 4300000, guid: e0cd613bd18cad44882f5058bc1a2670, type: 2}
     _rightFist: {fileID: 4300000, guid: 9de9644031be86b42ab946325a8f94e9, type: 2}
     _toolBlendSpeed: 9
+    _toolReleaseSpeed: 3
+    _gripBlendSpeed: 2.5
     _chopDuration: 0.6
     _chopWindupTime: 0.18
     _chopContactTime: 0.27
@@ -1012178,11 +1012370,18 @@ MonoBehaviour:
     _chopStrikeOffset: {x: -0.06, y: -0.06, z: 0.16}
     _chopStrikeEuler: {x: 40, y: -4, z: -6}
     _chopRecoil: 0.25
+    _chopBounceRecoil: 0.7
+    _chopAltWindupOffset: {x: 0.16, y: 0.04, z: -0.06}
+    _chopAltWindupEuler: {x: -18, y: 30, z: -70}
+    _chopAltStrikeOffset: {x: -0.14, y: -0.08, z: 0.14}
+    _chopAltStrikeEuler: {x: 30, y: -20, z: 35}
+    _reachMaxDistance: 0.6
+    _sputterThreshold: 0.25
+    _sputterAmplitude: 0.012
+    _sputterFrequency: 23
   _heldItem:
     _handSocket: {fileID: 741751625}
     _bodySocket: {fileID: 0}
-    _dropForward: 0.7
-    _dropDown: 0.3
     _dropSpeed: 2.5
   _extinguisher:
     _range: 4.5
@@ -1012192,6 +1012391,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     _aimRangeFactor: 0.7
+    _minAimDistance: 1.2
     _farPowerFactor: 0.4
     _hitSlack: 0.9
     _capacity: 6
@@ -1012224,9 +1012424,23 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     _library: {fileID: 0}
+    _debrisPrefab: {fileID: 0}
+    _debrisLifetime: 4
+    _debrisSpeed: {x: 0.8, y: 2.6}
+    _debrisSpread: 0.6
+    _debrisShade: {x: 0.7, y: 1.1}
+    _fallbackColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+    _alternateTilt: 40
+    _swingCost: 0.22
+    _recoverDelay: 0.6
+    _recoverRate: 0.35
     _maxMarks: 40
     _markOffset: 0.006
     _markScale: {x: 0.85, y: 1.15}
+    _edgeProbe: 0.07
+    _edgeDepth: 0.03
+    _sameFaceNormal: 0.9
+    _edgeFaceNormal: 0.5
   _carry:
     _socket: {fileID: 1315319743}
     _speedMultiplier: 0.7
@@ -1012265,8 +1012479,7 @@ MonoBehaviour:
   _hardLandingRecovery: 0.35
   _hardLandingSpeedFactor: 0.35
   _landImpulse: {fileID: 0}
-  _landImpulsePerSpeed: 0.06
-  _maxLandImpulse: 0.9
+  _firstPersonShake: 0.35
   _groundAcceleration: 35
   _groundDeceleration: 45
   _airAcceleration: 7
@@ -1012278,11 +1012491,9 @@ MonoBehaviour:
     _firstPersonOnly: []
     _body: {fileID: 0}
     _startView: 0
+    _firstPersonRevealDelay: 0.35
     _handsRig: {fileID: 0}
     _thirdPersonHandsOffset: {x: 0.04, y: -0.3, z: 0.12}
-    _thirdPersonFollow: {fileID: 0}
-    _aimCameraDistance: 1.9
-    _aimShoulderOffset: {x: 0.6, y: 0.15, z: 0}
   _body:
     _animator: {fileID: 0}
     _moveDamp: 0.12
@@ -1012303,19 +1012514,53 @@ MonoBehaviour:
     _toeOffset: 0.05
     _keep: 0.2
     _landingKeep: 0.1
+    _plantedLift: 0.03
+  _cameraFeel:
+    _firstPersonCamera: {fileID: 0}
+    _thirdPersonCamera: {fileID: 0}
+    _follow: {fileID: 0}
+    _sprintFovBoost: 6
+    _aimFovDrop: 5
+    _fovSharpness: 6
+    _isBobEnabled: 1
+    _bobAmplitude: {x: 0.007, y: 0.011}
+    _runBobMultiplier: 1.4
+    _bobSharpness: 8
+    _strafeRoll: 1.2
+    _rollSharpness: 8
+    _dipPerSpeed: 0.012
+    _maxDip: 0.12
+    _springStiffness: 140
+    _springDamping: 16
+    _thirdPersonDipScale: 0.5
+    _sprintDistance: 0.35
+    _carryDistance: 0.5
+    _aimDistance: 1.9
+    _aimShoulder: {x: 0.6, y: 0.15, z: 0}
+    _distanceSharpness: 4
+    _hideBodyDistance: 0.55
   _idleTremor: 0.15
   _bodyPickupContact: 0.37
   _bodyPickupDuration: 0.95
   _lowPickupReach: 0.6
   _lowPickupHeight: 0.5
   _reachPickupContact: 0.28
+  _handPickupContact: 0.24
+  _handPickupDuration: 0.65
+  _handPickupDip: 0.07
   _reachPickupDuration: 0.6
   _reachReleaseShare: 0.6
-  _bodyChopContact: 0.38
-  _bodyChopDuration: 0.6
-  _chopMoveFactor: 0.7
+  _swing:
+    _contact: 0.38
+    _duration: 0.6
+    _windupShare: 0.6
+    _swingSoundLead: 0.12
+    _moveFactor: 0.7
   _chopAimSharpness: 12
   _recoilDuration: 0.45
+  _tossContact: 0.2
+  _tossDuration: 0.45
+  _tossReach: 0.6
 --- !u!4 &2105696793
 Transform:
   m_ObjectHideFlags: 0

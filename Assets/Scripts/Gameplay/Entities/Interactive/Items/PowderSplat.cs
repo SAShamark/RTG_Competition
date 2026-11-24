@@ -8,10 +8,12 @@ namespace Gameplay.Entities.Interactive.Items
     {
         private const int AtlasCells = 2;
         private const float FullTurn = 360f;
+        private const float Half = 0.5f;
 
         [SerializeField] private DecalProjector _projector;
         [SerializeField] private Vector2 _sizeRange = new(0.28f, 0.42f);
         [SerializeField] private float _depth = 0.04f;
+        [SerializeField] private float _proxyInset = 0.12f;
         [SerializeField] private float _fullGrowth = 1.25f;
         [SerializeField, Range(0f, 1f)] private float _startDensity = 0.25f;
         [SerializeField, Range(0f, 1f)] private float _minFade = 0.35f;
@@ -24,6 +26,7 @@ namespace Gameplay.Entities.Interactive.Items
         private float _baseSize;
         private float _density;
         private float _presence;
+        private float _boxDepth;
 
         public bool IsFree { get; private set; } = true;
         public Collider Surface => _surface;
@@ -44,7 +47,13 @@ namespace Gameplay.Entities.Interactive.Items
             float cell = 1f / AtlasCells;
             _projector.uvScale = new Vector2(cell, cell);
             _projector.uvBias = new Vector2(Random.Range(0, AtlasCells) * cell, Random.Range(0, AtlasCells) * cell);
-            _projector.pivot = Vector3.zero;
+            // A collider with no visible mesh of its own is a stand-in (a door blocker, a hidden original door): what the player sees can sit
+            // several centimetres behind it, so the projection reaches further in to land on it.
+            float outside = _depth * Half;
+            bool hasVisibleMesh = surface.TryGetComponent(out Renderer own) && own.enabled;
+            float inside = hasVisibleMesh ? outside : _proxyInset;
+            _boxDepth = outside + inside;
+            _projector.pivot = new Vector3(0f, 0f, (inside - outside) * Half);
 
             IsFree = false;
             gameObject.SetActive(true);
@@ -61,7 +70,7 @@ namespace Gameplay.Entities.Interactive.Items
         private void Apply()
         {
             float size = _baseSize * Mathf.Lerp(1f, _fullGrowth, _density);
-            _projector.size = new Vector3(size, size, _depth);
+            _projector.size = new Vector3(size, size, _boxDepth);
             _projector.fadeFactor = Mathf.Lerp(_minFade, 1f, Easing.Smooth(_density)) * _presence;
         }
 

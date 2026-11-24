@@ -7212,7 +7212,7 @@ MonoBehaviour:
     _maxSplats: 320
     _splatMergeRadius: 0.14
     _splatMergeNormal: 0.8
-    _splatGrowth: 1.5
+    _splatGrowth: 3
     _splatJitter: 0.05
   _wallFallout: 0.35
   _surfaceLift: 0.08

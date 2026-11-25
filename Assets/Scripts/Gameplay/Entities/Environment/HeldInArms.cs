@@ -5,6 +5,7 @@ namespace Gameplay.Entities.Environment
     public sealed class HeldInArms : MonoBehaviour
     {
         private const float PhaseSpread = 10f;
+        private const float RollShare = 0.5f;
 
         private enum Hand { Left, Right }
 
@@ -14,6 +15,7 @@ namespace Gameplay.Entities.Environment
         [SerializeField] private Vector3 _euler;
         [SerializeField] private float _wobble = 4f;
         [SerializeField] private float _jiggleFrequency = 14f;
+        [SerializeField] private float _animationSpeed = 0.45f;
 
         private Transform _bone;
         private Vector3 _centerLocal;
@@ -22,6 +24,11 @@ namespace Gameplay.Entities.Environment
         private void Awake()
         {
             _phase = Random.value * PhaseSpread;
+            if (TryGetComponent(out Animator animator))
+            {
+                animator.speed = _animationSpeed;
+            }
+
             if (_carrier.isHuman)
             {
                 _bone = _carrier.GetBoneTransform(_hand == Hand.Left ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand);
@@ -50,7 +57,7 @@ namespace Gameplay.Entities.Environment
 
             Quaternion body = _carrier.transform.rotation;
             float jiggle = Mathf.Sin(Time.time * _jiggleFrequency + _phase) * _wobble;
-            Quaternion rotation = body * Quaternion.Euler(_euler + new Vector3(jiggle, 0f, jiggle * 0.5f));
+            Quaternion rotation = body * Quaternion.Euler(_euler + new Vector3(jiggle, 0f, jiggle * RollShare));
             Vector3 palm = _bone.position + body * _offset;
             Vector3 centerOffset = rotation * Vector3.Scale(_centerLocal, transform.lossyScale);
             transform.SetPositionAndRotation(palm - centerOffset, rotation);

@@ -12,6 +12,7 @@ namespace Gameplay.Entities.Interactive
         private const float MinToughness = 0.05f;
 
         private static readonly List<FireSource> ActiveList = new();
+        private static readonly int PowderId = Shader.PropertyToID("_Powder");
 
         [SerializeField, Range(0f, 1f)] private float _intensity = 1f;
         [SerializeField] private float _toughness = 1f;
@@ -58,6 +59,9 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private float _meltRadius = 0.9f;
         [SerializeField] private float _meltRate = 0.012f;
 
+        [Header("Debris")]
+        [SerializeField] private Renderer[] _dustedDebris;
+
         [Header("Gameplay")]
         [SerializeField] private Collider _blocker;
         [SerializeField] private float _minVisual = 0.15f;
@@ -74,6 +78,8 @@ namespace Gameplay.Entities.Interactive
         private float _sprayBlend;
         private ISoundLoop _sizzle = SilentLoop.Instance;
         private float _sincePowderCheck;
+        private MaterialPropertyBlock _dustBlock;
+        private float _dust;
 
         public static IReadOnlyList<FireSource> Active => ActiveList;
 
@@ -89,6 +95,7 @@ namespace Gameplay.Entities.Interactive
         private void Awake()
         {
             _noiseSeed = UnityEngine.Random.value * 100f;
+            _dustBlock = new MaterialPropertyBlock();
             _baseRates = new float[_particles.Length];
             for (int i = 0; i < _baseRates.Length; i++)
             {
@@ -126,7 +133,11 @@ namespace Gameplay.Entities.Interactive
             }
         }
 
-        public void Extinguish(float power, float deltaTime)
+        public void Extinguish(float power, float deltaTime) => Suppress(power, deltaTime, true);
+
+        public void Douse(float power, float deltaTime) => Suppress(power, deltaTime, false);
+
+        private void Suppress(float power, float deltaTime, bool leavesPowder)
         {
             if (IsOut || power <= 0f)
             {
@@ -135,7 +146,28 @@ namespace Gameplay.Entities.Interactive
 
             _sinceSprayed = 0f;
             float next = _intensity - power * deltaTime / Mathf.Max(MinToughness, _toughness);
+            if (leavesPowder)
+            {
+                DustDebris(1f - Mathf.Clamp01(next));
+            }
+
             SetIntensity(_reignite ? Mathf.Max(next, _reigniteFloor) : next);
+        }
+
+        // The powder that knocks the flames down stays on whatever was burning.
+        private void DustDebris(float amount)
+        {
+            if (amount <= _dust)
+            {
+                return;
+            }
+
+            _dust = amount;
+            _dustBlock.SetFloat(PowderId, _dust);
+            foreach (Renderer debris in _dustedDebris)
+            {
+                debris.SetPropertyBlock(_dustBlock);
+            }
         }
 
         public void Ignite(float intensity = 1f)

@@ -317,3 +317,11 @@ MonoBehaviour:
     _pitch: {x: 0.5, y: 0.6}
     _spatialBlend: 0
     _maxDistance: 10
+  - _type: 41
+    _clips:
+    - {fileID: 8300000, guid: 8de053ad5fad4d64cb21393bf8eefffd, type: 3}
+    - {fileID: 8300000, guid: 721699e617820244f9eb170a5dea98bd, type: 3}
+    _volume: 1
+    _pitch: {x: 0.96, y: 1.04}
+    _spatialBlend: 0.85
+    _maxDistance: 22

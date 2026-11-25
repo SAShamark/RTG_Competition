@@ -12,8 +12,9 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField] private float _lookHeight;
         [SerializeField] private float _fov;
         [SerializeField] private float _roll;
+        [SerializeField] private float _lookLead;
 
-        public DriftCameraRig(float lead, float side, float height, float lookHeight, float fov, float roll)
+        public DriftCameraRig(float lead, float side, float height, float lookHeight, float fov, float roll, float lookLead = 0f)
         {
             _lead = lead;
             _side = side;
@@ -21,6 +22,7 @@ namespace Gameplay.Cinematics.IntroDrift
             _lookHeight = lookHeight;
             _fov = fov;
             _roll = roll;
+            _lookLead = lookLead;
         }
 
         public float Lead => _lead;
@@ -29,6 +31,7 @@ namespace Gameplay.Cinematics.IntroDrift
         public float LookHeight => _lookHeight;
         public float Fov => _fov;
         public float Roll => _roll;
+        public float LookLead => _lookLead;
 
         public static DriftCameraRig Lerp(DriftCameraRig a, DriftCameraRig b, float t) => new(
             Mathf.Lerp(a._lead, b._lead, t),
@@ -36,6 +39,7 @@ namespace Gameplay.Cinematics.IntroDrift
             Mathf.Lerp(a._height, b._height, t),
             Mathf.Lerp(a._lookHeight, b._lookHeight, t),
             Mathf.Lerp(a._fov, b._fov, t),
-            Mathf.Lerp(a._roll, b._roll, t));
+            Mathf.Lerp(a._roll, b._roll, t),
+            Mathf.Lerp(a._lookLead, b._lookLead, t));
     }
 }

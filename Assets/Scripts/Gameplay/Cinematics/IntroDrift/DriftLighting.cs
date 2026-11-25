@@ -14,6 +14,7 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField, Min(0f)] private float _sunIntensity = 2.4f;
         [SerializeField, Range(0f, 2f)] private float _ambientScale = 0.8f;
         [SerializeField] private TruckControl _truck;
+        [SerializeField] private bool _isLightBarOn = true;
         [SerializeField] private Light[] _lightBars;
         [SerializeField, Min(0f)] private float _lightBarRange = 18f;
         [SerializeField] private Light _smokeLight;
@@ -48,7 +49,7 @@ namespace Gameplay.Cinematics.IntroDrift
 
             _applied = true;
             _release = -1f;
-            _truck.IsLightBarOn = false;
+            _truck.IsLightBarOn = _isLightBarOn;
             Apply(1f);
         }
 

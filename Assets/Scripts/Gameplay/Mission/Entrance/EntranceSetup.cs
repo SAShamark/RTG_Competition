@@ -16,6 +16,7 @@ namespace Gameplay.Mission.Entrance
         [SerializeField] private Transform _doorPoint;
         [SerializeField] private Transform _lockerPoint;
         [SerializeField] private float _cutsceneDelay = 0.7f;
+        [SerializeField] private float _burstDuration = 0.22f;
 
         public Door[] Doors => _doors;
         public ToolItem Axe => _axe;
@@ -24,5 +25,6 @@ namespace Gameplay.Mission.Entrance
         public Transform DoorPoint => _doorPoint;
         public Transform LockerPoint => _lockerPoint;
         public float CutsceneDelay => _cutsceneDelay;
+        public float BurstDuration => _burstDuration;
     }
 }

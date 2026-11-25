@@ -42,5 +42,7 @@ namespace Services.Audio
         AxeHitMetal = 37,
         AxeHitGlass = 38,
         AxeHitSoft = 39,
+        CatMeow = 40,
+        DoorBurst = 41,
     }
 }

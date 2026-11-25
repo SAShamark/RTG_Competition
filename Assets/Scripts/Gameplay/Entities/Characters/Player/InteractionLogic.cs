@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Gameplay.Entities.Interactive;
 using UnityEngine;
 
@@ -7,11 +8,16 @@ namespace Gameplay.Entities.Characters.Player
     [Serializable]
     public sealed class InteractionLogic
     {
+        private const int MaxHits = 32;
+
+        private static readonly IComparer<RaycastHit> ByDistance = Comparer<RaycastHit>.Create((a, b) => a.distance.CompareTo(b.distance));
+
         [SerializeField] private float _distance = 2.6f;
         [SerializeField] private float _radius = 0.08f;
         [SerializeField] private LayerMask _mask = ~0;
         [SerializeField] private float _blockerTolerance = 0.08f;
 
+        private readonly RaycastHit[] _hits = new RaycastHit[MaxHits];
         private Transform _head;
         private Transform _owner;
         private IInteractable _current;
@@ -85,11 +91,12 @@ namespace Gameplay.Entities.Characters.Player
 
         private IInteractable FindTarget()
         {
-            RaycastHit[] hits = Physics.SphereCastAll(_head.position, _radius, _head.forward, _distance, _mask,
+            int count = Physics.SphereCastNonAlloc(_head.position, _radius, _head.forward, _hits, _distance, _mask,
                 QueryTriggerInteraction.Collide);
-            Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-            foreach (RaycastHit hit in hits)
+            Array.Sort(_hits, 0, count, ByDistance);
+            for (int i = 0; i < count; i++)
             {
+                RaycastHit hit = _hits[i];
                 if (hit.collider.transform.IsChildOf(_owner))
                 {
                     continue;
@@ -103,8 +110,9 @@ namespace Gameplay.Entities.Characters.Player
 
                 if (!hit.collider.isTrigger)
                 {
-                    foreach (RaycastHit near in hits)
+                    for (int j = 0; j < count; j++)
                     {
+                        RaycastHit near = _hits[j];
                         if (near.distance > hit.distance && (near.distance - hit.distance < _blockerTolerance || hit.collider.bounds.Contains(near.collider.bounds.center)))
                         {
                             IInteractable item = near.collider.GetComponentInParent<IInteractable>();

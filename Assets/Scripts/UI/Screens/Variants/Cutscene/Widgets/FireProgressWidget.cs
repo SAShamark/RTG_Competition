@@ -19,6 +19,12 @@ namespace UI.Screens.Variants.Cutscene.Widgets
             _target = Mathf.Clamp01(value);
         }
 
+        public void Snap(float value)
+        {
+            SetProgress(value);
+            _shown = _target;
+        }
+
         private void Update()
         {
             _shown = Mathf.MoveTowards(_shown, _target, Time.deltaTime * Mathf.Max(_minSpeed, Mathf.Abs(_target - _shown) * _smoothing));

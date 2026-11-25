@@ -1,5 +1,6 @@
 using System;
 using Gameplay.Entities.Characters.Player;
+using Gameplay.Entities.Interactive;
 using Services.Audio;
 using UI.Managers;
 using UI.Popups.Variants.Results;
@@ -24,10 +25,12 @@ namespace Gameplay.Cinematics
 
         public EvacuationThrowCutscene Throw => _throwCutscene;
         public ResultsPhotoRig PhotoRig => _photoRig;
+        public FireSource[] HouseFires => _finale.HouseFires;
 
         public event Action IntroFinished;
         public event Action UncleBurstFinished;
         public event Action GasBurstFinished;
+        public event Action FinaleJumpFinished;
         public event Action<Texture> FinaleFinished;
 
         public void Initialize(UIManager uiManager, GameplayScreen screen, FirstPersonController player, Camera camera, AudioService audio)
@@ -76,12 +79,19 @@ namespace Gameplay.Cinematics
             Present(_gasBurstCutscene);
         }
 
-        public void PlayFinale(float fireProgress)
+        public void PlayFinale()
         {
-            _finale.SetFireStart(fireProgress);
             _finale.Play(_player);
             Present(_finale);
         }
+
+        public void PlayFinaleEnding()
+        {
+            _finale.PlayEnding(_player);
+            Present(_finale);
+        }
+
+        public void ReleaseFinale() => _finale.Release(_player);
 
         public void Present(ICinematic cinematic)
         {
@@ -95,6 +105,16 @@ namespace Gameplay.Cinematics
 
         private void HandleGasBurstFinished() => GasBurstFinished?.Invoke();
 
-        private void HandleFinaleFinished() => FinaleFinished?.Invoke(_finale.CapturedFrame);
+        private void HandleFinaleFinished()
+        {
+            if (_finale.IsEnding)
+            {
+                FinaleFinished?.Invoke(_finale.CapturedFrame);
+            }
+            else
+            {
+                FinaleJumpFinished?.Invoke();
+            }
+        }
     }
 }

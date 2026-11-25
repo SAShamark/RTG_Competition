@@ -147,12 +147,16 @@ namespace Gameplay.Entities.Interactive
             Forced?.Invoke(this);
         }
 
-        public void Open(Vector3 awayFrom)
+        public void Open(Vector3 awayFrom) => Open(awayFrom, _openDuration, SoundType.DoorOpen);
+
+        public void BurstOpen(Vector3 awayFrom, float duration) => Open(awayFrom, duration, SoundType.DoorBurst);
+
+        private void Open(Vector3 awayFrom, float duration, SoundType sound)
         {
             _isLocked = false;
             IsOpen = true;
-            StartSwing(SwingSign(awayFrom) * _openAngle, _openDuration);
-            Play(SoundType.DoorOpen);
+            StartSwing(SwingSign(awayFrom) * _openAngle, duration);
+            Play(sound);
             Opened?.Invoke(this);
         }
 

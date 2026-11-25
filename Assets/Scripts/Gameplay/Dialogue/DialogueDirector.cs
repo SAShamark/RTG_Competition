@@ -66,6 +66,8 @@ namespace Gameplay.Dialogue
         private ShadowCastingMode[] _bodyModes;
         private Action _onFinished;
         private DialogueLine _current;
+        private Transform _companionHead;
+        private Rescuable _companion;
         private float _timeLeft;
         private float _voiceLeft;
         private bool _snapCamera;
@@ -117,6 +119,7 @@ namespace Gameplay.Dialogue
             _isWaiting = false;
             IsPlaying = true;
             _snapCamera = true;
+            _player.BeginConversation();
             _player.enabled = false;
             _audio.SetDucked(true);
 
@@ -136,6 +139,8 @@ namespace Gameplay.Dialogue
             }
 
             _current = _lines.Dequeue();
+            _companionHead = _current.SpeakerHead == _player.Head ? _current.ListenerHead : _current.SpeakerHead;
+            _companion = _companionHead.GetComponentInParent<Rescuable>();
             _timeLeft = _lineGap;
             _voiceLeft = _dialogLibrary.TryGetClip(_current.Text, out AudioClip clip) ? clip.length : float.MaxValue;
             _screen.ClearDialog();
@@ -154,6 +159,12 @@ namespace Gameplay.Dialogue
             if (!IsPlaying)
             {
                 return;
+            }
+
+            _player.FaceConversation(_companionHead.position, deltaTime);
+            if (_companion != null)
+            {
+                _companion.Face(_player.transform.position, deltaTime);
             }
 
             _timeLeft -= deltaTime;
@@ -329,6 +340,7 @@ namespace Gameplay.Dialogue
             SetBodyVisible(false);
             _camera.gameObject.SetActive(false);
 
+            _player.EndConversation();
             _player.enabled = true;
 
             Action done = _onFinished;

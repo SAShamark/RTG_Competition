@@ -15,6 +15,7 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField, Min(0.01f)] private float _releaseTime = 3f;
 
         private DepthOfField _depthOfField;
+        private MotionBlur _motionBlur;
         private float _release = -1f;
 
         public bool IsReleasing => _release >= 0f;
@@ -22,6 +23,7 @@ namespace Gameplay.Cinematics.IntroDrift
         public void Init()
         {
             _volume.profile.TryGet(out _depthOfField);
+            _volume.profile.TryGet(out _motionBlur);
             _volume.weight = 0f;
         }
 
@@ -31,8 +33,9 @@ namespace Gameplay.Cinematics.IntroDrift
             _volume.weight = 1f;
         }
 
-        public void Tick(Vector3 truckPosition)
+        public void Tick(Vector3 truckPosition, bool isCut)
         {
+            _motionBlur.active = !isCut;
             _depthOfField.focusDistance.value = Vector3.Distance(_camera.position, truckPosition + Vector3.up * _focusHeight);
         }
 

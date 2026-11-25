@@ -8,6 +8,7 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private Vector3 _holdPosition;
         [SerializeField] private Vector3 _holdEuler;
         [SerializeField] private float _lostDepth = 4f;
+        [SerializeField] private bool _isHandOnly;
         [SerializeField] private Transform _leftGrip;
         [SerializeField] private bool _hasHandPose;
         [SerializeField] private Vector3 _handPosition;
@@ -30,6 +31,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         public Vector3 HoldPosition => _holdPosition;
         public Vector3 HoldEuler => _holdEuler;
+        public bool IsHandOnly => _isHandOnly;
         public Transform LeftGrip => _leftGrip;
         public bool HasHandPose => _hasHandPose;
         public Vector3 HandPosition => _handPosition;

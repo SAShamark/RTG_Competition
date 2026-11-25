@@ -2,6 +2,7 @@ using System;
 using Gameplay.Dialogue;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Interactive;
+using Services;
 using UnityEngine;
 
 namespace Gameplay.Entities.Characters.Residents
@@ -17,6 +18,7 @@ namespace Gameplay.Entities.Characters.Residents
     public sealed class Rescuable : Interactable
     {
         private const float MinLiftTime = 0.01f;
+        private const float MinFacingSqr = 0.001f;
 
         [SerializeField] private string _displayName = "мешканця";
         [SerializeField] private string _talkHint = "[E] Поговорити";
@@ -37,6 +39,7 @@ namespace Gameplay.Entities.Characters.Residents
         [SerializeField] private Animator _animator;
         [SerializeField] private ResidentPoseLogic _pose = new();
         [SerializeField] private float _liftHop = 0.15f;
+        [SerializeField] private float _faceSharpness = 5f;
 
         private RescueState _state;
         private bool _canBeCarried = true;
@@ -94,6 +97,17 @@ namespace Gameplay.Entities.Characters.Residents
             {
                 carrier.PickUp(this);
             }
+        }
+
+        public void Face(Vector3 point, float deltaTime)
+        {
+            Vector3 planar = Vector3.ProjectOnPlane(point - transform.position, Vector3.up);
+            if (_state != RescueState.Waiting || planar.sqrMagnitude < MinFacingSqr)
+            {
+                return;
+            }
+
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(planar), Easing.Damp(_faceSharpness, deltaTime));
         }
 
         public void SetCenterPose(Vector3 center, Quaternion rotation)

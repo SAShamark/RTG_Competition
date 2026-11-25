@@ -35,7 +35,10 @@ namespace Gameplay.Entities.Characters.Player
         public float VerticalSpeed { get; private set; }
         public bool IsGrounded => _controller.isGrounded;
         public bool IsNearGround { get; private set; } = true;
+        public bool IsJumpHeld { get; private set; }
+        public bool IsRiding { get; private set; }
         public float HardLandingSpeed => _hardLandingSpeed;
+        public float HeightBoost { get; set; }
 
         public event Action Jumped;
         public event Action<float> Landed;
@@ -47,6 +50,14 @@ namespace Gameplay.Entities.Characters.Player
 
         public void Tick(bool jumpPressed, bool jumpHeld, bool canJump, float gravity, float deltaTime)
         {
+            IsJumpHeld = jumpHeld;
+            if (IsRiding)
+            {
+                _sinceJumpPressed = float.MaxValue;
+                IsNearGround = true;
+                return;
+            }
+
             bool isGrounded = _controller.isGrounded;
             if (isGrounded && !_wasGrounded && _sinceGrounded >= _minAirTime)
             {
@@ -60,7 +71,7 @@ namespace Gameplay.Entities.Characters.Player
             if (canJump && _sinceJumpPressed <= _jumpBuffer && _sinceGrounded <= _coyoteTime)
             {
                 // v = sqrt(2 * h * |g|) reaches exactly _jumpHeight at the apex.
-                VerticalSpeed = Mathf.Sqrt(2f * _jumpHeight * -gravity);
+                VerticalSpeed = Mathf.Sqrt(2f * _jumpHeight * (1f + HeightBoost) * -gravity);
                 _sinceJumpPressed = float.MaxValue;
                 _sinceGrounded = float.MaxValue;
                 _wasGrounded = false;
@@ -81,6 +92,28 @@ namespace Gameplay.Entities.Characters.Player
             }
 
             IsNearGround = isGrounded || (VerticalSpeed <= 0f && ProbeGround());
+        }
+
+        public void BeginRide()
+        {
+            IsRiding = true;
+            _isRising = false;
+        }
+
+        public void Ride(float speed)
+        {
+            VerticalSpeed = speed;
+        }
+
+        public void EndRide(float launchSpeed)
+        {
+            IsRiding = false;
+            VerticalSpeed = launchSpeed;
+            _sinceGrounded = float.MaxValue;
+            _wasGrounded = false;
+            _isRising = true;
+            IsNearGround = false;
+            Jumped?.Invoke();
         }
 
         public void HandleCollision(CollisionFlags flags)

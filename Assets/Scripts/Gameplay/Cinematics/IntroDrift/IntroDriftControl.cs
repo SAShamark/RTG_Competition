@@ -17,10 +17,12 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField] private DriftAudio _audio = new();
         [SerializeField] private DriftBeat _beat = new();
         [SerializeField] private DriftPulse _pulse = new();
+        [SerializeField] private DriftChassis _chassis = new();
         [SerializeField, Min(0f)] private float _pulseFromMusicTime = 1.35f;
         [SerializeField] private DriftLighting _lighting = new();
         [SerializeField] private DriftPostFX _postFX = new();
         [SerializeField] private ScreenFade _fade;
+        [SerializeField] private LetterboxBars _letterbox;
         [SerializeField, Min(0.01f)] private float _fadeTime = 0.5f;
         [SerializeField, Min(0f)] private float _startDelay = 1.5f;
 
@@ -41,6 +43,7 @@ namespace Gameplay.Cinematics.IntroDrift
             _slowMotion.Init();
             _postFX.Init();
             _fade.SetAlpha(0f);
+            _letterbox.SetShown(0f);
             _slowMotion.PanelArrived += _audio.PanelHit;
         }
 
@@ -64,8 +67,10 @@ namespace Gameplay.Cinematics.IntroDrift
             _audio.Begin();
             _beat.Reset();
             _pulse.Begin();
+            _chassis.Begin();
             _lighting.Begin();
             _postFX.Begin();
+            _letterbox.SetShown(1f);
             Place();
             _smoke.Clear();
         }
@@ -160,6 +165,7 @@ namespace Gameplay.Cinematics.IntroDrift
 
             _slowMotion.Tick(Mathf.Min(Time.unscaledDeltaTime, _maxStep));
             _audio.Tick(_slowMotion.Slowness);
+            _smoke.SetSlowness(_slowMotion.Slowness);
             _distance += _path.SpeedAt(_distance) * Mathf.Min(Time.deltaTime, _maxStep * Time.timeScale);
             if (!_slowMotionStarted && _path.ProgressAt(_distance) >= _slowMotionAt)
             {
@@ -183,10 +189,11 @@ namespace Gameplay.Cinematics.IntroDrift
             DriftPose pose = _path.Sample(_distance);
             _truck.SetPositionAndRotation(pose.Position, pose.Rotation);
             _smoke.SetSlip(pose.Slip);
-            _shot.Tick(pose, _distance - _path.TurnIn, _distance);
+            _chassis.Tick(pose.Slip, _path.BrakingAt(_distance));
+            _shot.Tick(_path, pose, _distance);
             float remaining = (_path.Length - _distance) / _path.SpeedAt(_distance);
             _fade.SetAlpha(1f - Mathf.Clamp01(remaining / _fadeTime));
-            _postFX.Tick(pose.Position);
+            _postFX.Tick(pose.Position, _shot.HasCut);
         }
 
         private void Finish()
@@ -197,11 +204,14 @@ namespace Gameplay.Cinematics.IntroDrift
             _truck.SetPositionAndRotation(pose.Position, pose.Rotation);
             _smoke.SetSlip(0f);
             _pulse.Stop();
+            _chassis.Stop();
             _slowMotion.Stop();
+            _smoke.SetSlowness(0f);
             _audio.BeginTail();
             _lighting.BeginRelease();
             _postFX.BeginRelease();
             _fade.SetAlpha(1f);
+            _letterbox.SetShown(0f);
             _fadeIn = 0f;
             Finished?.Invoke();
             _shot.End();
@@ -212,7 +222,9 @@ namespace Gameplay.Cinematics.IntroDrift
             if (IsPlaying)
             {
                 _pulse.Stop();
+                _chassis.Stop();
                 _slowMotion.Stop();
+                _smoke.SetSlowness(0f);
             }
         }
     }

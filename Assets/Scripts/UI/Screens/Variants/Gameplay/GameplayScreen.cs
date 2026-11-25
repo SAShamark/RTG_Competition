@@ -3,6 +3,7 @@ using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
+using UI.Screens.Variants.Cutscene.Widgets;
 using UI.Screens.Variants.Gameplay.Widgets;
 using UI.Screens.Base;
 using UnityEngine;
@@ -29,6 +30,7 @@ namespace UI.Screens.Variants.Gameplay
         [SerializeField] private ToastWidget _toasts;
         [SerializeField] private HeatVignetteWidget _heat;
         [SerializeField] private PressureGaugeWidget _pressure;
+        [SerializeField] private FireProgressWidget _fireProgress;
 
         private FirstPersonController _player;
         private FireHeatLogic _fireHeat;
@@ -63,6 +65,16 @@ namespace UI.Screens.Variants.Gameplay
         public void SetDropHint(bool isVisible) => _dropHint.SetActive(isVisible);
 
         public void SetHeat(float intensity01) => _heat.SetIntensity(intensity01);
+
+        public void ShowFireProgress(float value01)
+        {
+            _fireProgress.gameObject.SetActive(true);
+            _fireProgress.Snap(value01);
+        }
+
+        public void SetFireProgress(float value01) => _fireProgress.SetProgress(value01);
+
+        public void HideFireProgress() => _fireProgress.gameObject.SetActive(false);
 
         public void SetCrosshairVisible(bool isVisible)
         {
@@ -111,6 +123,7 @@ namespace UI.Screens.Variants.Gameplay
             _texts = texts;
             HideRescued();
             SetHeat(0f);
+            HideFireProgress();
             RefreshInventory();
 
             _player.Interaction.HintChanged += SetInteractionHint;
@@ -119,6 +132,7 @@ namespace UI.Screens.Variants.Gameplay
             _player.Items.ItemChanged += HandleItemChanged;
             _player.Items.InventoryChanged += RefreshInventory;
             _player.Items.InventoryFull += HandleInventoryFull;
+            _player.Hose.RanOut += HandleHoseRanOut;
             _player.PropChanged += HandlePropChanged;
             _player.Carry.CarryChanged += HandleCarryChanged;
         }
@@ -131,6 +145,7 @@ namespace UI.Screens.Variants.Gameplay
             _player.Items.ItemChanged -= HandleItemChanged;
             _player.Items.InventoryChanged -= RefreshInventory;
             _player.Items.InventoryFull -= HandleInventoryFull;
+            _player.Hose.RanOut -= HandleHoseRanOut;
             _player.PropChanged -= HandlePropChanged;
             _player.Carry.CarryChanged -= HandleCarryChanged;
         }
@@ -187,5 +202,7 @@ namespace UI.Screens.Variants.Gameplay
         }
 
         private void HandleInventoryFull() => ShowToast(_texts[TextId.ToastInventoryFull]);
+
+        private void HandleHoseRanOut() => ShowToast(_texts[TextId.ToastHoseRanOut]);
     }
 }

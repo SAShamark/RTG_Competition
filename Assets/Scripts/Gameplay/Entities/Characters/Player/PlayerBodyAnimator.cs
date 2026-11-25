@@ -88,6 +88,26 @@ namespace Gameplay.Entities.Characters.Player
             return Mathf.Abs(backAngle) <= _warpLimit ? backAngle : 0f;
         }
 
+        public void Rest()
+        {
+            _hitStop = 0f;
+            _warpYaw = 0f;
+            _animator.transform.localRotation = Quaternion.identity;
+            _animator.SetFloat(ChopSpeedId, NormalSpeed);
+            _animator.SetFloat(MoveXId, 0f);
+            _animator.SetFloat(MoveZId, 0f);
+            _animator.SetFloat(SpeedId, 0f);
+            _animator.SetFloat(VerticalSpeedId, 0f);
+            _animator.SetBool(GroundedId, true);
+            _animator.SetBool(AimingId, false);
+            _animator.SetBool(SprayingId, false);
+            _animator.ResetTrigger(ChopId);
+            _animator.ResetTrigger(ChopBounceId);
+            _animator.ResetTrigger(PickUpId);
+            _animator.ResetTrigger(JumpId);
+            _animator.ResetTrigger(HardLandId);
+        }
+
         public void SetAiming(bool isAiming) => _animator.SetBool(AimingId, isAiming);
 
         public void SetCarrying(bool isCarrying) => _animator.SetBool(CarryingId, isCarrying);
@@ -100,6 +120,7 @@ namespace Gameplay.Entities.Characters.Player
         {
             ItemType.Axe => AxeIndex,
             ItemType.Extinguisher => ExtinguisherIndex,
+            ItemType.Hose => ExtinguisherIndex,
             _ => NoToolIndex,
         });
 

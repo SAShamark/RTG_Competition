@@ -11,6 +11,7 @@ namespace Gameplay.Cinematics.IntroDrift
         [SerializeField, Min(1f)] private float _fullSlip = 28f;
         [SerializeField, Min(0f)] private float _boost = 2.6f;
         [SerializeField, Range(0f, 1f)] private float _skidThreshold = 0.2f;
+        [SerializeField, Range(0.05f, 1f)] private float _slowMotionSpeed = 0.4f;
 
         private float[] _baseRates;
 
@@ -35,6 +36,22 @@ namespace Gameplay.Cinematics.IntroDrift
             foreach (TrailRenderer mark in _skidMarks)
             {
                 mark.Clear();
+            }
+        }
+
+        public void SetSlowness(float slowness)
+        {
+            if (Time.timeScale <= 0f)
+            {
+                return;
+            }
+
+            // speed seen on screen = simulationSpeed * timeScale
+            float speed = Mathf.Lerp(1f, _slowMotionSpeed, slowness) / Time.timeScale;
+            foreach (ParticleSystem smoke in _smoke)
+            {
+                var main = smoke.main;
+                main.simulationSpeed = speed;
             }
         }
 

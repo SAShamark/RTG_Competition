@@ -11,12 +11,12 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private Trampoline _trampoline;
         [SerializeField] private Transform _launchPoint;
         [SerializeField] private Transform _cameraAnchor;
-        [SerializeField] private GameObject[] _closedParts;
+        [SerializeField] private BreakableGlass _glass;
         [SerializeField] private bool _isReady = true;
         [SerializeField] private string _notReadyHint = "батута внизу ще немає";
 
         private CarryLogic _carry;
-        private bool _isOpen;
+        private bool _isBroken;
 
         public Trampoline Trampoline => _trampoline;
         public Transform LaunchPoint => _launchPoint;
@@ -54,19 +54,15 @@ namespace Gameplay.Entities.Interactive
             }
         }
 
-        public void Open()
+        public void Break(Vector3 outward)
         {
-            if (_isOpen)
+            if (_isBroken)
             {
                 return;
             }
 
-            _isOpen = true;
-
-            foreach (GameObject part in _closedParts)
-            {
-                part.SetActive(false);
-            }
+            _isBroken = true;
+            _glass.Smash(_glass.transform.position, outward, false);
         }
     }
 }

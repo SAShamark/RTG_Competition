@@ -22,6 +22,8 @@ namespace Gameplay.Entities.Interactive.Items
         public InventoryEntry Hand => _hand;
         public InventoryEntry Slot(int index) => _slots[index];
 
+        private bool IsHoldingHandOnly => _hand.Tool != null && _hand.Tool.IsHandOnly;
+
         public event Action<ItemType> ItemChanged;
         public event Action InventoryChanged;
         public event Action InventoryFull;
@@ -61,6 +63,11 @@ namespace Gameplay.Entities.Interactive.Items
 
         public bool Take(ToolItem tool)
         {
+            if (tool.IsHandOnly && !StowHand())
+            {
+                return false;
+            }
+
             InventoryEntry target = FreeEntry();
             if (target == null)
             {
@@ -78,6 +85,12 @@ namespace Gameplay.Entities.Interactive.Items
         {
             if (_hand.IsEmpty)
             {
+                return true;
+            }
+
+            if (IsHoldingHandOnly)
+            {
+                Release(Vector3.zero);
                 return true;
             }
 
@@ -134,6 +147,11 @@ namespace Gameplay.Entities.Interactive.Items
                 return;
             }
 
+            if (IsHoldingHandOnly)
+            {
+                Release(Vector3.zero);
+            }
+
             var held = new InventoryEntry();
             held.CopyFrom(_hand);
             _hand.CopyFrom(slot);
@@ -141,7 +159,9 @@ namespace Gameplay.Entities.Interactive.Items
             Changed(true);
         }
 
-        public void Drop(Transform head)
+        public void Drop(Transform head) => Release(head.forward * _dropSpeed + Vector3.up);
+
+        private void Release(Vector3 velocity)
         {
             ToolItem dropped = _hand.Tool;
             if (dropped == null)
@@ -151,7 +171,7 @@ namespace Gameplay.Entities.Interactive.Items
 
             _hand.Clear();
             dropped.gameObject.SetActive(true);
-            dropped.Release(dropped.transform.position, head.forward * _dropSpeed + Vector3.up);
+            dropped.Release(dropped.transform.position, velocity);
             Changed(true);
         }
 

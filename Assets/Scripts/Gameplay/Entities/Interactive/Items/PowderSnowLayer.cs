@@ -18,6 +18,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         private enum SurfaceKind
         {
+            Scenery,
             Solid,
             Glass,
             Loose,
@@ -57,7 +58,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         public bool IsWall(Vector3 normal) => Mathf.Abs(normal.y) < _minFloorNormal;
 
-        // Powder piles up as a mound on level static surfaces and on glass; everything else gets a flat dusting.
+        // Powder piles up as a mound on static scenery, level surfaces and glass; whatever can move gets a flat dusting that rides along.
         public void Deposit(Vector3 point, Vector3 normal, Collider surface, float amount)
         {
             SurfaceKind kind = KindOf(surface);
@@ -66,7 +67,7 @@ namespace Gameplay.Entities.Interactive.Items
                 return;
             }
 
-            if (kind == SurfaceKind.Glass || (kind == SurfaceKind.Solid && IsFloor(normal)))
+            if (kind is SurfaceKind.Glass or SurfaceKind.Scenery || (kind == SurfaceKind.Solid && IsFloor(normal)))
             {
                 DepositMound(point, normal, amount);
                 return;
@@ -90,9 +91,13 @@ namespace Gameplay.Entities.Interactive.Items
             {
                 kind = SurfaceKind.Glass;
             }
+            else if (surface.attachedRigidbody != null)
+            {
+                kind = SurfaceKind.Loose;
+            }
             else
             {
-                kind = surface.attachedRigidbody != null ? SurfaceKind.Loose : SurfaceKind.Solid;
+                kind = surface.gameObject.isStatic ? SurfaceKind.Scenery : SurfaceKind.Solid;
             }
 
             _kinds.Add(surface, kind);

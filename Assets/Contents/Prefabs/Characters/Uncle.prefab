@@ -212,7 +212,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 8145285819652476802, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -312,8 +312,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &286236702550487565
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,7 +486,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -7002861557950260068, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -592,8 +592,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &324542482000934042
 GameObject:
   m_ObjectHideFlags: 0
@@ -708,7 +708,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -8055603199527590418, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -808,8 +808,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &377948834305352676
 GameObject:
   m_ObjectHideFlags: 0
@@ -1054,7 +1054,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -4638285569804012400, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -1154,8 +1154,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &892414503047360222
 GameObject:
   m_ObjectHideFlags: 0
@@ -1304,7 +1304,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 2773625188215877777, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -1401,8 +1401,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &1238943750867387875
 GameObject:
   m_ObjectHideFlags: 0
@@ -1739,7 +1739,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 5716682524435591482, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -1856,8 +1856,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &1624503233512930171
 GameObject:
   m_ObjectHideFlags: 0
@@ -2002,7 +2002,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 3737420491166247406, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -2108,8 +2108,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &1812517688815643472
 GameObject:
   m_ObjectHideFlags: 0
@@ -2623,7 +2623,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 3607798867896142459, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -2720,8 +2720,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &2659837668403823513
 GameObject:
   m_ObjectHideFlags: 0
@@ -2932,7 +2932,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -7922066114836804427, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -3059,8 +3059,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &3143450860687536092
 GameObject:
   m_ObjectHideFlags: 0
@@ -3143,7 +3143,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 9015193759832408648, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -3258,8 +3258,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &3162465281439444855
 GameObject:
   m_ObjectHideFlags: 0
@@ -3436,7 +3436,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 1453069584875610221, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -3536,8 +3536,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &3494308302720765187
 GameObject:
   m_ObjectHideFlags: 0
@@ -3620,7 +3620,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 4839700822933759800, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -3720,8 +3720,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &3553023746813383821
 GameObject:
   m_ObjectHideFlags: 0
@@ -4060,7 +4060,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 1832556534344126544, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -4160,8 +4160,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &4070202102015281606
 GameObject:
   m_ObjectHideFlags: 0
@@ -4401,7 +4401,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -6748422271420333817, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -4501,8 +4501,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &4648890907002313520
 GameObject:
   m_ObjectHideFlags: 0
@@ -4706,7 +4706,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -7177328321397308251, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -4811,8 +4811,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &4979643535480840735
 GameObject:
   m_ObjectHideFlags: 0
@@ -4959,7 +4959,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 6711646599593601031, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -5127,8 +5127,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &5179390425083673569
 GameObject:
   m_ObjectHideFlags: 0
@@ -5443,7 +5443,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 3182000751080937693, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -5543,8 +5543,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &5779997322061280227
 GameObject:
   m_ObjectHideFlags: 0
@@ -5721,7 +5721,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -3932518600228612350, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -5821,8 +5821,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &6300683613738629914
 GameObject:
   m_ObjectHideFlags: 0
@@ -6094,7 +6094,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 8818264619574773421, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -6194,8 +6194,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &6685465659775368641
 GameObject:
   m_ObjectHideFlags: 0
@@ -6659,7 +6659,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -5629079451367209722, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -6759,8 +6759,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &7870222775023934010
 GameObject:
   m_ObjectHideFlags: 0
@@ -7126,7 +7126,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: 7949330564130508545, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -7226,8 +7226,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &8919845118055356913
 GameObject:
   m_ObjectHideFlags: 0
@@ -7342,7 +7342,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -9169676836062987059, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -7442,8 +7442,8 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0
 --- !u!1 &9001139511905958638
 GameObject:
   m_ObjectHideFlags: 0
@@ -7557,7 +7557,7 @@ SkinnedMeshRenderer:
   m_MaskInteraction: 0
   serializedVersion: 2
   m_Quality: 0
-  m_UpdateWhenOffscreen: 1
+  m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
   m_Mesh: {fileID: -5138576636406241992, guid: 3811c8dfaad79db479313ab90c78e97c, type: 2}
   m_Bones:
@@ -7657,5 +7657,5 @@ SkinnedMeshRenderer:
   m_RootBone: {fileID: 6000897776116987383}
   m_AABB:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 1
+    m_Extent: {x: 3, y: 3, z: 3}
+  m_DirtyAABB: 0

@@ -21,6 +21,7 @@ namespace Gameplay.Cinematics
 
         [Header("Timing")]
         [SerializeField] private float _handOff = 0.7f;
+        [SerializeField] private float _breakTime = 0.45f;
         [SerializeField] private float _hang = 0.25f;
         [SerializeField] private float _flightTime = 1.25f;
         [SerializeField] private float _bounceTime = 1.0f;
@@ -52,6 +53,7 @@ namespace Gameplay.Cinematics
         private FirstPersonController _player;
         private Rescuable _resident;
         private Trampoline _trampoline;
+        private EvacuationWindow _window;
         private Vector3 _launch;
         private Vector3 _landing;
         private Vector3 _safe;
@@ -92,6 +94,7 @@ namespace Gameplay.Cinematics
             _hasBounced = false;
             _player = player;
             _resident = resident;
+            _window = window;
             _trampoline = window.Trampoline;
 
             _launch = window.LaunchPoint.position;
@@ -108,7 +111,6 @@ namespace Gameplay.Cinematics
             _lyingRotation = Quaternion.LookRotation(Vector3.up, _outward);
             _cameraAnchor = window.CameraAnchor.position;
 
-            window.Open();
             _handOffFrom = resident.transform.position;
             _handOffFromRotation = resident.transform.rotation;
             resident.Launch();
@@ -146,6 +148,11 @@ namespace Gameplay.Cinematics
 
             float t = ElapsedTime;
 
+            if (t >= _breakTime)
+            {
+                _window.Break(_outward);
+            }
+
             if (t < CutTime)
             {
                 float u = Easing.Smooth(t / _handOff);
@@ -177,10 +184,19 @@ namespace Gameplay.Cinematics
                     _trampoline.Bounce();
                 }
 
-                float u = (t - LandTime) / _bounceTime;
-                Vector3 safeCenter = _safe + Vector3.up * _resident.BodyCenterHeight;
-                _resident.SetCenterPose(Arc(_landing, safeCenter, _bounceApex, u),
-                    Quaternion.Slerp(_lyingRotation, _safeRotation, Easing.Smooth(u * _settleSpeed)));
+                float contact = _trampoline.ContactDuration;
+                float since = t - LandTime;
+                if (since < contact)
+                {
+                    _resident.SetCenterPose(_landing + Vector3.up * _trampoline.SampleDent(_landing), _lyingRotation);
+                }
+                else
+                {
+                    float u = (since - contact) / (_bounceTime - contact);
+                    Vector3 safeCenter = _safe + Vector3.up * _resident.BodyCenterHeight;
+                    _resident.SetCenterPose(Arc(_landing, safeCenter, _bounceApex, u),
+                        Quaternion.Slerp(_lyingRotation, _safeRotation, Easing.Smooth(u * _settleSpeed)));
+                }
             }
             else
             {
@@ -233,6 +249,7 @@ namespace Gameplay.Cinematics
 
         protected override void OnStopped()
         {
+            _window.Break(_outward);
             Land();
 
             _camera.gameObject.SetActive(false);

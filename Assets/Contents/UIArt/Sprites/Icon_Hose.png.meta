@@ -115,7 +115,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Icon_Hose_0
+      name: Icon_Extinguisher_0
       rect:
         serializedVersion: 2
         x: 0
@@ -130,8 +130,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3504320743401d580800000000000000
-      internalID: -8804251173266440109
+      spriteID: 86d59a56f138717f0800000000000000
+      internalID: -641900251004183192
       vertices: []
       indices: 
       edges: []

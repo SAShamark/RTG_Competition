@@ -1,5 +1,6 @@
 using Services;
 using Services.Audio;
+using System;
 using System.Collections;
 using Gameplay.Entities.Characters.Residents;
 using UnityEngine;
@@ -34,6 +35,7 @@ namespace UI.Popups.Variants.Results
         [SerializeField] private Text _peopleValue;
         [SerializeField] private Text _timeText;
         [SerializeField] private Button _replay;
+        [SerializeField] private Button _continue;
         [SerializeField] private int _photoWidth = 1320;
         [SerializeField] private int _photoHeight = 600;
         [SerializeField] private float _dimAlpha = 0.35f;
@@ -50,16 +52,18 @@ namespace UI.Popups.Variants.Results
         private ResultsPhotoRig _rig;
         private float _time = -1f;
 
+        public event Action Continued;
+
         private void Awake()
         {
             _replay.onClick.AddListener(Replay);
+            _continue.onClick.AddListener(Continue);
         }
 
         public void Present(MissionResults results, Texture photo, ResultsPhotoRig rig)
         {
             _results = results;
             _rig = rig;
-            _canvas.gameObject.SetActive(true);
             _time = 0f;
             _dimOnly = photo != null;
             Cursor.lockState = CursorLockMode.None;
@@ -133,9 +137,17 @@ namespace UI.Popups.Variants.Results
             SceneManager.LoadScene(SceneManager.GetActiveScene().path);
         }
 
+        private void Continue()
+        {
+            AudioService.Instance.Play(SoundType.UiConfirm);
+            _time = -1f;
+            Continued?.Invoke();
+        }
+
         private void OnDestroy()
         {
             _replay.onClick.RemoveListener(Replay);
+            _continue.onClick.RemoveListener(Continue);
             if (_photoTexture != null)
             {
                 _photoTexture.Release();

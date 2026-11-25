@@ -6,5 +6,6 @@ namespace Gameplay.Entities.Interactive.Items
         Extinguisher = 2,
         Wheel = 3,
         Axe = 4,
+        Hose = 5,
     }
 }

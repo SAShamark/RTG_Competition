@@ -28,7 +28,7 @@ namespace Gameplay.Mission.Entrance
 
             foreach (Door door in _setup.Doors)
             {
-                door.Open(_setup.InsidePoint.position);
+                door.BurstOpen(_setup.InsidePoint.position, _setup.BurstDuration);
             }
 
             Complete();

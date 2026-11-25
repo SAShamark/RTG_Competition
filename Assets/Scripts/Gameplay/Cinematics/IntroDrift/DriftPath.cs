@@ -72,6 +72,13 @@ namespace Gameplay.Cinematics.IntroDrift
             return Mathf.Lerp(_driftSpeed, _exitSpeed, (distance - turnOut) / _exitLength);
         }
 
+        public float BrakingAt(float distance)
+        {
+            float brake = Mathf.Clamp01((distance - (_approachLength - _brakeDistance)) / _brakeDistance);
+            // deceleration rises and falls across the brake zone
+            return Mathf.Sin(brake * Mathf.PI);
+        }
+
         public DriftPose Sample(float distance)
         {
             Vector3 position;

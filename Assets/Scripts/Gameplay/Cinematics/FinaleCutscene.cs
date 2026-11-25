@@ -22,11 +22,11 @@ namespace Gameplay.Cinematics
         [SerializeField] private EvacuationWindow _window;
         [SerializeField] private GameObject _firefighters;
         [SerializeField] private FireSource[] _houseFires;
-        [SerializeField] private CinematicSettings _settings = new(0.4f, 0f, titleLine: "Пожежу загашено", titleSubLine: "вул. Липова, 12 · усі на вулиці", titleTime: 5.6f, titleDuration: 3.8f);
+        [SerializeField] private CinematicSettings _jumpSettings = new(0.4f, 0.4f);
+        [SerializeField] private CinematicSettings _settings = new(0.4f, 0f, titleLine: "Пожежу загашено", titleSubLine: "вул. Липова, 12 · усі на вулиці", titleTime: 0.3f, titleDuration: 3.8f);
 
         [Header("Shots")]
         [SerializeField] private FinaleRunShot _runShot = new();
-        [SerializeField] private FinaleWideShot _wideShot = new();
         [SerializeField] private FinaleUncleScene _uncleScene = new();
 
         [Header("The explosion behind him")]
@@ -45,7 +45,6 @@ namespace Gameplay.Cinematics
         [SerializeField] private float _fall = 1.35f;
         [SerializeField] private float _bounce = 1.0f;
         [SerializeField] private float _landHold = 1.0f;
-        [SerializeField] private float _wide = 5.5f;
         [SerializeField] private float _poseHold = 0.9f;
 
         [Header("Stunt")]
@@ -64,6 +63,7 @@ namespace Gameplay.Cinematics
 
         [Header("Subtitles and fire bar")]
         [SerializeField] private float _lastFlamePeeShare = 0.6f;
+        [SerializeField] private float _lastFlameFade = 0.5f;
         [SerializeField] private float _safeLineLead = 0.1f;
         [SerializeField] private float _safeLineExtra = 0.6f;
         [SerializeField] private float _uncleLineDelay = 0.3f;
@@ -75,7 +75,8 @@ namespace Gameplay.Cinematics
         private Shot _shot;
         private bool _hasBounced;
         private bool _exploded;
-        private float _fireStart;
+        private bool _isEnding;
+        private FirstPersonController _player;
         private Vector3 _launch, _landing, _safe, _outward, _shotPosition;
         private Quaternion _safeRotation;
         private RenderTexture _frame;
@@ -86,43 +87,36 @@ namespace Gameplay.Cinematics
         {
             None,
             Window,
-            Wide,
             Uncle,
         }
 
-        public override CinematicSettings Settings => _settings;
+        public override CinematicSettings Settings => _isEnding ? _settings : _jumpSettings;
         public override SubtitleCue[] Subtitles => _subtitles;
         public Texture CapturedFrame => _frame;
 
         private float FallTime => _run + _hang;
         private float LandTime => FallTime + _fall;
         private float SafeTime => LandTime + _bounce;
-        private float WideTime => SafeTime + _landHold;
-        private float PeeTime => WideTime + _wide;
-        private float OrbitTime => PeeTime + _uncleScene.RunIn + _uncleScene.Pee;
-        protected override float Duration => PeeTime + _uncleScene.Duration + _poseHold;
+        private float JumpDuration => SafeTime + _landHold;
+        private float OrbitTime => _uncleScene.RunIn + _uncleScene.Pee;
+        protected override float Duration => _isEnding ? _uncleScene.Duration + _poseHold : JumpDuration;
+
+        public bool IsEnding => _isEnding;
+        public FireSource[] HouseFires => _houseFires;
 
         public float FireProgress
         {
             get
             {
-                float t = ElapsedTime;
-                if (!IsPlaying || t < WideTime)
+                if (!IsPlaying || !_isEnding)
                 {
                     return -1f;
                 }
 
-                if (t < PeeTime)
-                {
-                    return Mathf.Lerp(_fireStart, AlmostOut, Easing.Smooth((t - WideTime) / _wide));
-                }
-
-                float lastFlame = PeeTime + _uncleScene.RunIn + _uncleScene.Pee * _lastFlamePeeShare;
-                return t < lastFlame ? AlmostOut : Mathf.Lerp(AlmostOut, 1f, (t - lastFlame) / 0.5f);
+                float lastFlame = _uncleScene.RunIn + _uncleScene.Pee * _lastFlamePeeShare;
+                return Mathf.Lerp(AlmostOut, 1f, (ElapsedTime - lastFlame) / _lastFlameFade);
             }
         }
-
-        public void SetFireStart(float progress01) => _fireStart = Mathf.Clamp01(progress01);
 
         private void Awake()
         {
@@ -142,6 +136,8 @@ namespace Gameplay.Cinematics
                 return;
             }
 
+            _isEnding = false;
+            _player = player;
             _hasBounced = false;
             _exploded = false;
             _shot = Shot.None;
@@ -150,7 +146,7 @@ namespace Gameplay.Cinematics
             _safeRotation = _window.Trampoline.SafeRotation;
             _safe = _window.Trampoline.SafePoint + _safeRotation * Vector3.right * _safeOffset;
             _outward = Vector3.ProjectOnPlane(_landing - _launch, Vector3.up).normalized;
-            _window.Open();
+            _window.Break(_outward);
             _uncleScene.Prepare();
 
             Transform head = player.Head;
@@ -160,13 +156,44 @@ namespace Gameplay.Cinematics
             _subtitles = new[]
             {
                 new SubtitleCue(SafeTime - _safeLineLead, _landHold + _safeLineExtra, DialogIds.PartnerSuperhero),
-                new SubtitleCue(PeeTime + _uncleScene.RunIn + _uncleLineDelay, _uncleLineDuration, DialogIds.UncleProfessional),
-                new SubtitleCue(OrbitTime + _orbitLineDelay, _orbitLineDuration, DialogIds.UncleSavedEveryone),
             };
 
             _camera.transform.SetPositionAndRotation(head.position, head.rotation);
             _camera.gameObject.SetActive(true);
             PlayClock();
+        }
+
+        public void PlayEnding(FirstPersonController player)
+        {
+            if (!TryBegin())
+            {
+                return;
+            }
+
+            _isEnding = true;
+            _player = player;
+            _shot = Shot.Uncle;
+            player.enabled = false;
+            _firefighters.SetActive(true);
+            _stunt.gameObject.SetActive(true);
+            _stunt.SetPose(ResidentPose.Animated);
+            _stunt.transform.SetPositionAndRotation(_safe, _safeRotation);
+
+            _subtitles = new[]
+            {
+                new SubtitleCue(_uncleScene.RunIn + _uncleLineDelay, _uncleLineDuration, DialogIds.UncleProfessional),
+                new SubtitleCue(OrbitTime + _orbitLineDelay, _orbitLineDuration, DialogIds.UncleSavedEveryone),
+            };
+
+            _camera.gameObject.SetActive(true);
+            PlayClock();
+        }
+
+        public void Release(FirstPersonController player)
+        {
+            _camera.gameObject.SetActive(false);
+            _stunt.gameObject.SetActive(false);
+            player.Teleport(_safe, _safeRotation);
         }
 
         private void Update()
@@ -178,28 +205,19 @@ namespace Gameplay.Cinematics
 
             float t = ElapsedTime;
             Transform cam = _camera.transform;
-            if (t < _run)
+            if (_isEnding)
+            {
+                _uncleScene.Tick(cam, t);
+            }
+            else if (t < _run)
             {
                 _runShot.Tick(cam, t, _run);
             }
             else
             {
                 TickStunt(cam, t);
-                if (t >= PeeTime)
-                {
-                    SetShot(Shot.Uncle);
-                    _uncleScene.Tick(cam, t - PeeTime);
-                }
-                else if (t >= WideTime)
-                {
-                    SetShot(Shot.Wide);
-                    _wideShot.Tick(cam, (t - WideTime) / _wide, _houseFires);
-                }
-                else
-                {
-                    SetShot(Shot.Window);
-                    TickWindowShot(cam, t);
-                }
+                SetShot(Shot.Window);
+                TickWindowShot(cam, t);
             }
 
             StopAtEnd();
@@ -234,9 +252,18 @@ namespace Gameplay.Cinematics
                     _window.Trampoline.Bounce(_bounceStrength);
                 }
 
-                float u = (t - LandTime) / _bounce;
-                _stunt.SetCenterPose(Arc(_landing, _safe + Vector3.up * _stunt.BodyCenterHeight, _bounceApex, u),
-                    Quaternion.Slerp(lying, _safeRotation, Easing.Smooth(u * _settleSpeed)));
+                float contact = _window.Trampoline.ContactDuration;
+                float since = t - LandTime;
+                if (since < contact)
+                {
+                    _stunt.SetCenterPose(_landing + Vector3.up * _window.Trampoline.SampleDent(_landing), lying);
+                }
+                else
+                {
+                    float u = (since - contact) / (_bounce - contact);
+                    _stunt.SetCenterPose(Arc(_landing, _safe + Vector3.up * _stunt.BodyCenterHeight, _bounceApex, u),
+                        Quaternion.Slerp(lying, _safeRotation, Easing.Smooth(u * _settleSpeed)));
+                }
             }
             else
             {
@@ -272,11 +299,6 @@ namespace Gameplay.Cinematics
                 cam.position = _window.CameraAnchor.position;
                 _shotPosition = cam.position;
                 cam.rotation = Quaternion.LookRotation(Vector3.Lerp(_launch, _landing, _landingAimBlend) - cam.position, Vector3.up);
-            }
-            else if (shot == Shot.Wide)
-            {
-                _firefighters.SetActive(true);
-                _wideShot.Begin(cam);
             }
         }
 
@@ -317,6 +339,13 @@ namespace Gameplay.Cinematics
 
         protected override void OnStopped()
         {
+            if (!_isEnding)
+            {
+                Release(_player);
+                _player.enabled = true;
+                return;
+            }
+
             _uncleScene.Finish();
             CaptureFrame();
             foreach (FireSource fire in _houseFires)

@@ -32,6 +32,7 @@ namespace Gameplay
         [SerializeField] private NavigationGuide _navigation = new();
         [SerializeField] private FogController _fog = new();
         [SerializeField] private MissionStats _stats = new();
+        [SerializeField] private FacadeFirefight _facade = new();
 
         [Header("Mission")]
         [SerializeField] private MissionFlow _mission = new();
@@ -46,6 +47,7 @@ namespace Gameplay
         private EvacuationController _evacuation;
         private RadioController _radio;
         private Camera _camera;
+        private ResultsPopup _resultsPopup;
 
         public void Initialize(UIManager uiManager)
         {
@@ -60,6 +62,7 @@ namespace Gameplay
             _dialogue.Init(_screen, _player, _playerBody, AudioService.Instance);
             _navigation.Init(_player.Head, _camera, _screen.NavMarker, _texts);
             _cinematics.Initialize(uiManager, _screen, _player, _camera, AudioService.Instance);
+            _facade.Init(_screen, _texts, _cinematics.HouseFires);
 
             _evacuation = new EvacuationController(_player, _evacuationWindows, _rescueTotal, _cinematics.Throw, _cinematics.Present, _screen, _texts);
             _evacuation.Init();
@@ -74,7 +77,9 @@ namespace Gameplay
             _mission.Completed += _cinematics.PlayGasBurst;
             _cinematics.IntroFinished += HandleIntroFinished;
             _cinematics.UncleBurstFinished += HandleUncleBurstFinished;
-            _cinematics.GasBurstFinished += PlayFinale;
+            _cinematics.GasBurstFinished += _cinematics.PlayFinale;
+            _cinematics.FinaleJumpFinished += HandleFinaleJumpFinished;
+            _facade.Completed += HandleFacadeCompleted;
             _cinematics.FinaleFinished += HandleFinaleFinished;
 
             if (!_cinematics.TryPresentIntro())
@@ -89,6 +94,7 @@ namespace Gameplay
             _dialogue.Tick(deltaTime);
             _mission.Tick(deltaTime);
             _stats.Tick(deltaTime);
+            _facade.Tick(deltaTime);
             _fog.Tick(_camera.transform.position, deltaTime);
             _radio.Tick();
         }
@@ -101,7 +107,9 @@ namespace Gameplay
             _mission.Completed -= _cinematics.PlayGasBurst;
             _cinematics.IntroFinished -= HandleIntroFinished;
             _cinematics.UncleBurstFinished -= HandleUncleBurstFinished;
-            _cinematics.GasBurstFinished -= PlayFinale;
+            _cinematics.GasBurstFinished -= _cinematics.PlayFinale;
+            _cinematics.FinaleJumpFinished -= HandleFinaleJumpFinished;
+            _facade.Completed -= HandleFacadeCompleted;
             _cinematics.FinaleFinished -= HandleFinaleFinished;
 
             _navigation.Dispose();
@@ -109,14 +117,21 @@ namespace Gameplay
             _mission.Dispose();
             _evacuation.Dispose();
             _stats.Dispose();
+            _facade.Dispose();
             _fog.Dispose();
             _cinematics.Dispose();
         }
 
-        private void PlayFinale()
+        private void HandleFinaleJumpFinished()
+        {
+            _screen.SetCrosshairVisible(true);
+            _facade.Begin();
+        }
+
+        private void HandleFacadeCompleted()
         {
             _stats.Stop();
-            _cinematics.PlayFinale(_stats.FirePercentOut / FullPercent);
+            _cinematics.PlayFinaleEnding();
         }
 
         private void StartMission()
@@ -146,7 +161,9 @@ namespace Gameplay
             _player.enabled = false;
             _screen.SetCrosshairVisible(false);
             _screen.SetHudVisible(false);
-            _popups.ShowPopup<ResultsPopup>(PopupTypes.Result).Present(new MissionResults
+            _resultsPopup = _popups.ShowPopup<ResultsPopup>(PopupTypes.Result);
+            _resultsPopup.Continued += HandleResultsContinued;
+            _resultsPopup.Present(new MissionResults
             {
                 Rescued = _evacuation.Rescued,
                 RescueTotal = _evacuation.RescueTotal,
@@ -154,6 +171,16 @@ namespace Gameplay
                 TimeSeconds = _stats.Time,
                 FirePercent = FullPercent,
             }, photo, _cinematics.PhotoRig);
+        }
+
+        private void HandleResultsContinued()
+        {
+            _resultsPopup.Continued -= HandleResultsContinued;
+            _popups.HidePopup(PopupTypes.Result);
+            _cinematics.ReleaseFinale();
+            _screen.SetHudVisible(true);
+            _screen.SetCrosshairVisible(true);
+            _player.enabled = true;
         }
     }
 }

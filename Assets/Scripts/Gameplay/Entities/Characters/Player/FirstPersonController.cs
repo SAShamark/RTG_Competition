@@ -15,6 +15,7 @@ namespace Gameplay.Entities.Characters.Player
     {
         private const float HalfTurn = 180f;
         private const float FullTurn = 360f;
+        private const float MinFacingSqr = 0.001f;
 
         [SerializeField] private Transform _head;
         [SerializeField] private Transform _aim;
@@ -28,6 +29,7 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField] private HandsAnimationControl _hands = new();
         [SerializeField] private InventoryLogic _heldItem = new();
         [SerializeField] private ExtinguisherLogic _extinguisher = new();
+        [SerializeField] private HoseLogic _hose = new();
         [SerializeField] private PlayerAudioLogic _audio = new();
         [SerializeField] private AxeLogic _axe = new();
         [SerializeField] private CarryLogic _carry = new();
@@ -79,6 +81,9 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField] private float _tossDuration = 0.45f;
         [SerializeField] private float _tossReach = 0.6f;
 
+        [Header("Conversation")]
+        [SerializeField] private float _conversationTurnSharpness = 7f;
+
         private CharacterController _characterController;
         private ClutterItem _prop;
         private float _pitch;
@@ -108,6 +113,7 @@ namespace Gameplay.Entities.Characters.Player
         public InteractionLogic Interaction => _interactionLogic;
         public InventoryLogic Items => _heldItem;
         public ExtinguisherLogic Extinguisher => _extinguisher;
+        public HoseLogic Hose => _hose;
         public AxeLogic Axe => _axe;
         public CarryLogic Carry => _carry;
         public ItemType HeldItem => _heldItem.HeldItem;
@@ -119,6 +125,8 @@ namespace Gameplay.Entities.Characters.Player
         private float ShakeFactor => _view.IsThirdPerson ? 1f : _firstPersonShake;
         private bool IsBodyBusy => _bodyActionDuration > 0f;
         private bool CanAct => !_hands.IsBusy && !IsBodyBusy;
+        private bool IsSpraying => _extinguisher.IsSpraying || _hose.IsSpraying;
+        private float SprayPressure => _hose.IsSpraying ? 1f : _extinguisher.Pressure;
 
         private void Awake()
         {
@@ -127,6 +135,7 @@ namespace Gameplay.Entities.Characters.Player
             _interactionLogic.Init(transform, _aim);
             _interactionLogic.SetFilter(target => !_carry.IsCarrying || target is IUsableWhileCarrying);
             _extinguisher.Init(_aim, _heldItem);
+            _hose.Init(_aim, _heldItem);
             _audio.Init(transform, _head);
             _axe.Init(_aim, transform, _heldItem);
             _axe.Struck += HandleAxeStruck;
@@ -147,6 +156,7 @@ namespace Gameplay.Entities.Characters.Player
         private void OnDestroy()
         {
             _extinguisher.Dispose();
+            _hose.Dispose();
             _heldItem.ItemChanged -= HandleItemChanged;
             _carry.CarryChanged -= HandleCarryChanged;
             _view.ViewChanged -= HandleViewChanged;
@@ -167,6 +177,7 @@ namespace Gameplay.Entities.Characters.Player
         {
             _interactionLogic.Clear();
             _extinguisher.Tick(false, 0f);
+            _hose.Tick(false, 0f);
             _hands.SetAiming(false);
             _hands.SetVisible(false);
             Cursor.lockState = CursorLockMode.None;
@@ -179,7 +190,7 @@ namespace Gameplay.Entities.Characters.Player
             Mouse mouse = Mouse.current;
             float deltaTime = Time.deltaTime;
 
-            Vector2 look = mouse.delta.ReadValue() * _mouseSensitivity;
+            Vector2 look = mouse.delta.ReadValue() * _mouseSensitivity + _hose.AimKick(deltaTime);
             HandleLook(look);
             UpdateAim();
             TickBodyAction(deltaTime);
@@ -198,11 +209,13 @@ namespace Gameplay.Entities.Characters.Player
             bool wantsToSpray = mouse.leftButton.isPressed && CanAct && HasFreeHands;
             bool isStanceActive = IsStanceActive;
             _stance.Tick(isStanceActive, wantsToSpray, _heldItem.HeldTool, _view.IsThirdPerson, deltaTime);
-            bool wasSpraying = _extinguisher.IsSpraying;
-            _extinguisher.Tick(wantsToSpray && (!isStanceActive || _stance.IsReadyToSpray), deltaTime);
+            bool wasSpraying = IsSpraying;
+            bool canSpray = wantsToSpray && (!isStanceActive || _stance.IsReadyToSpray);
+            _extinguisher.Tick(canSpray, deltaTime);
+            _hose.Tick(canSpray, deltaTime);
             _axe.Tick(deltaTime);
             UpdateStance(wasSpraying);
-            _hands.SetAiming(_extinguisher.IsSpraying, _extinguisher.Pressure);
+            _hands.SetAiming(IsSpraying, SprayPressure);
             _hands.SetCarrying(_carry.IsCarrying);
 
             float planarSpeed = new Vector2(move.x, move.z).magnitude;
@@ -212,10 +225,60 @@ namespace Gameplay.Entities.Characters.Player
             _body.Tick(localMove, _runSpeed, _jump.IsNearGround, _jump.VerticalSpeed, !_stance.IsAiming, deltaTime);
             bool isRunning = keyboard.leftShiftKey.isPressed && !_carry.IsCarrying && !(_stance.IsAiming);
             _cameraFeel.Tick(localMove, _runSpeed, _audio.StepPhase, _jump.IsNearGround, isRunning, _carry.IsCarrying, _stance.Weight, deltaTime);
-            _body.SetSpraying(_extinguisher.IsSpraying);
+            _body.SetSpraying(IsSpraying);
             _body.SetCarrying(_carry.IsCarrying);
             UpdateBodyIK();
             _footprints.Tick(_jump.IsNearGround);
+        }
+
+        public void BeginConversation()
+        {
+            _planarVelocity = Vector3.zero;
+            _stance.Reset();
+            _chopAimWeight = 0f;
+            _hands.SetStance(0f);
+            _body.Rest();
+            _bodyIK.SetReach(_reachPoint, 0f);
+            _bodyIK.SetAim(0f, 0f);
+
+            ToolItem tool = _heldItem.HeldTool;
+            _heldItem.SetBodyHold(true);
+            _heldItem.SetHidden(!HasFreeHands || (tool != null && !tool.HoldInBodyHand));
+            if (!_carry.IsCarrying)
+            {
+                _bodyIK.SetTargets(false, null, null);
+            }
+        }
+
+        public void FaceConversation(Vector3 point, float deltaTime)
+        {
+            Vector3 toPoint = point - _head.position;
+            Vector3 planar = Vector3.ProjectOnPlane(toPoint, Vector3.up);
+            if (planar.sqrMagnitude < MinFacingSqr)
+            {
+                return;
+            }
+
+            float blend = Easing.Damp(_conversationTurnSharpness, deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(planar), blend);
+            float pitch = Mathf.Clamp(-Mathf.Atan2(toPoint.y, planar.magnitude) * Mathf.Rad2Deg, _pitchDown, _pitchUp);
+            _pitch = Mathf.Lerp(_pitch, pitch, blend);
+            _head.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+        }
+
+        public void EndConversation()
+        {
+            _heldItem.SetBodyHold(_view.IsThirdPerson);
+            _heldItem.SetHidden(!HasFreeHands);
+        }
+
+        public void Teleport(Vector3 position, Quaternion rotation)
+        {
+            _characterController.enabled = false;
+            transform.SetPositionAndRotation(position, rotation);
+            _characterController.enabled = true;
+            _planarVelocity = Vector3.zero;
+            _head.localRotation = Quaternion.identity;
         }
 
         private void UpdateBodyIK()
@@ -428,9 +491,11 @@ namespace Gameplay.Entities.Characters.Player
             float speed = GetMoveSpeed(keyboard, input) * LandingSpeedFactor();
             Vector3 target = (transform.forward * input.y + transform.right * input.x).normalized * speed;
             _planarVelocity = Vector3.MoveTowards(_planarVelocity, target, GetAcceleration(target) * deltaTime);
+            _planarVelocity = _hose.LimitMove(_planarVelocity);
 
+            _jump.HeightBoost = _hose.JumpBoost;
             _jump.Tick(keyboard.spaceKey.wasPressedThisFrame, keyboard.spaceKey.isPressed, !_carry.IsCarrying && !IsBodyBusy, _gravity, deltaTime);
-            Vector3 move = _planarVelocity;
+            Vector3 move = _planarVelocity + _hose.RecoilPush(target);
             move.y = _jump.VerticalSpeed;
             _jump.HandleCollision(_characterController.Move(move * deltaTime));
             _audio.Tick(_characterController.isGrounded, speed > _walkSpeed, deltaTime);
@@ -489,13 +554,13 @@ namespace Gameplay.Entities.Characters.Player
 
         private void UpdateStance(bool wasSpraying)
         {
-            bool isSpraying = _extinguisher.IsSpraying;
+            bool isSpraying = IsSpraying;
             if (isSpraying && !wasSpraying)
             {
                 _bodyIK.Kick();
             }
 
-            float tremor = isSpraying ? Mathf.Lerp(_idleTremor, 1f, _extinguisher.Pressure) : _idleTremor;
+            float tremor = isSpraying ? Mathf.Lerp(_idleTremor, 1f, SprayPressure) : _idleTremor;
             _chopAimWeight = Mathf.Lerp(_chopAimWeight, _isChopping ? 1f : 0f, Easing.Damp(_chopAimSharpness, Time.deltaTime));
             _bodyIK.SetAim(Mathf.Max(_stance.Weight, _chopAimWeight), tremor);
             _hands.SetStance(_stance.Weight);

@@ -110,5 +110,8 @@ namespace Gameplay.Dialogue
         RescuedCount = 106,
         NavWindow = 107,
         ToastGasFeedsFire = 108,
+        ToastHoseRanOut = 109,
+        ObjectivePutOutFacade = 110,
+        ToastFacadeOut = 111,
     }
 }

@@ -131,6 +131,7 @@ namespace UI.Screens.Variants.Cutscene
             if (_fireProgress.gameObject.activeSelf != show)
             {
                 _fireProgress.gameObject.SetActive(show);
+                _fireProgress.Snap(Mathf.Max(0f, progress));
             }
 
             if (show)

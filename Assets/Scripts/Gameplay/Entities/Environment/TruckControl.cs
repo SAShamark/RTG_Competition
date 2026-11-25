@@ -14,6 +14,18 @@ namespace Gameplay.Entities.Environment
             set => _lightBar.IsOn = value;
         }
 
+        public float Steer
+        {
+            get => _wheels.Steer;
+            set => _wheels.Steer = value;
+        }
+
+        public float RearSpin
+        {
+            get => _wheels.RearSpin;
+            set => _wheels.RearSpin = value;
+        }
+
         private void Awake()
         {
             _lightBar.Init();

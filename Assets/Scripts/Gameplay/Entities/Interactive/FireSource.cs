@@ -119,9 +119,24 @@ namespace Gameplay.Entities.Interactive
 
         public void ForceOut()
         {
+            // An inactive fire has not run Awake yet: it just wakes up already out.
+            if (_baseRates == null)
+            {
+                _intensity = 0f;
+                return;
+            }
+
             if (!IsOut && !_reignite)
             {
                 SetIntensity(0f);
+            }
+        }
+
+        public void BurnDown(float intensity)
+        {
+            if (!IsOut && intensity < _intensity)
+            {
+                SetIntensity(intensity);
             }
         }
 

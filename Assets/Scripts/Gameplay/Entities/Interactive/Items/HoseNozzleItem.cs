@@ -18,17 +18,19 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField, Min(0)] private int _sputterDrops = 10;
         [SerializeField] private Vector2 _sputterSpeed = new(1f, 4f);
         [SerializeField, Range(0f, 1f)] private float _sputterSpread = 0.35f;
-        [SerializeField] private float _sputterPitch = 1.5f;
+        [SerializeField] private SoundType _sputterSound = SoundType.HoseSputter;
 
         [Header("Hose run out")]
-        [SerializeField] private SoundType _tugSound = SoundType.DoorLocked;
+        [SerializeField] private SoundType _tugSound = SoundType.HoseTug;
         [SerializeField] private float _tugImpulse = 1.2f;
 
         [Header("Sound")]
-        [SerializeField] private SoundType _loopSound = SoundType.ExtinguisherSpray;
-        [SerializeField] private SoundType _startSound = SoundType.ExtinguisherStart;
-        [SerializeField] private SoundType _stopSound = SoundType.ExtinguisherStop;
-        [SerializeField] private float _loopPitch = 0.7f;
+        [SerializeField] private SoundType _loopSound = SoundType.HoseSprayLoop;
+        [SerializeField] private SoundType _startSound = SoundType.HoseSprayStart;
+        [SerializeField] private SoundType _stopSound = SoundType.HoseSprayStop;
+        [SerializeField] private Vector2 _pressurePitch = new(0.8f, 1f);
+        [SerializeField] private SoundType _impactSound = SoundType.WaterImpact;
+        [SerializeField] private Transform _impactAnchor;
 
         [Header("Shake")]
         [SerializeField] private CinemachineImpulseSource _impulse;
@@ -36,8 +38,17 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _sustainImpulse = 0.16f;
         [SerializeField] private float _sustainInterval = 0.12f;
 
+        [Header("Lever")]
+        [SerializeField] private Transform _lever;
+        [SerializeField] private float _leverOpenAngle = 40f;
+        [SerializeField] private float _leverSharpness = 16f;
+
+        private Quaternion _leverRest;
+        private float _leverAngle;
         private ISoundLoop _loop = SilentLoop.Instance;
+        private ISoundLoop _impactLoop = SilentLoop.Instance;
         private bool _isSpraying;
+        private bool _isHitting;
         private float _sinceImpulse;
 
         public Transform Nozzle => _nozzle;
@@ -54,7 +65,18 @@ namespace Gameplay.Entities.Interactive.Items
             TetherTension = tension;
         }
 
-        private void Awake() => _droplets.Play(false);
+        private void Awake()
+        {
+            _droplets.Play(false);
+            _leverRest = _lever.localRotation;
+        }
+
+        private void Update()
+        {
+            float target = _isSpraying ? _leverOpenAngle : 0f;
+            _leverAngle = Mathf.Lerp(_leverAngle, target, Easing.Damp(_leverSharpness, Time.deltaTime));
+            _lever.localRotation = _leverRest * Quaternion.AngleAxis(_leverAngle, Vector3.forward);
+        }
 
         public void AimAt(Vector3 point, float deltaTime)
         {
@@ -73,8 +95,8 @@ namespace Gameplay.Entities.Interactive.Items
             if (isSpraying)
             {
                 _loop = AudioService.Instance.PlayLoop(_loopSound, _nozzle);
-                _loop.SetPitch(_loopPitch);
-                AudioService.Instance.PlayAt(_startSound, _nozzle.position, _loopPitch);
+                ApplyPressure();
+                AudioService.Instance.PlayAt(_startSound, _nozzle.position);
                 _impulse.GenerateImpulse(_startImpulse);
                 _sinceImpulse = 0f;
                 return;
@@ -82,10 +104,14 @@ namespace Gameplay.Entities.Interactive.Items
 
             _loop.Stop();
             _loop = SilentLoop.Instance;
-            AudioService.Instance.PlayAt(_stopSound, _nozzle.position, _loopPitch);
+            AudioService.Instance.PlayAt(_stopSound, _nozzle.position);
         }
 
-        public void Hide() => _stream.Hide();
+        public void Hide()
+        {
+            _stream.Hide();
+            SetHitting(false);
+        }
 
         public void Tug()
         {
@@ -95,7 +121,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         public void Sputter()
         {
-            AudioService.Instance.PlayAt(_stopSound, _nozzle.position, _sputterPitch);
+            AudioService.Instance.PlayAt(_sputterSound, _nozzle.position);
             var drop = new ParticleSystem.EmitParams { position = _nozzle.position, applyShapeToPosition = false };
             for (int i = 0; i < _sputterDrops; i++)
             {
@@ -108,17 +134,49 @@ namespace Gameplay.Entities.Interactive.Items
         public void Show(WaterJetPath path, float cut, float reach, bool isLanded, float deltaTime)
         {
             _stream.Show(path, cut, reach, isLanded, deltaTime);
+            bool isHitting = isLanded && path.HasImpact;
+            if (isHitting)
+            {
+                _impactAnchor.position = path.ImpactPoint;
+            }
+
+            SetHitting(isHitting);
             if (!_isSpraying)
             {
                 return;
             }
 
+            ApplyPressure();
             _sinceImpulse += deltaTime;
             if (_sinceImpulse >= _sustainInterval)
             {
                 _sinceImpulse = 0f;
                 _impulse.GenerateImpulse(_sustainImpulse);
             }
+        }
+
+        private void ApplyPressure()
+        {
+            _loop.SetVolume(Supply);
+            _loop.SetPitch(Mathf.Lerp(_pressurePitch.x, _pressurePitch.y, Supply));
+        }
+
+        private void SetHitting(bool isHitting)
+        {
+            if (isHitting == _isHitting)
+            {
+                return;
+            }
+
+            _isHitting = isHitting;
+            if (isHitting)
+            {
+                _impactLoop = AudioService.Instance.PlayLoop(_impactSound, _impactAnchor);
+                return;
+            }
+
+            _impactLoop.Stop();
+            _impactLoop = SilentLoop.Instance;
         }
     }
 }

@@ -27,6 +27,8 @@ namespace Gameplay.Entities.Characters.Player
         private static readonly int ChopAltId = Animator.StringToHash("ChopAlt");
         private static readonly int ChopBounceId = Animator.StringToHash("ChopBounce");
         private static readonly int ChopSpeedId = Animator.StringToHash("ChopSpeed");
+        private static readonly int LocomotionStateId = Animator.StringToHash("Locomotion");
+        private static readonly int CarryLocomotionStateId = Animator.StringToHash("CarryLocomotion");
         private const int NoToolIndex = 0;
         private const int ExtinguisherIndex = 1;
         private const int AxeIndex = 2;
@@ -42,6 +44,13 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField] private float _warpLimit = 67.5f;
         [SerializeField] private float _warpSharpness = 10f;
         [SerializeField] private float _warpMinSpeed = 0.3f;
+
+        [Header("Footsteps")]
+        [SerializeField, Min(1)] private int _stepsPerCycle = 2;
+        [SerializeField, Min(1)] private int _carryStepsPerCycle = 4;
+        [SerializeField, Range(0f, 1f)] private float _walkContactPhase = 0.02f;
+        [SerializeField, Range(0f, 1f)] private float _runContactPhase = 0.33f;
+        [SerializeField, Range(0f, 1f)] private float _carryContactPhase = 0.06f;
 
         private float _warpYaw;
         private bool _wasGrounded;
@@ -68,6 +77,16 @@ namespace Gameplay.Entities.Characters.Player
             _wasGrounded = isGrounded;
             _animator.SetBool(GroundedId, isGrounded);
             _animator.SetFloat(VerticalSpeedId, verticalSpeed);
+        }
+
+        // Counts foot contacts of the walk cycle: the whole part changes on the frame a foot lands.
+        public bool TryGetStride(bool isRunning, out float stride)
+        {
+            AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
+            bool isCarrying = state.shortNameHash == CarryLocomotionStateId;
+            float contactPhase = isCarrying ? _carryContactPhase : isRunning ? _runContactPhase : _walkContactPhase;
+            stride = (state.normalizedTime - contactPhase) * (isCarrying ? _carryStepsPerCycle : _stepsPerCycle);
+            return isCarrying || state.shortNameHash == LocomotionStateId;
         }
 
         private float WarpYaw(Vector3 localVelocity)

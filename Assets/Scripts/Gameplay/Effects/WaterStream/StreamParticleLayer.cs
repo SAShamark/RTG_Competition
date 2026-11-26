@@ -40,7 +40,9 @@ namespace Gameplay.Effects.WaterStream
                 _debt -= 1f;
                 Vector3 launch = (velocity + Random.insideUnitSphere * (speed * _spread)) * Random.Range(_speedFactor.x, _speedFactor.y);
                 drop.velocity = launch;
-                drop.position = origin + launch * (Random.value * deltaTime);
+                // The system moves a new drop by v·Δt before it is first drawn, so drops start up to one step behind
+                // the nozzle and are seen spread from the nozzle onwards: p = origin − v·Δt·u, u ∈ [0, 1]
+                drop.position = origin - launch * (Random.value * deltaTime);
                 drop.startSize = Random.Range(_size.x, _size.y);
                 _system.Emit(drop, 1);
             }

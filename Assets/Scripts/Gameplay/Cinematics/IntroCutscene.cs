@@ -1,6 +1,7 @@
 using Gameplay.Dialogue;
 using Gameplay.Cinematics.IntroDrift;
 using Gameplay.Entities.Characters.Player;
+using Gameplay.Entities.Interactive;
 using UnityEngine;
 
 namespace Gameplay.Cinematics
@@ -13,6 +14,7 @@ namespace Gameplay.Cinematics
         [SerializeField] private bool _playOnStart = true;
         [SerializeField] private GameObject[] _enableOnFinish;
         [SerializeField] private IntroDriftControl _drift;
+        [SerializeField] private Hatch _truckShutter;
         [SerializeField] private CinematicSettings _settings = new CinematicSettings(0f, 2f, titleLine: "вул. Липова, 12", titleSubLine: "18:47  ·  виклик №112  ·  «щось горить»", titleTime: 0.4f, titleDuration: 1.95f);
         [SerializeField] private SubtitleCue[] _subtitles =
         {
@@ -66,6 +68,7 @@ namespace Gameplay.Cinematics
         {
             _drift.StopEffects();
             _player.enabled = true;
+            _truckShutter.Interact(_player.transform);
             foreach (GameObject target in _enableOnFinish)
             {
                 target.SetActive(true);

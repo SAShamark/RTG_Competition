@@ -20,6 +20,12 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _sightLift = 0.1f;
         [SerializeField] private float _sightSlack = 0.5f;
 
+        [Header("Runoff")]
+        [SerializeField, Min(0f)] private float _flowRate = 6f;
+
+        [Header("Push")]
+        [SerializeField, Min(0f)] private float _pushForce = 60f;
+
         [Header("Recoil")]
         [SerializeField] private float _recoilPush = 2.4f;
         [SerializeField] private float _recoilJump = 2.5f;
@@ -71,6 +77,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         public event Action<FireSource> FireHit;
         public event Action RanOut;
+        public event Action<Vector3, float> WaterLanded;
 
         public void Init(Transform aim, InventoryLogic items)
         {
@@ -138,6 +145,12 @@ namespace Gameplay.Entities.Interactive.Items
             if (isLanded && IsSpraying)
             {
                 HitFires(deltaTime);
+                if (_path.HasImpact)
+                {
+                    WaterLanded?.Invoke(_path.ImpactPoint, _flowRate * supply * deltaTime);
+                    ToolImpact.Apply(_path.ImpactCollider,
+                        new ToolHit(ToolHitKind.Water, _path.ImpactPoint, _path.ImpactDirection, _pushForce * supply * deltaTime));
+                }
             }
         }
 

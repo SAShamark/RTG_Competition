@@ -113,5 +113,13 @@ namespace Gameplay.Dialogue
         ToastHoseRanOut = 109,
         ObjectivePutOutFacade = 110,
         ToastFacadeOut = 111,
+        ObjectiveTakeHose = 112,
+        ObjectiveConnectHose = 113,
+        ObjectiveOpenValve = 114,
+        ObjectiveSprayFacade = 115,
+        NavHose = 116,
+        NavCoupling = 117,
+        NavValve = 118,
+        ToastComplaint = 119,
     }
 }

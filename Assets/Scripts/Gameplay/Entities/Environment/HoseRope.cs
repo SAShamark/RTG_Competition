@@ -58,6 +58,7 @@ namespace Gameplay.Entities.Environment
         private float _time;
         private float _takeUpDebt;
         private Transform _ignored;
+        private bool _isHauled;
 
         public int Count { get; private set; }
         public int Capacity => _points.Length;
@@ -65,23 +66,30 @@ namespace Gameplay.Entities.Environment
         public float Tension { get; private set; }
         public Vector3 Source { get; private set; }
         public float Length => (Count - 1) * _segmentLength + _feed;
+        public bool CanHaul => Count > _minPoints;
         public Vector3 PullDirection => (_points[Mathf.Min(2, Count - 1)] - _points[0]).normalized;
         public Vector3 this[int index] => _points[index];
 
-        public Vector3 PointAlong(float distance)
+        // The hauled end travels down the hose itself and the stretch it has covered is gone for good,
+        // so nothing ahead of it is ever pushed into a coil.
+        public Vector3 Haul(float distance)
         {
-            for (int i = 1; i < Count; i++)
+            while (CanHaul)
             {
-                float span = Vector3.Distance(_points[i - 1], _points[i]);
-                if (distance <= span)
+                float span = Vector3.Distance(_points[0], _points[1]);
+                if (distance < span)
                 {
-                    return Vector3.Lerp(_points[i - 1], _points[i], span > 0f ? distance / span : 1f);
+                    _points[0] = Vector3.MoveTowards(_points[0], _points[1], distance);
+                    break;
                 }
 
                 distance -= span;
+                _points[0] = _points[1];
+                _previous[0] = _points[0];
+                Remove(1);
             }
 
-            return _points[Count - 1];
+            return _points[0];
         }
 
         public void Init(Vector3 source, Vector3 end, Transform ignored)
@@ -113,9 +121,10 @@ namespace Gameplay.Entities.Environment
             Tension = 0f;
         }
 
-        public void Tick(Vector3 source, Vector3 end, Vector3 endDirection, float reelInSpeed, float slack, float deltaTime)
+        public void Tick(Vector3 source, Vector3 end, Vector3 endDirection, float reelInSpeed, float slack, bool isHauled, float deltaTime)
         {
             Source = source;
+            _isHauled = isHauled;
             if (Vector3.Distance(end, _points[0]) > _teleportDistance)
             {
                 Lay(source, end);
@@ -131,6 +140,18 @@ namespace Gameplay.Entities.Environment
             }
 
             _time = Mathf.Min(_time, step);
+        }
+
+        public void Settle(Vector3 source, Vector3 end, float slack, float duration)
+        {
+            Source = source;
+            _isHauled = false;
+            float step = 1f / _stepsPerSecond;
+            for (float time = 0f; time < duration; time += step)
+            {
+                Step(end, Vector3.zero, step);
+                Feed(0f, slack, step);
+            }
         }
 
         private void Step(Vector3 end, Vector3 endDirection, float step)
@@ -161,7 +182,14 @@ namespace Gameplay.Entities.Environment
             for (int iteration = 0; iteration < _iterations; iteration++)
             {
                 _points[0] = end;
-                for (int i = 0; i < Count - 1; i++)
+                // A hauled end only ever pulls: its first stretch may run short, and the hose ahead is left lying as it is.
+                int first = _isHauled ? PinnedPoints : 0;
+                if (_isHauled)
+                {
+                    Shorten(0, 1, _segmentLength);
+                }
+
+                for (int i = first; i < Count - 1; i++)
                 {
                     Stretch(i, i + 1, _segmentLength, 1f, false, i < PinnedPoints);
                 }
@@ -172,12 +200,12 @@ namespace Gameplay.Entities.Environment
                     _points[1] = Vector3.Lerp(_points[1], end + endDirection * _segmentLength, _endStiffness);
                 }
 
-                for (int i = 0; i < Count - _bendSpan; i++)
+                for (int i = first; i < Count - _bendSpan; i++)
                 {
                     Stretch(i, i + _bendSpan, nearChord, _bendStiffness, true, i < PinnedPoints);
                 }
 
-                for (int i = 0; i < Count - _bendSpan * 2; i++)
+                for (int i = first; i < Count - _bendSpan * 2; i++)
                 {
                     Stretch(i, i + _bendSpan * 2, farChord, _bendStiffness, true, i < PinnedPoints);
                 }
@@ -219,6 +247,16 @@ namespace Gameplay.Entities.Environment
 
             _points[a] += correction * 0.5f;
             _points[b] -= correction * 0.5f;
+        }
+
+        private void Shorten(int pinned, int free, float limit)
+        {
+            Vector3 delta = _points[free] - _points[pinned];
+            float distance = delta.magnitude;
+            if (distance > limit)
+            {
+                _points[free] = _points[pinned] + delta * (limit / distance);
+            }
         }
 
         // Points a given number of segments apart on an arc of the tightest allowed radius are this far from each other:

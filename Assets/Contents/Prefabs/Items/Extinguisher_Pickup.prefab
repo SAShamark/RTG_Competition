@@ -2415,6 +2415,37 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!1 &3127698851925097585
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3218330119389000245}
+  m_Layer: 0
+  m_Name: RightGrip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3218330119389000245
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3127698851925097585}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0.19080901, w: 0.9816272}
+  m_LocalPosition: {x: -0.11, y: 0.54, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1565947068266566195}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3617497653652726417
 GameObject:
   m_ObjectHideFlags: 0
@@ -7104,6 +7135,7 @@ Transform:
   - {fileID: 1002989058737876368}
   - {fileID: 1960155911565213286}
   - {fileID: 2390268653318848249}
+  - {fileID: 3218330119389000245}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &6612485131491381444
@@ -7141,21 +7173,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Items.Pickable
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
   _definition: {fileID: 11400000, guid: a3dfb320697ed0041ab501a73cf0a811, type: 2}
-  _holdPosition: {x: -0.1741405, y: -0.13759494, z: 0.017354906}
+  _holdPosition: {x: -0.1635, y: -0.0649, z: 0.0329}
   _holdEuler: {x: 335.49133, y: 124.52306, z: 63.257675}
   _lostDepth: 4
+  _isHandOnly: 0
   _leftGrip: {fileID: 1960155911565213286}
+  _rightGrip: {fileID: 3218330119389000245}
   _hasHandPose: 1
-  _handPosition: {x: 0.01203962, y: -0.5725975, z: 0.6091451}
+  _handPosition: {x: 0.12, y: -0.38, z: 0.62}
   _handEuler: {x: 301.97812, y: 92.52053, z: 51.42315}
-  _handAimPosition: {x: -0.03796038, y: -0.54259753, z: 0.6491451}
+  _handAimPosition: {x: 0.05, y: -0.32, z: 0.66}
   _handAimEuler: {x: 301.97812, y: 92.52053, z: 51.42315}
   _holdInBodyHand: 1
   _bodyHoldPosition: {x: 0.56882334, y: 0.04089555, z: 0.1435139}
   _bodyHoldEuler: {x: 282.1842, y: 207.2647, z: 212.45256}
   _hasAimHold: 1
-  _bodyAimPosition: {x: -0.057861477, y: 0.26207453, z: 0.39754903}
-  _bodyAimEuler: {x: 308.94284, y: 131.75923, z: 190.1523}
+  _bodyAimPosition: {x: 0.060001943, y: -0.6229257, z: 0.20849627}
+  _bodyAimEuler: {x: -0, y: 270, z: 338}
+  _impact:
+    _sound: 60
+    _minSpeed: 1.2
+    _interval: 0.12
   _body: {fileID: 3454977637626177849}
 --- !u!114 &934789071085123166
 MonoBehaviour:
@@ -7366,8 +7404,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8531494367548716087}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.13114116, y: 0.86830246, z: 0.32118112, w: 0.35453576}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0.075}
+  m_LocalRotation: {x: -0.13492234, y: 0.6941152, z: 0.6941152, w: -0.13492234}
+  m_LocalPosition: {x: -0.05, y: 0.36, z: 0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9759,6 +9797,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 23862365149505506, guid: 7cb6e74e9a78b4b168278f8e888c46d0, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 99b24e95b289e0b4ab51bfb6f8037858, type: 2}
+    - target: {fileID: 23862365149505506, guid: 7cb6e74e9a78b4b168278f8e888c46d0, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3a06258201b203a42ae6f90559431abc, type: 2}
+    - target: {fileID: 23862365149505506, guid: 7cb6e74e9a78b4b168278f8e888c46d0, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 33e86295373e0d945bc52072a7ac393b, type: 2}
+    - target: {fileID: 33768815338194776, guid: 7cb6e74e9a78b4b168278f8e888c46d0, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 3721952132669243788, guid: fc41412ff09019e469ce2f434dbe772c, type: 3}
     m_RemovedComponents:
     - {fileID: 65846753035057006, guid: 7cb6e74e9a78b4b168278f8e888c46d0, type: 3}
     m_RemovedGameObjects: []

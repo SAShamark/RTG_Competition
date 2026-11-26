@@ -1590,9 +1590,17 @@ MonoBehaviour:
   _evacuationWindows:
   - {fileID: 486738294}
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
+  _puddle: {fileID: 2037465564}
   _fireHeat:
     _riseSpeed: 3
     _fallSpeed: 1.2
+  _dialogs: {fileID: 11400000, guid: 0a9081da1f2da614c923b67d48e47c82, type: 2}
+  _complaints:
+    _characters:
+    - {fileID: 2108597361}
+    - {fileID: 1672634041}
+    - {fileID: 1216247185}
+    - {fileID: 825087250}
 --- !u!4 &242507597
 Transform:
   m_ObjectHideFlags: 0
@@ -1656,12 +1664,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Interactive.ClutterItem
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
+  _response:
+    _powderFactor: 1
+    _waterFactor: 1
+    _strikeFactor: 1
+    _maxKickSpeed: 6
   _displayName: "\u0432\u0456\u0434\u0440\u043E \u0437 \u0444\u0430\u0440\u0431\u043E\u044E"
   _holdPosition: {x: 0.05, y: -0.25, z: 0.65}
   _holdEuler: {x: 0, y: 20, z: 0}
   _lostDepth: 3
   _icon: {fileID: 0}
   _throwSpin: 4
+  _impact:
+    _sound: 59
+    _minSpeed: 1.2
+    _interval: 0.12
 --- !u!54 &278159596
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3279,12 +3296,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Interactive.ClutterItem
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
+  _response:
+    _powderFactor: 1
+    _waterFactor: 1
+    _strikeFactor: 1
+    _maxKickSpeed: 6
   _displayName: "\u0432\u0430\u0437\u0443"
   _holdPosition: {x: 0.05, y: -0.25, z: 0.65}
   _holdEuler: {x: 0, y: 20, z: 0}
   _lostDepth: 3
   _icon: {fileID: 0}
   _throwSpin: 4
+  _impact:
+    _sound: 59
+    _minSpeed: 1.2
+    _interval: 0.12
 --- !u!54 &545295418
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3995,9 +4021,8 @@ MonoBehaviour:
   _joltShatterRadius: 0.18
   _destroyRadius: 1.2
   _shardLifetime: 30
-  _shatterSound: 38
-  _shatterPitch: 0.85
-  _crackPitch: 1.6
+  _fractureSound: 62
+  _crackSound: 38
   _shatterEffect: {fileID: 0}
   _dustEffect: {fileID: 3131289271530597053, guid: 5954cc64187b5dd43a5c5ef854408726, type: 3}
   _effectLifetime: 3
@@ -5361,6 +5386,81 @@ Transform:
   - {fileID: 595067676}
   m_Father: {fileID: 934900539}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &825087247 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2485066940479427938, guid: ad991f934cb3a684f8ba4be35418c1ac, type: 3}
+  m_PrefabInstance: {fileID: 1925202586}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &825087248 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 7474702849729843187, guid: ad991f934cb3a684f8ba4be35418c1ac, type: 3}
+  m_PrefabInstance: {fileID: 1925202586}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &825087250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 825087247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
+  _animator: {fileID: 825087248}
+  _rescuable: {fileID: 0}
+  _reactions:
+    _coatMaterial: {fileID: 2100000, guid: 85c8e5bab8a0d274e978c280f3c29af1, type: 2}
+    _powderColor: {r: 0.95, g: 0.95, b: 0.97, a: 1}
+    _wetColor: {r: 0.05, g: 0.08, b: 0.12, a: 1}
+    _powderOpacity: 0.85
+    _wetOpacity: 0.35
+    _wetSmoothness: 0.85
+    _powderPerImpulse: 0.05
+    _wetPerImpulse: 0.02
+    _washPerImpulse: 0.03
+    _dryTime: 25
+    _leanAngle: 16
+    _powderLean: 0.45
+    _waterLean: 1
+    _strikeLean: 0.8
+    _leanHold: 0.3
+    _leanSharpness: 8
+    _shakeAngle: 3
+    _shakeFrequency: 24
+    _powderPatience: 4
+    _waterPatience: 20
+    _cooldown: 2
+    _powderLines:
+    - U04
+    _waterLines:
+    - U05
+    _strikeLines:
+    - U06
+--- !u!136 &825087251
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 825087247}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.32
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!1 &832436307
 GameObject:
   m_ObjectHideFlags: 0
@@ -7293,6 +7393,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1214140251}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1216247185 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2806812447320912951, guid: c49bf39d658928143a70f2e177f89fb2, type: 3}
+  m_PrefabInstance: {fileID: 1574309971}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
 --- !u!1 &1246630355
 GameObject:
   m_ObjectHideFlags: 0
@@ -7638,9 +7749,8 @@ MonoBehaviour:
   _joltShatterRadius: 0.18
   _destroyRadius: 1.2
   _shardLifetime: 30
-  _shatterSound: 38
-  _shatterPitch: 0.85
-  _crackPitch: 1.6
+  _fractureSound: 62
+  _crackSound: 38
   _shatterEffect: {fileID: 0}
   _dustEffect: {fileID: 3131289271530597053, guid: 5954cc64187b5dd43a5c5ef854408726, type: 3}
   _effectLifetime: 3
@@ -8161,10 +8271,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8724507518883364374, guid: 378695446d192164ba03e8f1d0f2fd37, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: cfe101e907e739240b019a382c8ccb00, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 723425997292596516, guid: 378695446d192164ba03e8f1d0f2fd37, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2108597362}
+    - targetCorrespondingSourceObject: {fileID: 723425997292596516, guid: 378695446d192164ba03e8f1d0f2fd37, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2108597361}
   m_SourcePrefab: {fileID: 100100000, guid: 378695446d192164ba03e8f1d0f2fd37, type: 3}
 --- !u!1 &1345331978
 GameObject:
@@ -9286,12 +9406,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Interactive.ClutterItem
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
+  _response:
+    _powderFactor: 1
+    _waterFactor: 1
+    _strikeFactor: 1
+    _maxKickSpeed: 6
   _displayName: "\u043A\u0430\u0441\u0442\u0440\u0443\u043B\u044E"
   _holdPosition: {x: 0.05, y: -0.25, z: 0.65}
   _holdEuler: {x: 0, y: 20, z: 0}
   _lostDepth: 3
   _icon: {fileID: 0}
   _throwSpin: 4
+  _impact:
+    _sound: 59
+    _minSpeed: 1.2
+    _interval: 0.12
 --- !u!54 &1507692290
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -9506,12 +9635,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Interactive.ClutterItem
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
+  _response:
+    _powderFactor: 1
+    _waterFactor: 1
+    _strikeFactor: 1
+    _maxKickSpeed: 6
   _displayName: "\u043D\u043E\u0443\u0442\u0431\u0443\u043A"
   _holdPosition: {x: 0.05, y: -0.25, z: 0.65}
   _holdEuler: {x: 0, y: 20, z: 0}
   _lostDepth: 3
   _icon: {fileID: 0}
   _throwSpin: 4
+  _impact:
+    _sound: 59
+    _minSpeed: 1.2
+    _interval: 0.12
 --- !u!54 &1594236884
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -9984,6 +10122,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1660340567}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1672634041 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6410100535436941471, guid: 12b5714b37f8cdf48916292839d82bd4, type: 3}
+  m_PrefabInstance: {fileID: 1138916112}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
 --- !u!1 &1686567834
 GameObject:
   m_ObjectHideFlags: 0
@@ -10488,12 +10637,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Interactive.ClutterItem
   _texts: {fileID: 11400000, guid: a47995485a1441f4980661853a9d8a3c, type: 2}
+  _response:
+    _powderFactor: 1
+    _waterFactor: 1
+    _strikeFactor: 1
+    _maxKickSpeed: 6
   _displayName: "\u043A\u043D\u0438\u0433\u0443"
   _holdPosition: {x: 0.05, y: -0.25, z: 0.65}
   _holdEuler: {x: 0, y: 20, z: 0}
   _lostDepth: 3
   _icon: {fileID: 0}
   _throwSpin: 4
+  _impact:
+    _sound: 59
+    _minSpeed: 1.2
+    _interval: 0.12
 --- !u!54 &1773324666
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -11319,10 +11477,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7474702849729843187, guid: ad991f934cb3a684f8ba4be35418c1ac, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: cfe101e907e739240b019a382c8ccb00, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2485066940479427938, guid: ad991f934cb3a684f8ba4be35418c1ac, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 825087251}
+    - targetCorrespondingSourceObject: {fileID: 2485066940479427938, guid: ad991f934cb3a684f8ba4be35418c1ac, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 825087250}
   m_SourcePrefab: {fileID: 100100000, guid: ad991f934cb3a684f8ba4be35418c1ac, type: 3}
 --- !u!1 &1970359510
 GameObject:
@@ -11478,6 +11646,74 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1970359510}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &2037465563
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1302450199549758548, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_Name
+      value: Puddle
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480415274604379774, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+--- !u!114 &2037465564 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6194287378801122793, guid: 98fc8b727886a1240964a780e368b576, type: 3}
+  m_PrefabInstance: {fileID: 2037465563}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c375591398094cf44935f60364e37a0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Effects.Puddle.PuddleControl
 --- !u!1001 &2050507985
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11940,6 +12176,81 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &2108597358 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 723425997292596516, guid: 378695446d192164ba03e8f1d0f2fd37, type: 3}
+  m_PrefabInstance: {fileID: 1343775235}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &2108597359 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8724507518883364374, guid: 378695446d192164ba03e8f1d0f2fd37, type: 3}
+  m_PrefabInstance: {fileID: 1343775235}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2108597361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2108597358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
+  _animator: {fileID: 2108597359}
+  _rescuable: {fileID: 0}
+  _reactions:
+    _coatMaterial: {fileID: 2100000, guid: 85c8e5bab8a0d274e978c280f3c29af1, type: 2}
+    _powderColor: {r: 0.95, g: 0.95, b: 0.97, a: 1}
+    _wetColor: {r: 0.05, g: 0.08, b: 0.12, a: 1}
+    _powderOpacity: 0.85
+    _wetOpacity: 0.35
+    _wetSmoothness: 0.85
+    _powderPerImpulse: 0.05
+    _wetPerImpulse: 0.02
+    _washPerImpulse: 0.03
+    _dryTime: 25
+    _leanAngle: 16
+    _powderLean: 0.45
+    _waterLean: 1
+    _strikeLean: 0.8
+    _leanHold: 0.3
+    _leanSharpness: 8
+    _shakeAngle: 3
+    _shakeFrequency: 24
+    _powderPatience: 4
+    _waterPatience: 20
+    _cooldown: 2
+    _powderLines:
+    - P12
+    _waterLines:
+    - P13
+    _strikeLines:
+    - P14
+--- !u!136 &2108597362
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2108597358}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.32
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!1001 &2934280475292873215
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12083,3 +12394,4 @@ SceneRoots:
   - {fileID: 2934280475292873215}
   - {fileID: 934900539}
   - {fileID: 1637386307}
+  - {fileID: 2037465563}

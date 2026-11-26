@@ -72,9 +72,8 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private float _shardLifetime = 30f;
 
         [Header("Feedback")]
-        [SerializeField] private SoundType _shatterSound = SoundType.AxeHitGlass;
-        [SerializeField] private float _shatterPitch = 0.85f;
-        [SerializeField] private float _crackPitch = 1.6f;
+        [SerializeField] private SoundType _fractureSound = SoundType.GlassShatter;
+        [SerializeField] private SoundType _crackSound = SoundType.AxeHitGlass;
         [SerializeField] private GameObject _shatterEffect;
         [SerializeField] private GameObject _dustEffect;
         [SerializeField] private float _effectLifetime = 3f;
@@ -279,7 +278,7 @@ namespace Gameplay.Entities.Interactive
             float size = Vector2.Distance(region.Min, region.Max) * _crackSizeFactor;
             BuildShard(region.Intact, Rect(region), 0f, center, size);
             region.Intact.Renderer.sharedMaterials = new[] { _pane.sharedMaterial, _crackMaterial };
-            AudioService.Instance.PlayAt(_shatterSound, point, _crackPitch);
+            AudioService.Instance.PlayAt(_crackSound, point);
         }
 
         private void FractureRegion(Region region, Vector2 center, Vector3 direction, Vector3 point)
@@ -309,7 +308,7 @@ namespace Gameplay.Entities.Interactive
                 region.Stuck.Add(shard);
             }
 
-            AudioService.Instance.PlayAt(_shatterSound, point, _shatterPitch);
+            AudioService.Instance.PlayAt(_fractureSound, point);
             if (direction != Vector3.zero)
             {
                 Spawn(_shatterEffect, point, Quaternion.LookRotation(-direction));

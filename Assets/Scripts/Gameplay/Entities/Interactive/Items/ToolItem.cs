@@ -1,3 +1,4 @@
+using Services.Audio;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,6 +11,7 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _lostDepth = 4f;
         [SerializeField] private bool _isHandOnly;
         [SerializeField] private Transform _leftGrip;
+        [SerializeField] private Transform _rightGrip;
         [SerializeField] private bool _hasHandPose;
         [SerializeField] private Vector3 _handPosition;
         [SerializeField] private Vector3 _handEuler;
@@ -24,6 +26,9 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private Vector3 _bodyAimPosition;
         [SerializeField] private Vector3 _bodyAimEuler;
 
+        [Header("Sound")]
+        [SerializeField] private ImpactSound _impact = new(SoundType.ToolImpact);
+
         private Transform _worldParent;
         [SerializeField] private Rigidbody _body;
         private Vector3 _dropPosition;
@@ -33,6 +38,8 @@ namespace Gameplay.Entities.Interactive.Items
         public Vector3 HoldEuler => _holdEuler;
         public bool IsHandOnly => _isHandOnly;
         public Transform LeftGrip => _leftGrip;
+        public Transform RightGrip => _rightGrip;
+        public bool IsTwoHanded => _rightGrip != null;
         public bool HasHandPose => _hasHandPose;
         public Vector3 HandPosition => _handPosition;
         public Vector3 HandEuler => _handEuler;
@@ -90,6 +97,12 @@ namespace Gameplay.Entities.Interactive.Items
                 _body.linearVelocity = Vector3.zero;
                 transform.position = _dropPosition;
             }
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            _impact.Handle(collision, transform.position);
+            ToolImpact.Collide(collision);
         }
 
         private void SetCollidersEnabled(bool isEnabled)

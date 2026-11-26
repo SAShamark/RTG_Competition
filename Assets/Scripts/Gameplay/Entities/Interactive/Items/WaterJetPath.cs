@@ -28,6 +28,8 @@ namespace Gameplay.Entities.Interactive.Items
         public bool HasImpact { get; private set; }
         public Vector3 ImpactPoint { get; private set; }
         public Vector3 ImpactNormal { get; private set; }
+        public Vector3 ImpactDirection { get; private set; }
+        public Collider ImpactCollider { get; private set; }
         public Vector3 Side { get; private set; } = Vector3.right;
         public float Speed { get; private set; }
         public LayerMask ObstacleMask => _obstacleMask;
@@ -71,6 +73,8 @@ namespace Gameplay.Entities.Interactive.Items
                     HasImpact = true;
                     ImpactPoint = hit.point;
                     ImpactNormal = hit.normal;
+                    ImpactDirection = delta / delta.magnitude;
+                    ImpactCollider = hit.collider;
                 }
 
                 _points[i] = to;
@@ -97,6 +101,25 @@ namespace Gameplay.Entities.Interactive.Items
             float t3 = t2 * t;
             point = (2f * t3 - 3f * t2 + 1f) * from + (t3 - 2f * t2 + t) * leave + (3f * t2 - 2f * t3) * to + (t3 - t2) * arrive;
             velocity = Vector3.Lerp(_velocities[segment], _velocities[segment + 1], t);
+        }
+
+        // Where the jet is once it has covered a given distance over the ground; a jet stopped short answers with its end.
+        public Vector3 PointAtRange(float range)
+        {
+            Vector3 origin = _points[0];
+            float near = 0f;
+            for (int i = 1; i < Count; i++)
+            {
+                float far = Vector3.ProjectOnPlane(_points[i] - origin, Vector3.up).magnitude;
+                if (far >= range)
+                {
+                    return Vector3.Lerp(_points[i - 1], _points[i], (range - near) / Mathf.Max(far - near, MinSideSqr));
+                }
+
+                near = far;
+            }
+
+            return _points[Count - 1];
         }
 
         public float DistanceTo(Vector3 point, float reach)

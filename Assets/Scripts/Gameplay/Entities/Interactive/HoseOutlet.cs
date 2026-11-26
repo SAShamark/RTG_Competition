@@ -10,7 +10,7 @@ namespace Gameplay.Entities.Interactive
     {
         [SerializeField] private string _actionName = "під'єднати рукав";
         [SerializeField] private string _blockedReason = "потрібен рукав";
-        [SerializeField] private SoundType _connectSound = SoundType.GasClunk;
+        [SerializeField] private SoundType _connectSound = SoundType.HoseConnect;
 
         private Func<bool> _hasHose;
 

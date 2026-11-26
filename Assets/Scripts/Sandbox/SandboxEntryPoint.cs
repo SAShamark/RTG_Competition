@@ -1,6 +1,8 @@
 using Gameplay.Dialogue;
+using Gameplay.Effects.Puddle;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Interactive;
+using Gameplay.Mission.Systems;
 using UI.Managers;
 using UI.Screens;
 using UI.Screens.Variants.Gameplay;
@@ -14,7 +16,10 @@ namespace Sandbox
         [SerializeField] private FirstPersonController _player;
         [SerializeField] private EvacuationWindow[] _evacuationWindows;
         [SerializeField] private TextLibrary _texts;
+        [SerializeField] private PuddleControl _puddle;
         [SerializeField] private FireHeatLogic _fireHeat = new();
+        [SerializeField] private DialogLibrary _dialogs;
+        [SerializeField] private ResidentComplaints _complaints = new();
 
         private GameplayScreen _screen;
 
@@ -34,6 +39,9 @@ namespace Sandbox
             {
                 window.Init(_player.Carry);
             }
+
+            _complaints.Init(_screen, _texts, _dialogs);
+            _player.Hose.WaterLanded += _puddle.Pour;
         }
 
         private void Update()
@@ -43,6 +51,8 @@ namespace Sandbox
 
         private void OnDestroy()
         {
+            _player.Hose.WaterLanded -= _puddle.Pour;
+            _complaints.Dispose();
             _screen?.Dispose();
         }
     }

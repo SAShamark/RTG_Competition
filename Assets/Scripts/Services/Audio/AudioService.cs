@@ -90,6 +90,8 @@ namespace Services.Audio
             return SilentLoop.Instance;
         }
 
+        public bool IsVoicePlaying => Time.unscaledTime < _voiceUntil;
+
         public void PlayVoice(AudioClip clip)
         {
             _voiceSource.Stop();

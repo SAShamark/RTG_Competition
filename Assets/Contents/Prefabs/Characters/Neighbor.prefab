@@ -4923,6 +4923,7 @@ GameObject:
   - component: {fileID: 7656940734006471044}
   - component: {fileID: 1416455073870837417}
   - component: {fileID: 8302718747558828508}
+  - component: {fileID: 2806812447320912951}
   m_Layer: 0
   m_Name: Neighbor
   m_TagString: Untagged
@@ -5033,6 +5034,20 @@ MonoBehaviour:
   _carryUp: {x: -1, y: 0.55, z: 0.1}
   _carryForward: {x: 0.35, y: 1, z: -0.45}
   _liftTime: 0.45
+  _headBump:
+    _obstacleMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    _headRadius: 0.13
+    _headCenterOffset: 0.1
+    _maxBend: 80
+    _pushSharpness: 40
+    _releaseSharpness: 5
+    _bumpSpeed: 0.5
+    _bumpCooldown: 1.2
+    _recoil: 0.5
+    _recoilSharpness: 6
+  _bumpLineId: N07
   _flyLineId: 
   _icon: {fileID: 0}
   _flightEuler: {x: -70, y: 0, z: 0}
@@ -5070,6 +5085,51 @@ MonoBehaviour:
     _pelvisHeight: 0.9
   _liftHop: 0.15
   _faceSharpness: 5
+  _lookLimit: 55
+  _lookSharpness: 6
+  _lookRelease: 0.3
+--- !u!114 &2806812447320912951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6242269399097307012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
+  _animator: {fileID: 7656940734006471044}
+  _rescuable: {fileID: 8302718747558828508}
+  _reactions:
+    _coatMaterial: {fileID: 2100000, guid: 85c8e5bab8a0d274e978c280f3c29af1, type: 2}
+    _powderColor: {r: 0.95, g: 0.95, b: 0.97, a: 1}
+    _wetColor: {r: 0.05, g: 0.08, b: 0.12, a: 1}
+    _powderOpacity: 0.85
+    _wetOpacity: 0.35
+    _wetSmoothness: 0.85
+    _powderPerImpulse: 0.05
+    _wetPerImpulse: 0.02
+    _washPerImpulse: 0.03
+    _dryTime: 25
+    _leanAngle: 16
+    _powderLean: 0.45
+    _waterLean: 1
+    _strikeLean: 0.8
+    _leanHold: 0.3
+    _leanSharpness: 8
+    _shakeAngle: 3
+    _shakeFrequency: 24
+    _powderPatience: 4
+    _waterPatience: 20
+    _cooldown: 2
+    _powderLines:
+    - N08
+    _waterLines:
+    - N09
+    _strikeLines:
+    - N10
 --- !u!1 &6304998961120636807
 GameObject:
   m_ObjectHideFlags: 0

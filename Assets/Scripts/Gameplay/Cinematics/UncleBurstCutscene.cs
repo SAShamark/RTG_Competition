@@ -35,6 +35,7 @@ namespace Gameplay.Cinematics
         [SerializeField] private UncleBurstExit _exit = new();
 
         private FirstPersonController _player;
+        private Vector3[][] _lanes;
         private float _pathTime;
         private int _nextMeow;
         private bool _isRunning;
@@ -46,6 +47,7 @@ namespace Gameplay.Cinematics
         public void Init(FirstPersonController player, Camera camera)
         {
             _player = player;
+            _lanes = new Vector3[_cats.Length][];
             _look.Init(_lookCamera, _lookTarget, player);
             _exit.Init(camera, _actors);
             _runner.LookAt(player.Head);
@@ -62,12 +64,14 @@ namespace Gameplay.Cinematics
             _path.Build(_doorCenter, _player.transform.position);
             _pathTime = 0f;
             _nextMeow = 0;
-            _uncle.position = _path.Sample(_pathTime);
+            _uncle.position = _path.Sample(_pathTime, 0f);
 
             Vector3 heading = _path.Direction(_pathTime);
-            foreach (CatFollower cat in _cats)
+            for (int i = 0; i < _cats.Length; i++)
             {
-                cat.SetHeading(heading);
+                CatFollower cat = _cats[i];
+                _lanes[i] = _path.BuildLane(cat.LaneOffsets);
+                cat.Place(_path.SampleLane(_lanes[i], cat.RouteTime(_pathTime)), heading);
             }
 
             _player.enabled = false;
@@ -86,7 +90,12 @@ namespace Gameplay.Cinematics
             }
 
             _pathTime = IsPlaying ? ElapsedTime : _pathTime + Time.deltaTime;
-            _uncle.position = _path.Sample(_pathTime);
+            _uncle.position = _path.Sample(_pathTime, Time.deltaTime);
+            for (int i = 0; i < _cats.Length; i++)
+            {
+                _cats[i].MoveTo(_path.SampleLane(_lanes[i], _cats[i].RouteTime(_pathTime)));
+            }
+
             PlayMeows();
 
             if (IsPlaying)

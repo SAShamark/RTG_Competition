@@ -42,17 +42,44 @@ namespace Gameplay.Entities.Characters.Player
         private float _tremor;
         private float _kick;
         private float _leftWeight = 1f;
+        private float _rightWeight = 1f;
         private Transform _rightTarget;
         private Transform _leftTarget;
         private bool _isActive;
         private float _weight;
+        private Quaternion _rightHandRest;
+        private Quaternion _leftHandRest;
 
-        public void SetTargets(bool isActive, Transform right, Transform left, float leftWeight = 1f)
+        private void Awake()
+        {
+            Quaternion toBody = Quaternion.Inverse(transform.rotation);
+            _rightHandRest = toBody * _animator.GetBoneTransform(HumanBodyBones.RightHand).rotation;
+            _leftHandRest = toBody * _animator.GetBoneTransform(HumanBodyBones.LeftHand).rotation;
+        }
+
+        // Called after the animator: the look-at pass turns the chest once the arms are solved and carries the hands
+        // off their goals, so a prop held in both hands gets its wrists put back exactly where its grips are.
+        public void Carry(Transform rightGrip, Transform leftGrip, float weight)
+        {
+            // The prop may hang off one of the hands, so both grips are read before either arm moves.
+            Vector3 leftPosition = leftGrip.position;
+            Quaternion leftRotation = leftGrip.rotation;
+            Grip(HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, rightGrip.position, rightGrip.rotation * _rightHandRest, weight);
+            Grip(HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftHand, leftPosition, leftRotation * _leftHandRest, weight);
+        }
+
+        private void Grip(HumanBodyBones upperBone, HumanBodyBones lowerBone, HumanBodyBones handBone, Vector3 grip, Quaternion rotation, float weight)
+        {
+            TwoBoneIK.Solve(_animator.GetBoneTransform(upperBone), _animator.GetBoneTransform(lowerBone), _animator.GetBoneTransform(handBone), grip, rotation, weight);
+        }
+
+        public void SetTargets(bool isActive, Transform right, Transform left, float leftWeight = 1f, float rightWeight = 1f)
         {
             _isActive = isActive;
             _rightTarget = right;
             _leftTarget = left;
             _leftWeight = leftWeight;
+            _rightWeight = rightWeight;
         }
 
         public void SetAim(float weight, float tremor)
@@ -80,7 +107,7 @@ namespace Gameplay.Entities.Characters.Player
             _animator.SetLookAtWeight(_lookWeight, bodyWeight, _lookHeadWeight, 0f, clamp);
             _animator.SetLookAtPosition(LookTarget());
 
-            ApplyHand(AvatarIKGoal.RightHand, AvatarIKHint.RightElbow, _rightTarget, _rightRotationOffset, _rightElbowHint, 1f);
+            ApplyHand(AvatarIKGoal.RightHand, AvatarIKHint.RightElbow, _rightTarget, _rightRotationOffset, _rightElbowHint, _rightWeight);
             ApplyHand(AvatarIKGoal.LeftHand, AvatarIKHint.LeftElbow, _leftTarget, _leftRotationOffset, _leftElbowHint, _leftWeight);
             ApplyReach();
         }

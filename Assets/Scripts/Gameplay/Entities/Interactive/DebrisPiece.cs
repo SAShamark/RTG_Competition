@@ -13,8 +13,7 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private MeshRenderer _renderer;
 
         [Header("Settle")]
-        [SerializeField] private SoundType _impactSound = SoundType.FootstepWood;
-        [SerializeField] private Vector2 _impactPitch = new(0.9f, 1.2f);
+        [SerializeField] private SoundType _landSound = SoundType.DebrisImpact;
         [SerializeField] private float _impactSpeed = 1.5f;
         [SerializeField] private float _impactInterval = 0.08f;
         [SerializeField] private float _collisionDelay = 0.08f;
@@ -83,7 +82,7 @@ namespace Gameplay.Entities.Interactive
 
             _hasLanded = true;
             _lastImpactTime = Time.time;
-            AudioService.Instance.PlayAt(_impactSound, transform.position, Random.Range(_impactPitch.x, _impactPitch.y));
+            AudioService.Instance.PlayAt(_landSound, transform.position);
         }
     }
 }

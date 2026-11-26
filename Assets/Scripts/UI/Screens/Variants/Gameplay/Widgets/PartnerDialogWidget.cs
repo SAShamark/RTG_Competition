@@ -21,6 +21,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
         [SerializeField] private Vector3 _anchorOffset = new(0f, 0.32f, 0f);
         [SerializeField] private Vector2 _anchorScreenOffset = new(40f, 20f);
         [SerializeField] private float _fadeSpeed = 5f;
+        [SerializeField] private float _fadeOutSpeed = 1.5f;
         [SerializeField] private float _textPadding = 6f;
 
         private struct Line
@@ -97,22 +98,21 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             }
 
             float targetAlpha = _line != null ? 1f : 0f;
-            _visible = Mathf.MoveTowards(_visible, targetAlpha, Time.unscaledDeltaTime * _fadeSpeed);
-            _group.alpha = _visible;
+            float fadeSpeed = _line != null ? _fadeSpeed : _fadeOutSpeed;
+            _visible = Mathf.MoveTowards(_visible, targetAlpha, Time.unscaledDeltaTime * fadeSpeed);
+            _group.alpha = FollowAnchor() ? _visible : 0f;
 
             if (_line == null)
             {
                 return;
             }
 
-            FollowAnchor();
-
-            _voiceLeft -= Time.unscaledDeltaTime;
             _typed += Time.unscaledDeltaTime * _charsPerSecond;
             int count = Mathf.Min(_line.Length, Mathf.FloorToInt(_typed));
             _text.text = _prefix + _line.Substring(0, count);
             if (_voiceLeft != NoVoice)
             {
+                _voiceLeft -= Time.unscaledDeltaTime;
                 if (_voiceLeft <= 0f)
                 {
                     _line = null;
@@ -148,17 +148,18 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             _text.text = string.Empty;
         }
 
-        private void FollowAnchor()
+        // A line spoken by someone in the world stays above their head and is simply hidden while they are out of view.
+        private bool FollowAnchor()
         {
             if (_anchor == null)
             {
-                return;
+                return true;
             }
 
             Vector3 screen = _camera.WorldToScreenPoint(_anchor.position + _anchorOffset);
-            if (screen.z <= 0f)
+            if (screen.z <= 0f || !_camera.pixelRect.Contains(screen))
             {
-                return;
+                return false;
             }
 
             var parent = (RectTransform)_rect.parent;
@@ -166,16 +167,14 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             Camera uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, (Vector2)screen + _anchorScreenOffset, uiCamera, out Vector2 local))
             {
-                return;
+                return false;
             }
 
             Rect parentRect = parent.rect;
             Vector2 anchorRef = new(Mathf.Lerp(parentRect.xMin, parentRect.xMax, (_rect.anchorMin.x + _rect.anchorMax.x) * 0.5f),
                 Mathf.Lerp(parentRect.yMin, parentRect.yMax, (_rect.anchorMin.y + _rect.anchorMax.y) * 0.5f));
-            Vector2 size = _rect.rect.size;
-            local.x = Mathf.Clamp(local.x, parentRect.xMin + size.x * _rect.pivot.x, parentRect.xMax - size.x * (1f - _rect.pivot.x));
-            local.y = Mathf.Clamp(local.y, parentRect.yMin + size.y * _rect.pivot.y, parentRect.yMax - size.y * (1f - _rect.pivot.y));
             _rect.anchoredPosition = local - anchorRef;
+            return true;
         }
     }
 }

@@ -231,6 +231,20 @@ namespace Gameplay.Entities.Characters.Player
             _footprints.Tick(_jump.IsNearGround);
         }
 
+        private void LateUpdate()
+        {
+            _stance.LateTick(_bodyIK);
+            _extinguisher.LateTick(Time.deltaTime);
+        }
+
+        public void Discard(ToolItem tool)
+        {
+            if (_heldItem.HeldTool == tool)
+            {
+                _heldItem.Drop(Head);
+            }
+        }
+
         public void BeginConversation()
         {
             _planarVelocity = Vector3.zero;
@@ -287,7 +301,7 @@ namespace Gameplay.Entities.Characters.Player
             bool isActive = _view.IsThirdPerson && (tool != null || _carry.IsCarrying);
             if (tool != null && tool.HoldInBodyHand)
             {
-                _bodyIK.SetTargets(isActive, null, tool.HasAimHold ? tool.LeftGrip : null, _stance.Weight);
+                _bodyIK.SetTargets(isActive, tool.RightGrip, tool.HasAimHold ? tool.LeftGrip : null, _stance.Weight, _stance.Weight);
                 return;
             }
 
@@ -446,6 +460,7 @@ namespace Gameplay.Entities.Characters.Player
             }
 
             _prop = item;
+            AudioService.Instance.Play(SoundType.ItemPickup);
             PropChanged?.Invoke(item);
             _heldItem.SetHidden(true);
             item.SetHeld(_head);
@@ -498,7 +513,9 @@ namespace Gameplay.Entities.Characters.Player
             Vector3 move = _planarVelocity + _hose.RecoilPush(target);
             move.y = _jump.VerticalSpeed;
             _jump.HandleCollision(_characterController.Move(move * deltaTime));
-            _audio.Tick(_characterController.isGrounded, speed > _walkSpeed, deltaTime);
+            bool isFast = speed > _walkSpeed;
+            bool isStriding = _body.TryGetStride(isFast, out float stride);
+            _audio.Tick(_characterController.isGrounded, isFast, isStriding, stride, deltaTime);
             return move;
         }
 
@@ -628,7 +645,7 @@ namespace Gameplay.Entities.Characters.Player
             {
                 ReleaseProp(true);
             }
-            else if (HasFreeHands && _axe.IsReady && !_axe.IsAimingAtProtected)
+            else if (HasFreeHands && _axe.IsReady)
             {
                 StartChop();
             }
@@ -653,7 +670,11 @@ namespace Gameplay.Entities.Characters.Player
 
         private void StartToss()
         {
-            Action release = () => _heldItem.Drop(_head);
+            Action release = () =>
+            {
+                _heldItem.Drop(_head);
+                AudioService.Instance.Play(SoundType.ItemThrow);
+            };
             if (!_view.IsThirdPerson)
             {
                 _hands.Play(HandGesture.Toss, release);
@@ -697,6 +718,7 @@ namespace Gameplay.Entities.Characters.Player
             _interactionLogic.SetOverride(null);
             _heldItem.SetHidden(false);
 
+            AudioService.Instance.Play(isThrown ? SoundType.ItemThrow : SoundType.ItemDrop);
             if (isThrown)
             {
                 item.Release(item.transform.position, _head.forward * _throwSpeed + Vector3.up * _throwLift);
@@ -733,6 +755,7 @@ namespace Gameplay.Entities.Characters.Player
         private void HandleCarryChanged(Rescuable resident)
         {
             _heldItem.SetHidden(resident != null || IsHoldingProp);
+            AudioService.Instance.Play(SoundType.CarryLift);
             if (resident == null)
             {
                 _hands.SetCarryGrips(null, null);

@@ -1230,6 +1230,7 @@ Transform:
   - {fileID: 2702860220576870568}
   - {fileID: 5059988947803239913}
   - {fileID: 2226240957097513913}
+  - {fileID: 260940489015492998}
   m_Father: {fileID: 5016435863648475216}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1000481351175941772
@@ -1878,14 +1879,43 @@ MonoBehaviour:
     _minAimDistance: 1.2
     _farPowerFactor: 0.4
     _hitSlack: 0.9
+    _pushForce: 8
     _capacity: 6
     _rechargeDelay: 0.8
     _rechargeRate: 0.35
     _emptyPowerFactor: 0.35
     _resumePressure: 0.2
+  _hose:
+    _path:
+      _speed: 30
+      _emptySpeedFactor: 0.35
+      _gravity: 9.81
+      _airDrag: 0.6
+      _flightTime: 5
+      _segments: 80
+      _obstacleMask:
+        serializedVersion: 2
+        m_Bits: 4294966271
+    _convergeDistance: 12
+    _minSupply: 0.1
+    _tautTension: 0.5
+    _power: 1.5
+    _splashRadius: 1.6
+    _streamRadius: 0.7
+    _edgePowerFactor: 0.35
+    _fireCentreHeight: 0.6
+    _sightLift: 0.1
+    _sightSlack: 0.5
+    _flowRate: 6
+    _pushForce: 60
+    _recoilPush: 2.4
+    _recoilJump: 2.5
+    _kickClimb: 9
+    _kickSway: 16
+    _kickFrequency: 1.7
+    _kickPitchShare: 0.5
   _audio:
-    _stride: 0.75
-    _runStride: 1.05
+    _minStepSpeed: 0.6
     _groundProbe: 1.5
     _roofProbe: 6
     _indoorCheckInterval: 0.25
@@ -1895,6 +1925,12 @@ MonoBehaviour:
     - Plank
     - Stair
     - Step
+    _metalKeywords:
+    - Metal
+    - truck
+    - Truck
+    - Grate
+    - Ladder
     _mask:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -1986,6 +2022,11 @@ MonoBehaviour:
     _warpLimit: 67.5
     _warpSharpness: 10
     _warpMinSpeed: 0.3
+    _stepsPerCycle: 2
+    _carryStepsPerCycle: 4
+    _walkContactPhase: 0.02
+    _runContactPhase: 0.33
+    _carryContactPhase: 0.06
   _bodyIK: {fileID: 8658550072594416440}
   _stance:
     _raiseSharpness: 9
@@ -1993,6 +2034,7 @@ MonoBehaviour:
     _linger: 0.5
     _sprayReadyWeight: 0.75
     _moveFactor: 0.6
+    _aimAnchor: {fileID: 260940489015492998}
   _footprints:
     _body: {fileID: 463086264662103798}
     _halfWidth: 0.07
@@ -9106,6 +9148,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6959529806326639136}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8777438542542403134
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 260940489015492998}
+  m_Layer: 0
+  m_Name: ToolAimAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &260940489015492998
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8777438542542403134}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.49822995, y: 0.5017741, z: -0.49821964, w: -0.50176376}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7095006787121946002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8879223843669011458
 GameObject:

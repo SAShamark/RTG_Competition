@@ -52,14 +52,17 @@ namespace Gameplay.Cinematics.Finale
         public float Pee => _pee;
         public float Duration => _runIn + _pee + _orbit;
 
-        public void Init() => _uncle.gameObject.SetActive(false);
+        public void Init()
+        {
+            _uncle.gameObject.SetActive(false);
+            _lastFlame.gameObject.SetActive(false);
+        }
 
         public void Prepare()
         {
             _started = false;
             _streamOn = false;
             _orbitStarted = false;
-            _lastFlame.gameObject.SetActive(true);
         }
 
         public void Tick(Transform cam, float time)
@@ -97,15 +100,20 @@ namespace Gameplay.Cinematics.Finale
         public void Finish()
         {
             _stream.Stop();
+            _lastFlame.SetReignite(false);
+            _lastFlame.ForceOut();
             if (_uncle.gameObject.activeSelf)
             {
                 _uncle.SetPose(ResidentPose.Victory);
             }
         }
 
+        public void StandIdle() => _uncle.SetPose(ResidentPose.Animated);
+
         private void Start(Transform cam)
         {
             _started = true;
+            _lastFlame.gameObject.SetActive(true);
             Vector3 from = _uncleSpot.position + _runInFrom;
             _uncle.gameObject.SetActive(true);
             _uncle.SetPose(ResidentPose.Running);

@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Mission.Systems.FacadeFirefightConfig
   _shownAtStart: 0.01
   _shownAtEnd: 0.99
-  _completeShare: 1
+  _completeShare: 0.9
   _finishDelay: 1.2
   _fireOutSound: 32
   _basePitch: 0.8
   _pitchStep: 0.04
   _maxPitch: 1.6
-  _objective: 110
+  _objective: 115
   _doneToast: 111

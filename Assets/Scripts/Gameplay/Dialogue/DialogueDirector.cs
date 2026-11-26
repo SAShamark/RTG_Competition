@@ -2,6 +2,7 @@ using Services;
 using Services.Audio;
 using System;
 using System.Collections.Generic;
+using Gameplay.Entities.Characters;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Characters.Residents;
 using UI.Screens.Variants.Gameplay;
@@ -38,6 +39,8 @@ namespace Gameplay.Dialogue
         [SerializeField] private float _shoulderBack = 0.75f;
         [SerializeField] private float _shoulderSide = 0.38f;
         [SerializeField] private float _shoulderUp = 0.08f;
+        [SerializeField, Range(0f, 1f)] private float _shoulderLevelling = 0.5f;
+        [SerializeField] private float _pushInSpeed = 0.04f;
         [SerializeField] private float _charsPerSecond = 45f;
         [SerializeField] private float _holdAfterTyping = 1.6f;
         [SerializeField] private float _moveSharpness = 6f;
@@ -57,11 +60,16 @@ namespace Gameplay.Dialogue
         [SerializeField] private float _rayShortening = 0.25f;
         [SerializeField] private float[] _orbitDistances = { 1.1f, 1.5f, 0.8f };
         [SerializeField] private int _orbitSteps = 12;
+        [SerializeField] private float _minTalkDistance = 1.25f;
+        [SerializeField] private float _talkDistance = 1.5f;
+        [SerializeField] private int _standSteps = 8;
+        [SerializeField] private float _groundProbe = 0.5f;
 
         private readonly Queue<DialogueLine> _lines = new();
         private AudioService _audio;
         private GameplayScreen _screen;
         private FirstPersonController _player;
+        private CharacterController _playerCollider;
         private Renderer[] _playerBody;
         private ShadowCastingMode[] _bodyModes;
         private Action _onFinished;
@@ -70,8 +78,11 @@ namespace Gameplay.Dialogue
         private Rescuable _companion;
         private float _timeLeft;
         private float _voiceLeft;
+        private float _talkLeft;
+        private JawControl _speakerJaw;
         private bool _snapCamera;
         private bool _isWaiting;
+        private bool _isWalking;
 
         public bool IsPlaying { get; private set; }
         public DialogLibrary Library => _dialogLibrary;
@@ -87,6 +98,7 @@ namespace Gameplay.Dialogue
             _audio = audio;
             _screen = screen;
             _player = player;
+            _playerCollider = player.GetComponent<CharacterController>();
             _playerBody = playerBody.GetComponentsInChildren<Renderer>(true);
             _bodyModes = new ShadowCastingMode[_playerBody.Length];
             _camera.gameObject.SetActive(false);
@@ -141,11 +153,39 @@ namespace Gameplay.Dialogue
             _current = _lines.Dequeue();
             _companionHead = _current.SpeakerHead == _player.Head ? _current.ListenerHead : _current.SpeakerHead;
             _companion = _companionHead.GetComponentInParent<Rescuable>();
+            KeepTalkDistance();
             _timeLeft = _lineGap;
-            _voiceLeft = _dialogLibrary.TryGetClip(_current.Text, out AudioClip clip) ? clip.length : float.MaxValue;
+            bool hasVoice = _dialogLibrary.TryGetClip(_current.Text, out AudioClip clip);
+            _voiceLeft = hasVoice ? clip.length : float.MaxValue;
+            _talkLeft = hasVoice ? clip.length : _current.Text.Length / _charsPerSecond;
+            SetSpeakerJaw(_current.SpeakerHead.GetComponentInParent<JawControl>());
             _screen.ClearDialog();
             _screen.CharacterSay(_current.Speaker, _current.Text, UntilCleared, _current.SpeakerHead);
             _snapCamera = true;
+            ReleaseIfCarried();
+        }
+
+        private bool IsCompanionCarried => _companion != null && _companion.State == RescueState.Carried;
+
+        private void ReleaseIfCarried()
+        {
+            if (_isWalking || !IsCompanionCarried)
+            {
+                return;
+            }
+
+            _isWalking = true;
+            ReleasePlayer();
+        }
+
+        private void ReleasePlayer()
+        {
+            _audio.SetDucked(false);
+            _screen.SetCrosshairVisible(true);
+            SetBodyVisible(false);
+            _camera.gameObject.SetActive(false);
+            _player.EndConversation();
+            _player.enabled = true;
         }
 
         public void Tick(float deltaTime)
@@ -161,14 +201,31 @@ namespace Gameplay.Dialogue
                 return;
             }
 
+            ReleaseIfCarried();
+            _timeLeft -= deltaTime;
+            _voiceLeft -= deltaTime;
+            _talkLeft -= deltaTime;
+            if (_talkLeft <= 0f)
+            {
+                SetSpeakerJaw(null);
+            }
+
+            if (_isWalking)
+            {
+                if (_voiceLeft <= 0f || _talkLeft <= -_holdAfterTyping)
+                {
+                    NextLine();
+                }
+
+                return;
+            }
+
             _player.FaceConversation(_companionHead.position, deltaTime);
             if (_companion != null)
             {
-                _companion.Face(_player.transform.position, deltaTime);
+                _companion.Face(_player.Head.position, deltaTime);
             }
 
-            _timeLeft -= deltaTime;
-            _voiceLeft -= deltaTime;
             bool next = Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame;
             if ((next && _timeLeft <= 0f) || _voiceLeft <= 0f)
             {
@@ -178,7 +235,7 @@ namespace Gameplay.Dialogue
 
         public void LateTick()
         {
-            if (!IsPlaying)
+            if (!IsPlaying || _isWalking)
             {
                 return;
             }
@@ -200,6 +257,73 @@ namespace Gameplay.Dialogue
 
             Quaternion aim = Quaternion.LookRotation(speaker + Vector3.down * _headAimDrop - cam.position, Vector3.up);
             cam.rotation = Quaternion.Slerp(cam.rotation, aim, Easing.Damp(_moveSharpness, Time.deltaTime));
+            cam.position += cam.forward * (_pushInSpeed * Time.deltaTime);
+        }
+
+        private void KeepTalkDistance()
+        {
+            if (_player.Carry.IsCarrying)
+            {
+                return;
+            }
+
+            Vector3 feet = _player.transform.position;
+            Vector3 companion = _companionHead.position;
+            companion.y = feet.y;
+            Vector3 away = feet - companion;
+            if (away.sqrMagnitude >= _minTalkDistance * _minTalkDistance)
+            {
+                return;
+            }
+
+            away = away.sqrMagnitude > MinDirectionSqr ? away.normalized : Vector3.ProjectOnPlane(_companionHead.forward, Vector3.up).normalized;
+            float step = 360f / _standSteps;
+            for (int i = 0; i < _standSteps; i++)
+            {
+                // 0, +1, -1, +2, -2... so the free spot closest to where the player already stands wins.
+                int turn = (i + 1) / 2 * (i % 2 == 0 ? -1 : 1);
+                Vector3 dir = Quaternion.AngleAxis(step * turn, Vector3.up) * away;
+                Vector3 spot = companion + dir * _talkDistance;
+                if (CanStand(spot))
+                {
+                    _player.Teleport(spot, Quaternion.LookRotation(-dir));
+                    return;
+                }
+            }
+        }
+
+        private bool CanStand(Vector3 spot)
+        {
+            float radius = _playerCollider.radius;
+            float lift = _playerCollider.stepOffset;
+            Vector3 center = spot + _playerCollider.center;
+            float half = Mathf.Max(_playerCollider.height / 2f - radius, 0f);
+            Vector3 top = center + Vector3.up * half;
+            Vector3 bottom = center + Vector3.down * half + Vector3.up * lift;
+            foreach (Collider c in Physics.OverlapCapsule(bottom, top, radius, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (c != _playerCollider)
+                {
+                    return false;
+                }
+            }
+
+            if (!Physics.Raycast(spot + Vector3.up * lift, Vector3.down, lift + _groundProbe, ~0, QueryTriggerInteraction.Ignore))
+            {
+                return false;
+            }
+
+            Vector3 from = _companionHead.position;
+            Vector3 to = top - from;
+            foreach (RaycastHit hit in Physics.RaycastAll(from, to.normalized, to.magnitude, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (!IsCharacter(hit.collider))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void ChooseShot(Vector3 speaker, Vector3 listener, Vector3 dir, Vector3 right, out Vector3 position, out Quaternion rotation)
@@ -212,6 +336,7 @@ namespace Gameplay.Dialogue
                 foreach (float side in sides)
                 {
                     Vector3 candidate = listener - dir * back + right * side + Vector3.up * _shoulderUp;
+                    candidate.y += (speaker.y - listener.y) * _shoulderLevelling;
                     if (IsClear(candidate, target, listener))
                     {
                         position = candidate;
@@ -331,17 +456,31 @@ namespace Gameplay.Dialogue
         private static bool IsCharacter(Collider c) =>
             c is CharacterController || c.GetComponentInParent<Animator>() != null || c.GetComponentInParent<Rescuable>() != null;
 
+        private void SetSpeakerJaw(JawControl jaw)
+        {
+            if (_speakerJaw != null)
+            {
+                _speakerJaw.SetTalking(false);
+            }
+
+            _speakerJaw = jaw;
+            if (_speakerJaw != null)
+            {
+                _speakerJaw.SetTalking(true);
+            }
+        }
+
         private void Finish()
         {
             IsPlaying = false;
-            _audio.SetDucked(false);
+            SetSpeakerJaw(null);
             _screen.ClearDialog();
-            _screen.SetCrosshairVisible(true);
-            SetBodyVisible(false);
-            _camera.gameObject.SetActive(false);
+            if (!_isWalking)
+            {
+                ReleasePlayer();
+            }
 
-            _player.EndConversation();
-            _player.enabled = true;
+            _isWalking = false;
 
             Action done = _onFinished;
             _onFinished = null;

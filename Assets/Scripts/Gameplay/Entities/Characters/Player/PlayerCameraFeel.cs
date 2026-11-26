@@ -8,6 +8,8 @@ namespace Gameplay.Entities.Characters.Player
     [Serializable]
     public sealed class PlayerCameraFeel
     {
+        private const float SpringStep = 1f / 120f;
+
         [SerializeField] private CinemachineCamera _firstPersonCamera;
         [SerializeField] private CinemachineCamera _thirdPersonCamera;
         [SerializeField] private CinemachineThirdPersonFollow _follow;
@@ -90,11 +92,16 @@ namespace Gameplay.Entities.Characters.Player
         }
 
         // Critically-damped-ish spring: a = −k·x − c·v pulls the landing dip back to rest without wobbling.
+        // Integrated in small fixed steps: one long frame would overshoot and blow the spring up to infinity.
         private void TickSpring(float deltaTime)
         {
-            float acceleration = -_springStiffness * _dip - _springDamping * _dipVelocity;
-            _dipVelocity += acceleration * deltaTime;
-            _dip += _dipVelocity * deltaTime;
+            for (float left = deltaTime; left > 0f; left -= SpringStep)
+            {
+                float step = Mathf.Min(left, SpringStep);
+                float acceleration = -_springStiffness * _dip - _springDamping * _dipVelocity;
+                _dipVelocity += acceleration * step;
+                _dip += _dipVelocity * step;
+            }
         }
 
         private void TickFirstPerson(Vector3 localVelocity, float planarSpeed, float runSpeed, float stepPhase, bool isGrounded, bool isRunning, float deltaTime)

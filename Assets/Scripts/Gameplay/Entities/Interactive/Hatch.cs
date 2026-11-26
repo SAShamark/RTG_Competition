@@ -14,18 +14,32 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private Vector3 _axis = Vector3.right;
         [SerializeField] private float _openAngle = -100f;
         [SerializeField] private float _duration = 0.5f;
+        [SerializeField] private string _lockedAction = "Відчинити відсік";
+        [SerializeField] private string _lockedHint = "зачинено";
 
         private Quaternion _closedRotation;
-        private float _angle;
+        private float _openness;
         private MotionHandle _motion = MotionHandle.Idle;
+        private bool _isLocked;
 
         public bool IsOpen { get; private set; }
         public override bool CanInteract => !_motion.IsPlaying;
-        public override HandGesture Gesture => HandGesture.Push;
+        public override HandGesture Gesture => _isLocked ? HandGesture.Rattle : HandGesture.Push;
 
         public event Action<Hatch> Opened;
+        public event Action<float> Moved;
 
-        public override string GetHint(Transform interactor) => IsOpen ? _texts.Format(TextId.HintCloseNamed, _displayName) : _texts.Format(TextId.HintOpenNamed, _displayName);
+        public void SetLocked(bool isLocked) => _isLocked = isLocked;
+
+        public override string GetHint(Transform interactor)
+        {
+            if (_isLocked)
+            {
+                return _texts.Format(TextId.HintActionBlocked, _lockedAction, _lockedHint);
+            }
+
+            return IsOpen ? _texts.Format(TextId.HintCloseNamed, _displayName) : _texts.Format(TextId.HintOpenNamed, _displayName);
+        }
 
         protected override void OnInteract(Transform interactor)
         {
@@ -34,13 +48,20 @@ namespace Gameplay.Entities.Interactive
                 return;
             }
 
+            if (_isLocked)
+            {
+                AudioService.Instance.PlayAt(SoundType.DoorLocked, transform.position);
+                return;
+            }
+
             IsOpen = !IsOpen;
-            float from = _angle;
-            float to = IsOpen ? _openAngle : 0f;
+            float from = _openness;
+            float to = IsOpen ? 1f : 0f;
             _motion = MotionService.Instance.Play(_duration, k =>
             {
-                _angle = Mathf.LerpUnclamped(from, to, Easing.OutCubic(k));
-                transform.localRotation = _closedRotation * Quaternion.AngleAxis(_angle, _axis);
+                _openness = Mathf.LerpUnclamped(from, to, Easing.OutCubic(k));
+                transform.localRotation = _closedRotation * Quaternion.AngleAxis(_openAngle * _openness, _axis);
+                Moved?.Invoke(_openness);
             });
             AudioService.Instance.PlayAt(IsOpen ? SoundType.HatchOpen : SoundType.HatchClose, transform.position);
 

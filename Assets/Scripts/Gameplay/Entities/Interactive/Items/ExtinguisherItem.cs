@@ -54,6 +54,11 @@ namespace Gameplay.Entities.Interactive.Items
         private ParticleSystem[] _flowSystems;
         private float _jetRate;
         private float _grainsRate;
+        private float _jetDebt;
+        private float _grainsDebt;
+        private float _jetSpread;
+        private float _grainsSpread;
+        private float _flow;
         private float _cloudRate;
         private float _cloudDebt;
         private bool _hasFloor;
@@ -81,8 +86,10 @@ namespace Gameplay.Entities.Interactive.Items
         private void Awake()
         {
             _flowSystems = new[] { _jet, _grains };
-            _jetRate = _jet.emission.rateOverTimeMultiplier;
-            _grainsRate = _grains.emission.rateOverTimeMultiplier;
+            _jetRate = TakeRate(_jet);
+            _grainsRate = TakeRate(_grains);
+            _jetSpread = Mathf.Tan(_jet.shape.angle * Mathf.Deg2Rad);
+            _grainsSpread = Mathf.Tan(_grains.shape.angle * Mathf.Deg2Rad);
             _cloudRate = TakeRate(_impactCloud);
             TakeRate(_puff);
 
@@ -194,10 +201,7 @@ namespace Gameplay.Entities.Interactive.Items
                 flow *= sputter * sputter * 2f;
             }
 
-            var jetEmission = _jet.emission;
-            jetEmission.rateOverTimeMultiplier = _jetRate * flow;
-            var grainsEmission = _grains.emission;
-            grainsEmission.rateOverTimeMultiplier = _grainsRate * flow;
+            _flow = flow;
             EmitImpact(flow);
 
             var main = _jet.main;
@@ -215,6 +219,35 @@ namespace Gameplay.Entities.Interactive.Items
             {
                 _sinceImpulse = 0f;
                 _impulse.GenerateImpulse(_sustainImpulse * flow);
+            }
+        }
+
+        // Particle systems update before LateUpdate, when a tool carried by the chest still hangs where the animation left
+        // the hand, so the plume is emitted by hand once the tool has been put in place.
+        public void LateTick(float deltaTime)
+        {
+            if (!_isSpraying)
+            {
+                return;
+            }
+
+            EmitFlow(_jet, ref _jetDebt, _jetRate * _flow, _jetSpread, deltaTime);
+            EmitFlow(_grains, ref _grainsDebt, _grainsRate * _flow, _grainsSpread, deltaTime);
+        }
+
+        private void EmitFlow(ParticleSystem system, ref float debt, float rate, float spread, float deltaTime)
+        {
+            debt += rate * deltaTime;
+            ParticleSystem.MinMaxCurve speed = system.main.startSpeed;
+            var emit = new ParticleSystem.EmitParams { applyShapeToPosition = false };
+            while (debt >= 1f)
+            {
+                debt -= 1f;
+                Vector3 direction = (_nozzle.forward + Random.insideUnitSphere * spread).normalized;
+                emit.velocity = direction * speed.Evaluate(0f, Random.value);
+                // Spread along the frame's travel, or a fast plume leaves the nozzle in clumps.
+                emit.position = _nozzle.position + emit.velocity * (Random.value * deltaTime);
+                system.Emit(emit, 1);
             }
         }
 

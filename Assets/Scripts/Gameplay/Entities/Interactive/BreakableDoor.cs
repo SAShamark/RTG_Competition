@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Services;
+using Services.Audio;
 using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
@@ -43,6 +44,8 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private int _splintersPerChunk = 4;
         [SerializeField] private float _breachClearHeight = 1.55f;
         [SerializeField] private string _debrisLayer = "Debris";
+        [SerializeField] private SoundType _splinterSound = SoundType.WoodSplinter;
+        [SerializeField] private SoundType _breachSound = SoundType.BlockerSmash;
 
         private readonly List<(Chunk chunk, float expires)> _debris = new();
         private int _breachTotal;
@@ -108,12 +111,14 @@ namespace Gameplay.Entities.Interactive
                 EffectPlayback.Restart(impact);
             }
 
+            AudioService.Instance.PlayAt(_splinterSound, point);
             IsChopped = true;
             Chopped?.Invoke(this, point);
 
             if (!IsBreached && _breachKnocked >= _breachTotal * _breachRatio)
             {
                 IsBreached = true;
+                AudioService.Instance.PlayAt(_breachSound, point);
                 foreach (Chunk chunk in _chunks)
                 {
                     if (!chunk.IsKnocked && chunk.Center.y < _breachClearHeight)

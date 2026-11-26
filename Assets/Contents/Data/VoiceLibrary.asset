@@ -57,6 +57,22 @@ MonoBehaviour:
       _text: "\u0422\u0430 \u0442\u0438 \u0441\u0443\u043F\u0435\u0440\u0433\u0435\u0440\u043E\u0439!"
       _clip: {fileID: 8300000, guid: 46a368f2bd98019449538052c5b4e7f6, type: 3}
       _hold: 3
+    - _id: P11
+      _text: "\u0429\u0435 \u0431 \u043F\u043E\u0436\u0435\u0436\u0443 \u0437\u0430\u0433\u0430\u0441\u0438\u0432 \u2014 \u0456 \u0432\u0437\u0430\u0433\u0430\u043B\u0456 \u0431\u0443\u0432 \u0431\u0438 \u0431\u043E\u0433\u043E\u043C. \u0411\u0435\u0440\u0438 \u0440\u0443\u043A\u0430\u0432 \u0432 \u043C\u0430\u0448\u0438\u043D\u0456 \u0456 \u0433\u0430\u0441\u0438."
+      _clip: {fileID: 8300000, guid: 220b71490790474469ca12538b702fc8, type: 3}
+      _hold: 7
+    - _id: P12
+      _text: "\u0414\u044F\u043A\u0443\u044E, \u044F \u043D\u0435 \u043A\u0443\u0440\u044E!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: P13
+      _text: "\u042F \u0436 \u0442\u0456\u043B\u044C\u043A\u0438 \u0432\u0447\u043E\u0440\u0430 \u043C\u0438\u0432\u0441\u044F!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: P14
+      _text: "\u0410\u0439, \u043B\u043E\u0441\u043A\u0456\u0442\u043D\u043E!"
+      _clip: {fileID: 0}
+      _hold: 3
   - _character: 1
     _displayName: "\u041C\u0430\u0445\u043C\u0443\u0434"
     _color: {r: 1, g: 0.6, b: 0.3, a: 1}
@@ -130,8 +146,24 @@ MonoBehaviour:
       _clip: {fileID: 0}
       _hold: 3
     - _id: G10
-      _text: "А-а-а-а-а!"
+      _text: "\u0410-\u0430-\u0430-\u0430-\u0430!"
       _clip: {fileID: 8300000, guid: 7ac848c77dcc445ebce53e10e12573df, type: 3}
+      _hold: 3
+    - _id: G11
+      _text: "\u0410\u0439, \u0431\u043E\u043B\u044F\u0447\u0435!"
+      _clip: {fileID: 8300000, guid: 5d46e2aafcea4b6b92cc75ea4714710e, type: 3}
+      _hold: 1.5
+    - _id: G12
+      _text: "\u0414\u044F\u043A\u0443\u044E, \u044F \u043D\u0435 \u043A\u0443\u0440\u044E!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: G13
+      _text: "\u042F \u0436 \u0442\u0456\u043B\u044C\u043A\u0438 \u0432\u0447\u043E\u0440\u0430 \u043C\u0438\u043B\u0430\u0441\u044C!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: G14
+      _text: "\u0410\u0439, \u043B\u043E\u0441\u043A\u0456\u0442\u043D\u043E!"
+      _clip: {fileID: 0}
       _hold: 3
   - _character: 3
     _displayName: "\u0421\u0443\u0441\u0456\u0434"
@@ -161,6 +193,22 @@ MonoBehaviour:
       _text: "\u0410-\u0410-\u0410-\u0410-\u0410!"
       _clip: {fileID: 8300000, guid: 32c8a06cefd44ddba33346a5c353b5c1, type: 3}
       _hold: 3
+    - _id: N07
+      _text: "\u0410\u0439! \u041E\u0431\u0435\u0440\u0435\u0436\u043D\u0456\u0448\u0435!"
+      _clip: {fileID: 0}
+      _hold: 1.5
+    - _id: N08
+      _text: "\u0414\u044F\u043A\u0443\u044E, \u044F \u043D\u0435 \u043A\u0443\u0440\u044E!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: N09
+      _text: "\u042F \u0436 \u0442\u0456\u043B\u044C\u043A\u0438 \u0432\u0447\u043E\u0440\u0430 \u043C\u0438\u0432\u0441\u044F!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: N10
+      _text: "\u0410\u0439, \u043B\u043E\u0441\u043A\u0456\u0442\u043D\u043E!"
+      _clip: {fileID: 0}
+      _hold: 3
   - _character: 4
     _displayName: "\u0414\u044F\u0434\u044C\u043A\u043E"
     _color: {r: 1, g: 0.55, b: 0.25, a: 1}
@@ -176,4 +224,16 @@ MonoBehaviour:
     - _id: U03
       _text: "\u042F \u0432\u0441\u0456\u0445 \u0432\u0440\u044F\u0442\u0443\u0432\u0430\u0432! \u0424\u043E\u0442\u043E\u0433\u0440\u0430\u0444\u0443\u0439\u0442\u0435!"
       _clip: {fileID: 8300000, guid: 2df69b31508a2bd44ae1305018086bb5, type: 3}
+      _hold: 3
+    - _id: U04
+      _text: "\u0414\u044F\u043A\u0443\u044E, \u044F \u043D\u0435 \u043A\u0443\u0440\u044E!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: U05
+      _text: "\u042F \u0436 \u0442\u0456\u043B\u044C\u043A\u0438 \u0432\u0447\u043E\u0440\u0430 \u043C\u0438\u0432\u0441\u044F!"
+      _clip: {fileID: 0}
+      _hold: 3
+    - _id: U06
+      _text: "\u0410\u0439, \u043B\u043E\u0441\u043A\u0456\u0442\u043D\u043E!"
+      _clip: {fileID: 0}
       _hold: 3

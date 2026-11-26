@@ -1,5 +1,6 @@
 using Gameplay.Cinematics;
 using Gameplay.Dialogue;
+using Gameplay.Effects.Puddle;
 using Gameplay.Entities.Environment;
 using Gameplay.Entities.Interactive;
 using Gameplay.Mission.Core;
@@ -31,8 +32,11 @@ namespace Gameplay
         [SerializeField] private DialogueDirector _dialogue = new();
         [SerializeField] private NavigationGuide _navigation = new();
         [SerializeField] private FogController _fog = new();
+        [SerializeField] private GrassController _grass = new();
         [SerializeField] private MissionStats _stats = new();
         [SerializeField] private FacadeFirefight _facade = new();
+        [SerializeField] private ResidentComplaints _complaints = new();
+        [SerializeField] private PuddleControl[] _puddles;
 
         [Header("Mission")]
         [SerializeField] private MissionFlow _mission = new();
@@ -41,12 +45,15 @@ namespace Gameplay
 
         [Header("Cinematics")]
         [SerializeField] private MissionCinematics _cinematics = new();
+        [SerializeField] private float _facadeLinePause = 0.6f;
 
         private GameplayScreen _screen;
         private IPopupsManager _popups;
         private EvacuationController _evacuation;
         private RadioController _radio;
         private Camera _camera;
+        private bool _isFacadeLinePending;
+        private float _sinceVoice;
         private ResultsPopup _resultsPopup;
 
         public void Initialize(UIManager uiManager)
@@ -58,14 +65,16 @@ namespace Gameplay
 
             _stats.Init(_screen, _texts);
             _fog.Init();
+            _grass.Init();
             _fireHeat.Init(_player.Head);
             _dialogue.Init(_screen, _player, _playerBody, AudioService.Instance);
             _navigation.Init(_player.Head, _camera, _screen.NavMarker, _texts);
             _cinematics.Initialize(uiManager, _screen, _player, _camera, AudioService.Instance);
-            _facade.Init(_screen, _texts, _cinematics.HouseFires);
+            _facade.Init(_screen, _texts, _cinematics.HouseFires, _navigation);
 
-            _evacuation = new EvacuationController(_player, _evacuationWindows, _rescueTotal, _cinematics.Throw, _cinematics.Present, _screen, _texts);
+            _evacuation = new EvacuationController(_player, _evacuationWindows, _rescueTotal, _cinematics.Throw, _cinematics.Present, _screen, _texts, _dialogue.Library);
             _evacuation.Init();
+            _complaints.Init(_screen, _texts, _dialogue.Library);
 
             var puzzles = new PuzzlePresenter(_player, _screen, _popups);
             _mission.Initialize(new MissionContext(_screen, _player, _dialogue, _navigation, _evacuation, puzzles, _texts));
@@ -81,6 +90,7 @@ namespace Gameplay
             _cinematics.FinaleJumpFinished += HandleFinaleJumpFinished;
             _facade.Completed += HandleFacadeCompleted;
             _cinematics.FinaleFinished += HandleFinaleFinished;
+            _player.Hose.WaterLanded += HandleWaterLanded;
 
             if (!_cinematics.TryPresentIntro())
             {
@@ -96,7 +106,25 @@ namespace Gameplay
             _stats.Tick(deltaTime);
             _facade.Tick(deltaTime);
             _fog.Tick(_camera.transform.position, deltaTime);
+            _grass.Tick(_camera.transform.position, _player.transform.position);
             _radio.Tick();
+            TickFacadeLine(deltaTime);
+        }
+
+        // The partner is still finishing his line from the jump when the cutscene ends, so the next one waits for it.
+        private void TickFacadeLine(float deltaTime)
+        {
+            if (!_isFacadeLinePending)
+            {
+                return;
+            }
+
+            _sinceVoice = AudioService.Instance.IsVoicePlaying ? 0f : _sinceVoice + deltaTime;
+            if (_sinceVoice >= _facadeLinePause)
+            {
+                _isFacadeLinePending = false;
+                _screen.Say(_dialogue.Library.Get(DialogIds.PartnerPutOutFire));
+            }
         }
 
         public void LateTick() => _dialogue.LateTick();
@@ -111,11 +139,13 @@ namespace Gameplay
             _cinematics.FinaleJumpFinished -= HandleFinaleJumpFinished;
             _facade.Completed -= HandleFacadeCompleted;
             _cinematics.FinaleFinished -= HandleFinaleFinished;
+            _player.Hose.WaterLanded -= HandleWaterLanded;
 
             _navigation.Dispose();
             _screen.Dispose();
             _mission.Dispose();
             _evacuation.Dispose();
+            _complaints.Dispose();
             _stats.Dispose();
             _facade.Dispose();
             _fog.Dispose();
@@ -126,6 +156,16 @@ namespace Gameplay
         {
             _screen.SetCrosshairVisible(true);
             _facade.Begin();
+            _isFacadeLinePending = true;
+            _sinceVoice = 0f;
+        }
+
+        private void HandleWaterLanded(Vector3 point, float litres)
+        {
+            foreach (PuddleControl puddle in _puddles)
+            {
+                puddle.Pour(point, litres);
+            }
         }
 
         private void HandleFacadeCompleted()

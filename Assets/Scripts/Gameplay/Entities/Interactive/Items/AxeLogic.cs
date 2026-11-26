@@ -82,8 +82,6 @@ namespace Gameplay.Entities.Interactive.Items
             _recoverTimer = _recoverDelay;
         }
 
-        public bool IsAimingAtProtected => TryCast(_aim.forward, out RaycastHit hit) && _library.Get(_library.Resolve(hit.collider)).BlocksDamage;
-
         public void Strike(bool isAlternate)
         {
             if (!TrySweep(isAlternate, out RaycastHit hit))
@@ -103,6 +101,10 @@ namespace Gameplay.Entities.Interactive.Items
                 ChopTargets(hit, direction);
                 Push(hit, direction, impact.PushForce);
                 PlaceMarks(impact, hit, direction);
+            }
+            else
+            {
+                Push(hit, direction, 0f);
             }
 
             Struck?.Invoke(hit, impact);
@@ -166,14 +168,8 @@ namespace Gameplay.Entities.Interactive.Items
             }
         }
 
-        private static void Push(RaycastHit hit, Vector3 direction, float force)
-        {
-            Rigidbody body = hit.rigidbody;
-            if (body != null && !body.isKinematic)
-            {
-                body.AddForceAtPosition(direction * force, hit.point, ForceMode.Impulse);
-            }
-        }
+        private static void Push(RaycastHit hit, Vector3 direction, float force) =>
+            ToolImpact.Apply(hit.collider, new ToolHit(ToolHitKind.Axe, hit.point, direction, force));
 
         private static void SpawnEffect(AxeImpactLibrary.Impact impact, RaycastHit hit, Vector3 direction)
         {

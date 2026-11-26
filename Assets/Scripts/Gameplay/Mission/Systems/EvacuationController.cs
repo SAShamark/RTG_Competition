@@ -4,6 +4,7 @@ using Gameplay.Entities.Interactive;
 using System;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Characters.Residents;
+using Services.Audio;
 using UI.Screens.Variants.Gameplay;
 
 namespace Gameplay.Mission.Systems
@@ -16,11 +17,16 @@ namespace Gameplay.Mission.Systems
         private readonly Action<ICinematic> _present;
         private readonly GameplayScreen _screen;
         private readonly TextLibrary _texts;
+        private readonly DialogLibrary _dialogs;
         private readonly int _rescueTotal;
 
+        private Rescuable _carried;
+
         public EvacuationController(FirstPersonController player, EvacuationWindow[] windows, int rescueTotal,
-            EvacuationThrowCutscene cutscene, Action<ICinematic> present, GameplayScreen screen, TextLibrary texts)
+            EvacuationThrowCutscene cutscene, Action<ICinematic> present, GameplayScreen screen, TextLibrary texts,
+            DialogLibrary dialogs)
         {
+            _dialogs = dialogs;
             _player = player;
             _windows = windows;
             _rescueTotal = rescueTotal;
@@ -44,6 +50,7 @@ namespace Gameplay.Mission.Systems
             }
 
             _cutscene.Finished += HandleThrowFinished;
+            _player.Carry.CarryChanged += HandleCarryChanged;
         }
 
         public void Dispose()
@@ -54,6 +61,31 @@ namespace Gameplay.Mission.Systems
             }
 
             _cutscene.Finished -= HandleThrowFinished;
+            _player.Carry.CarryChanged -= HandleCarryChanged;
+            HandleCarryChanged(null);
+        }
+
+        private void HandleCarryChanged(Rescuable resident)
+        {
+            if (_carried != null)
+            {
+                _carried.HeadBumped -= HandleHeadBumped;
+            }
+
+            _carried = resident;
+            if (_carried != null)
+            {
+                _carried.HeadBumped += HandleHeadBumped;
+            }
+        }
+
+        private void HandleHeadBumped(Rescuable resident)
+        {
+            AudioService.Instance.PlayAt(SoundType.PropImpact, resident.HeadCenter);
+            if (!_screen.IsDialogBusy && !string.IsNullOrEmpty(resident.BumpLineId))
+            {
+                _screen.Say(_dialogs.Get(resident.BumpLineId), resident.Head);
+            }
         }
 
         private void HandleThrowRequested(EvacuationWindow window)

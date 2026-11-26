@@ -16,7 +16,7 @@ namespace Gameplay.Entities.Interactive
         [Header("Settle")]
         [SerializeField] private float _tinkleSpeed = 1.2f;
         [SerializeField] private float _tinkleInterval = 0.06f;
-        [SerializeField] private Vector2 _tinklePitch = new(1.7f, 2.3f);
+        [SerializeField] private SoundType _tinkleSound = SoundType.GlassTinkle;
         [SerializeField] private float _shrinkDuration = 0.5f;
         [SerializeField] private float _collisionDelay = 0.12f;
 
@@ -87,7 +87,7 @@ namespace Gameplay.Entities.Interactive
 
             _hasTinkled = true;
             _lastTinkleTime = Time.time;
-            AudioService.Instance.PlayAt(SoundType.AxeHitGlass, transform.position, Random.Range(_tinklePitch.x, _tinklePitch.y));
+            AudioService.Instance.PlayAt(_tinkleSound, transform.position);
         }
     }
 }

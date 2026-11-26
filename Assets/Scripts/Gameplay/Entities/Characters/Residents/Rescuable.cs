@@ -28,6 +28,8 @@ namespace Gameplay.Entities.Characters.Residents
         [SerializeField] private Vector3 _carryUp = new(-1f, 0.55f, 0.1f);
         [SerializeField] private Vector3 _carryForward = new(0.35f, 1f, -0.45f);
         [SerializeField] private float _liftTime = 0.45f;
+        [SerializeField] private HeadBumpLogic _headBump = new();
+        [SerializeField] private string _bumpLineId;
 
         [Header("Flight")]
         [SerializeField] private string _flyLineId;
@@ -41,16 +43,27 @@ namespace Gameplay.Entities.Characters.Residents
         [SerializeField] private float _liftHop = 0.15f;
         [SerializeField] private float _faceSharpness = 5f;
 
+        [Header("Conversation")]
+        [SerializeField] private float _lookLimit = 55f;
+        [SerializeField] private float _lookSharpness = 6f;
+        [SerializeField] private float _lookRelease = 0.3f;
+
         private RescueState _state;
         private bool _canBeCarried = true;
         private Transform _socket;
         private float _lift = 1f;
         private Vector3 _liftFromPosition;
         private Quaternion _liftFromRotation;
+        private Vector3 _headForward;
+        private Vector3 _lookPoint;
+        private float _sinceLooked = float.MaxValue;
+        private Quaternion _lookTurn = Quaternion.identity;
 
         public RescueState State => _state;
         public string DisplayName => _displayName;
         public string FlyLineId => _flyLineId;
+        public string BumpLineId => _bumpLineId;
+        public Vector3 HeadCenter => _headBump.HeadCenter;
         public Sprite Icon => _icon;
         public Vector3 FlightEuler => _flightEuler;
         public float BodyCenterHeight => _bodyCenterHeight;
@@ -63,10 +76,13 @@ namespace Gameplay.Entities.Characters.Residents
         public event Action<Rescuable> Refused;
         public event Action<Rescuable> PickedUp;
         public event Action<Rescuable> Rescued;
+        public event Action<Rescuable> HeadBumped;
 
         private void Awake()
         {
             _pose.Init(_animator);
+            _headBump.Init(_animator);
+            _headForward = Head.InverseTransformDirection(transform.forward);
         }
 
         private void OnDestroy()
@@ -107,6 +123,9 @@ namespace Gameplay.Entities.Characters.Residents
                 return;
             }
 
+            _lookPoint = point;
+            _sinceLooked = 0f;
+
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(planar), Easing.Damp(_faceSharpness, deltaTime));
         }
 
@@ -125,12 +144,14 @@ namespace Gameplay.Entities.Characters.Residents
             _lift = 0f;
             transform.SetParent(socket, true);
             _pose.SetMode(ResidentPose.Carried);
+            _headBump.Begin(((Component)socket.GetComponentInParent<IRescueCarrier>()).transform);
             PickedUp?.Invoke(this);
         }
 
         public void PlaceAt(Vector3 position, Quaternion rotation)
         {
             _socket = null;
+            _headBump.End();
             transform.SetParent(null, true);
             transform.SetPositionAndRotation(position, rotation);
             SetCollidersEnabled(true);
@@ -141,6 +162,7 @@ namespace Gameplay.Entities.Characters.Residents
         public void Launch()
         {
             _socket = null;
+            _headBump.End();
             transform.SetParent(null, true);
             SetCollidersEnabled(false);
             _pose.SetMode(ResidentPose.Flailing);
@@ -163,10 +185,26 @@ namespace Gameplay.Entities.Characters.Residents
         private void LateUpdate()
         {
             _pose.Tick(Time.deltaTime);
+            TurnHead(Time.deltaTime);
             if (_state == RescueState.Carried)
             {
                 PlaceInArms();
             }
+        }
+
+        private void TurnHead(float deltaTime)
+        {
+            _sinceLooked += deltaTime;
+            Transform head = Head;
+            Quaternion target = Quaternion.identity;
+            if (_sinceLooked <= _lookRelease)
+            {
+                Quaternion full = Quaternion.FromToRotation(head.TransformDirection(_headForward), _lookPoint - head.position);
+                target = Quaternion.RotateTowards(Quaternion.identity, full, _lookLimit);
+            }
+
+            _lookTurn = Quaternion.Slerp(_lookTurn, target, Easing.Damp(_lookSharpness, deltaTime));
+            head.rotation = _lookTurn * head.rotation;
         }
 
         private void PlaceInArms()
@@ -189,6 +227,10 @@ namespace Gameplay.Entities.Characters.Residents
             }
 
             transform.position = targetPosition;
+            if (_headBump.Tick(Time.deltaTime))
+            {
+                HeadBumped?.Invoke(this);
+            }
         }
 
         private void SetCollidersEnabled(bool isEnabled)

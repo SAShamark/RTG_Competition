@@ -21,6 +21,7 @@ namespace Gameplay.Cinematics
         [SerializeField] private PosedActor _stunt;
         [SerializeField] private EvacuationWindow _window;
         [SerializeField] private GameObject _firefighters;
+        [SerializeField] private GameObject[] _firefighterGear;
         [SerializeField] private FireSource[] _houseFires;
         [SerializeField] private CinematicSettings _jumpSettings = new(0.4f, 0.4f);
         [SerializeField] private CinematicSettings _settings = new(0.4f, 0f, titleLine: "Пожежу загашено", titleSubLine: "вул. Липова, 12 · усі на вулиці", titleTime: 0.3f, titleDuration: 3.8f);
@@ -348,6 +349,12 @@ namespace Gameplay.Cinematics
 
             _uncleScene.Finish();
             CaptureFrame();
+            _uncleScene.StandIdle();
+            foreach (GameObject gear in _firefighterGear)
+            {
+                gear.SetActive(false);
+            }
+
             foreach (FireSource fire in _houseFires)
             {
                 fire.SetReignite(false);

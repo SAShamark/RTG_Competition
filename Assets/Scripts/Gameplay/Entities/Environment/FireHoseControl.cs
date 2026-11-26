@@ -1,6 +1,7 @@
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
 using Services;
+using Services.Audio;
 using UnityEngine;
 
 namespace Gameplay.Entities.Environment
@@ -42,9 +43,17 @@ namespace Gameplay.Entities.Environment
         [Header("Pulling a dropped hose back")]
         [SerializeField] private float _retractDelay = 1f;
         [SerializeField] private float _retractSpeed = 5f;
-        [SerializeField] private float _parkLength = 3f;
+        [SerializeField] private float _parkLength = 0.8f;
         [SerializeField] private float _dragTurnSharpness = 8f;
         [SerializeField] private Vector3 _dragEuler = new(0f, -90f, 0f);
+
+        [Header("Sound")]
+        [SerializeField] private SoundType _chargeSound = SoundType.HoseCharge;
+        [SerializeField] private SoundType _dragSound = SoundType.HoseDrag;
+        [SerializeField] private float _dragMinSpeed = 0.2f;
+        [SerializeField] private float _dragFullSpeed = 3f;
+        [SerializeField] private float _dragFade = 5f;
+        [SerializeField] private float _dragSmoothing = 5f;
 
         [Header("Hose")]
         [SerializeField, Range(0f, 1f)] private float _endBackShare = 0.35f;
@@ -55,14 +64,40 @@ namespace Gameplay.Entities.Environment
         private Rigidbody _nozzleBody;
         private float _sinceDropped;
         private bool _isRetracting;
+        private bool _isParked;
         private Vector3 _end;
         private float _chargedLength;
         private float _supply;
         private bool _isHoseOut;
+        private bool _isCharging;
+        private ISoundLoop _drag = SilentLoop.Instance;
+        private bool _isDragging;
+        private float _dragVolume;
+        private float _dragSpeed;
+        private float _lastLength;
         private MaterialPropertyBlock _lampBlock;
+        private bool _isLocked;
 
         public bool IsConnected => _port.IsConnected;
         public float Supply => _supply;
+
+        public HoseStep Step => !_isHoseOut ? HoseStep.TakeHose
+            : !_port.IsConnected ? HoseStep.Connect
+            : _valve.Turns == 0 ? HoseStep.OpenValve
+            : HoseStep.Ready;
+
+        public Transform StepPoint => Step switch
+        {
+            HoseStep.TakeHose => _lockerDoor.transform,
+            HoseStep.Connect => _port.transform,
+            _ => _valve.transform,
+        };
+
+        public void SetLocked(bool isLocked)
+        {
+            _isLocked = isLocked;
+            RefreshNozzleGrip();
+        }
 
         // The hose drops away below the nozzle rather than straight back, so it never loops up into a first-person view.
         private Vector3 EndDirection => (Vector3.down - _nozzle.transform.right * _endBackShare).normalized;
@@ -106,9 +141,10 @@ namespace Gameplay.Entities.Environment
             _end = _isRetracting
                 ? _nozzle.HoseSocket.position
                 : Vector3.Lerp(_end, _nozzle.HoseSocket.position, Easing.Damp(_endSmoothing, deltaTime));
-            _rope.Tick(_outlet.position, _end, isHeld ? EndDirection : Vector3.zero, _isRetracting ? _retractSpeed : _reelInSpeed, isHeld ? _heldSlack : _droppedSlack, deltaTime);
+            _rope.Tick(_outlet.position, _end, isHeld ? EndDirection : Vector3.zero, _reelInSpeed, isHeld ? _heldSlack : _droppedSlack, _isRetracting, deltaTime);
             _nozzle.SetTetherPull(_rope.PullDirection, isHeld ? _rope.Tension : 0f);
             TickPressure(deltaTime);
+            TickDragSound(deltaTime);
         }
 
         private void LateUpdate()
@@ -124,13 +160,21 @@ namespace Gameplay.Entities.Environment
         private void TickRetract(bool isHeld, float deltaTime)
         {
             _sinceDropped = isHeld ? 0f : _sinceDropped + deltaTime;
-            bool isRetracting = !isHeld && _sinceDropped >= _retractDelay && _rope.Length > _parkLength;
+            // Once hauled in, the hose stays parked until it is picked up again: the nozzle settling on the ground
+            // pays a little hose back out, and that must not start another haul.
+            _isParked = !isHeld && (_isParked || _rope.Length <= _parkLength || !_rope.CanHaul);
+            bool isRetracting = !isHeld && !_isParked && _sinceDropped >= _retractDelay;
             if (isRetracting != _isRetracting)
             {
                 _isRetracting = isRetracting;
                 if (!isHeld)
                 {
                     _nozzleBody.isKinematic = isRetracting;
+                }
+
+                if (!isHeld && !isRetracting)
+                {
+                    ReleaseBody();
                 }
             }
 
@@ -141,7 +185,7 @@ namespace Gameplay.Entities.Environment
 
             Transform nozzle = _nozzle.transform;
             Vector3 socket = _nozzle.HoseSocket.position;
-            Vector3 target = _rope.PointAlong(_retractSpeed * deltaTime);
+            Vector3 target = _rope.Haul(_retractSpeed * deltaTime);
             Vector3 heading = Vector3.ProjectOnPlane(socket - target, Vector3.up);
             if (heading.sqrMagnitude > 0f)
             {
@@ -152,12 +196,30 @@ namespace Gameplay.Entities.Environment
             nozzle.position += target - _nozzle.HoseSocket.position;
         }
 
+        // The nozzle was carried along by its transform, and physics still holds it where the haul began:
+        // the body is told where it really is before it wakes, or it would jump back there.
+        private void ReleaseBody()
+        {
+            Transform nozzle = _nozzle.transform;
+            _nozzleBody.position = nozzle.position;
+            _nozzleBody.rotation = nozzle.rotation;
+            _nozzleBody.linearVelocity = Vector3.zero;
+            _nozzleBody.angularVelocity = Vector3.zero;
+        }
+
         // Water takes time to run down the hose: the charged front travels from the truck, and only then the nozzle gets pressure.
         private void TickPressure(float deltaTime)
         {
             float opening = Mathf.Clamp01(_valve.Turns / (float)_valve.TargetTurns);
             float length = _rope.Length;
-            _chargedLength = opening > 0f
+            bool isCharging = opening > 0f;
+            if (isCharging && !_isCharging)
+            {
+                AudioService.Instance.PlayAt(_chargeSound, _outlet.position);
+            }
+
+            _isCharging = isCharging;
+            _chargedLength = isCharging
                 ? Mathf.Min(length, _chargedLength + _chargeSpeed * deltaTime)
                 : Mathf.Max(0f, _chargedLength - _drainSpeed * deltaTime);
 
@@ -166,10 +228,43 @@ namespace Gameplay.Entities.Environment
             _nozzle.SetSupply(_supply);
         }
 
+        // The hose scrapes the ground only while its paid-out length changes: pulled further out or hauled back in.
+        private void TickDragSound(float deltaTime)
+        {
+            if (deltaTime <= 0f)
+            {
+                return;
+            }
+
+            float length = _rope.Length;
+            // The rope pays out a whole segment at a time, so the raw speed arrives in spikes and is averaged first.
+            _dragSpeed = Mathf.Lerp(_dragSpeed, Mathf.Abs(length - _lastLength) / deltaTime, Easing.Damp(_dragSmoothing, deltaTime));
+            _lastLength = length;
+            float target = _dragSpeed >= _dragMinSpeed ? Mathf.Clamp01(_dragSpeed / _dragFullSpeed) : 0f;
+            _dragVolume = Mathf.MoveTowards(_dragVolume, target, _dragFade * deltaTime);
+            bool isDragging = _dragVolume > 0f;
+            if (isDragging != _isDragging)
+            {
+                _isDragging = isDragging;
+                if (isDragging)
+                {
+                    _drag = AudioService.Instance.PlayLoop(_dragSound, _nozzle.HoseSocket);
+                }
+                else
+                {
+                    _drag.Stop();
+                    _drag = SilentLoop.Instance;
+                }
+            }
+
+            _drag.SetVolume(_dragVolume);
+        }
+
         private void HandleConnected()
         {
             _end = _nozzle.HoseSocket.position;
             _rope.Lay(_outlet.position, _end);
+            _lastLength = _rope.Length;
             _view.Snap();
             _view.SetVisible(true);
         }
@@ -179,7 +274,7 @@ namespace Gameplay.Entities.Environment
         {
             bool isValveOpen = _valve.Turns > 0;
             float blink = 0.5f + 0.5f * Mathf.Sin(Time.time * _blinkFrequency * Mathf.PI * 2f);
-            SetLamp(_lockerLamp, _isHoseOut, true, blink);
+            SetLamp(_lockerLamp, _isHoseOut, !_isLocked, blink);
             SetLamp(_portLamp, _port.IsConnected, _isHoseOut, blink);
             SetLamp(_valveLamp, isValveOpen, _port.IsConnected, blink);
         }
@@ -201,8 +296,10 @@ namespace Gameplay.Entities.Environment
         private void HandleLockerOpened(Hatch door)
         {
             _lockerDoor.Opened -= HandleLockerOpened;
-            _nozzleGrip.enabled = true;
             _lockerDoorGrip.enabled = false;
+            RefreshNozzleGrip();
         }
+
+        private void RefreshNozzleGrip() => _nozzleGrip.enabled = _lockerDoor.IsOpen && !_isLocked;
     }
 }

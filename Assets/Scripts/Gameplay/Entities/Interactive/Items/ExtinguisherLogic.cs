@@ -11,10 +11,13 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _coneAngle = 28f;
         [SerializeField] private float _power = 1.4f;
         [SerializeField] private LayerMask _obstacleMask = ~0;
-        [SerializeField] private float _aimRangeFactor = 0.7f;
+        [SerializeField] private float _aimDistance = 12f;
         [SerializeField] private float _minAimDistance = 1.2f;
         [SerializeField] private float _farPowerFactor = 0.4f;
         [SerializeField] private float _hitSlack = 0.9f;
+
+        [Header("Push")]
+        [SerializeField, Min(0f)] private float _pushForce = 8f;
 
         [Header("Pressure")]
         [SerializeField] private float _capacity = 6f;
@@ -58,8 +61,9 @@ namespace Gameplay.Entities.Interactive.Items
             RaycastHit impact = default;
             if (_current != null)
             {
-                hasImpact = CastIgnoringOwner(_aim.position, _aim.forward, _range, out impact);
-                float aimDistance = hasImpact ? Mathf.Max(impact.distance, _minAimDistance) : _range * _aimRangeFactor;
+                bool hasAim = CastIgnoringOwner(_aim.position, _aim.forward, _aimDistance, out impact);
+                hasImpact = hasAim && impact.distance <= _range;
+                float aimDistance = hasAim ? Mathf.Max(impact.distance, _minAimDistance) : _aimDistance;
                 _current.AimAt(_aim.position + _aim.forward * aimDistance, deltaTime);
             }
 
@@ -88,9 +92,16 @@ namespace Gameplay.Entities.Interactive.Items
             _isEmpty = Pressure <= 0f;
             _current.SetImpact(hasImpact, impact.point, impact.normal, impact.collider, _obstacleMask);
             _current.SetPressure(Pressure);
+            if (hasImpact)
+            {
+                float force = _pushForce * Mathf.Lerp(1f, _farPowerFactor, impact.distance / _range) * Mathf.Lerp(_emptyPowerFactor, 1f, Pressure);
+                ToolImpact.Apply(impact.collider, new ToolHit(ToolHitKind.Powder, impact.point, _aim.forward, force * deltaTime));
+            }
 
             HitFires(deltaTime);
         }
+
+        public void LateTick(float deltaTime) => _current?.LateTick(deltaTime);
 
         private void HitFires(float deltaTime)
         {

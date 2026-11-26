@@ -87,7 +87,7 @@ MonoBehaviour:
   - _surface: 5
     _sound: 39
     _pitch: 0.8
-    _effect: {fileID: 0}
+    _effect: {fileID: 141433446842962269, guid: f1efdafde9fdf5d4a8511a71bb29278c, type: 3}
     _effectLifetime: 2
     _mark: {fileID: 0}
     _edgeMark: {fileID: 0}

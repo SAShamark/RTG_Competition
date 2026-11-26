@@ -12,6 +12,7 @@ namespace Gameplay.Dialogue
         public const string PartnerGrandmaReceived = "P08";
         public const string PartnerNeighborReceived = "P09";
         public const string PartnerSuperhero = "P10";
+        public const string PartnerPutOutFire = "P11";
 
         public const string PlayerEvacuateGrandma = "M01";
         public const string PlayerWhichDocuments = "M02";
@@ -30,12 +31,16 @@ namespace Gameplay.Dialogue
         public const string GrandmaInsists = "G07";
         public const string GrandmaLookAtPaintings = "G08";
         public const string GrandmaOpenSafe = "G09";
+        public const string GrandmaFlying = "G10";
+        public const string GrandmaHeadBump = "G11";
 
         public const string NeighborScream = "N01";
         public const string NeighborTrapped = "N02";
         public const string NeighborValvesInPantry = "N03";
         public const string NeighborGasClosed = "N04";
         public const string NeighborIsItFree = "N05";
+        public const string NeighborFlying = "N06";
+        public const string NeighborHeadBump = "N07";
 
         public const string UncleMakeWay = "U01";
         public const string UncleProfessional = "U02";

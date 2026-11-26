@@ -7137,7 +7137,7 @@ TextMesh:
   m_FontSize: 80
   m_FontStyle: 1
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4292933631
@@ -74685,7 +74685,7 @@ TextMesh:
   m_FontSize: 80
   m_FontStyle: 1
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4292933631
@@ -97046,7 +97046,7 @@ TextMesh:
   m_FontSize: 80
   m_FontStyle: 1
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4292933631
@@ -109152,7 +109152,7 @@ TextMesh:
   m_FontSize: 80
   m_FontStyle: 1
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4292933631
@@ -156889,7 +156889,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -200543,7 +200543,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -242690,7 +242690,7 @@ TextMesh:
   m_FontSize: 80
   m_FontStyle: 1
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4292933631
@@ -255373,7 +255373,7 @@ TextMesh:
   m_FontSize: 80
   m_FontStyle: 1
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4292933631
@@ -282033,7 +282033,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -342849,6 +342849,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &9076562430568274502 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -343259,6 +343261,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &2603146096976762452
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -343354,6 +343358,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &2805459366785428379
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -343816,6 +343822,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &3191602414549344139 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -344097,6 +344105,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &1867583919510174459 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -344197,6 +344207,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &8766928810968512725
 PrefabInstance:
   m_ObjectHideFlags: 0

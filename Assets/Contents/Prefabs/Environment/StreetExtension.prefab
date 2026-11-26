@@ -353722,7 +353722,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -555223,7 +555223,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -577213,7 +577213,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -622876,7 +622876,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -951003,7 +951003,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -1092878,7 +1092878,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -1174441,7 +1174441,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -1185692,7 +1185692,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -1286433,7 +1286433,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -1311005,7 +1311005,7 @@ TextMesh:
   m_FontSize: 64
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4280688415
@@ -1435830,6 +1435830,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &441860038438891620
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1435925,6 +1435927,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &487428666823574051
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1436151,6 +1436155,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &9222722806333205926 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1436685,6 +1436691,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &1458835801696429891
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1436780,6 +1436788,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &1460097377921098914
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1437242,6 +1437252,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &7883632289769625387 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1437337,6 +1437349,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &7537486959933497929 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1438052,6 +1438066,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &6645549303466837295 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1438419,6 +1438435,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &6566251732701801160 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1438650,6 +1438668,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &6395183743885823714 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1439525,6 +1439545,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &5736795145299743749 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1440505,6 +1440527,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &6261556270202419227
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1440793,6 +1440817,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &3177477718948391549 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1441277,6 +1441303,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &7683651683848730701
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1441367,6 +1441395,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &2026435617389984204 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1441586,6 +1441616,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &1742387934384370876 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1441805,6 +1441837,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &1823127998430202091 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1442029,6 +1442063,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!1001 &8243991776107592056
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1442677,6 +1442713,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &960923278315277321 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}
@@ -1442958,6 +1442996,8 @@ MonoBehaviour:
   _rattleAngle: 2.5
   _rattleDuration: 0.35
   _rattleShakes: 6
+  _isChopOnly: 0
+  _chopHint: "[\u041B\u041A\u041C] \u0420\u0443\u0431\u0430\u0439 \u0441\u043E\u043A\u0438\u0440\u043E\u044E"
 --- !u!4 &603284672646349502 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8556425919505891713, guid: bca7e59cca7cc0648887b9fdff7f0125, type: 3}

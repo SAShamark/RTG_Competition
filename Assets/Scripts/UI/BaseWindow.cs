@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Services;
 using UI.Managers.Components;
@@ -16,13 +17,16 @@ namespace UI
         protected async Task HideAnimation(string clipName)
         {
             _animator.SetBool(IsEnable, false);
-            int clipTime = Mathf.FloorToInt(ClipDataProvider.ClipDuration(_animator, clipName) *
-                                            ValueConstants.MILLISECONDS_IN_SECOND);
+            float endTime = Time.unscaledTime + ClipDataProvider.ClipDuration(_animator, clipName);
             try
             {
-                await Task.Delay(clipTime);
+                // Task.Delay never completes in a single-threaded web build, so the wait is counted in frames
+                while (Time.unscaledTime < endTime)
+                {
+                    await Awaitable.NextFrameAsync(destroyCancellationToken);
+                }
             }
-            catch (TaskCanceledException exception)
+            catch (OperationCanceledException exception)
             {
                 Debug.Log("Popup hide exception: " + exception);
             }

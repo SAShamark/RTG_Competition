@@ -131,7 +131,7 @@ namespace Gameplay.Cinematics.IntroDrift
                 }
             }
 
-            if (!IsPlaying)
+            if (!IsPlaying || PauseController.IsPaused)
             {
                 return;
             }

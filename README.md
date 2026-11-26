@@ -4,7 +4,9 @@
 
 ## Завантажити
 
-Готовий білд для Windows — на сторінці [релізів](https://github.com/SAShamark/RTG_Competition/releases/latest). Розпакуйте архів і запустіть `.exe`.
+**[Завантажити білд для Windows (zip, 112 МБ)](https://github.com/SAShamark/RTG_Competition/releases/latest/download/Flame.and.blame.Build.zip)**
+
+Розпакуйте архів і запустіть `.exe`. Усі версії — на сторінці [релізів](https://github.com/SAShamark/RTG_Competition/releases).
 
 ## Керування
 

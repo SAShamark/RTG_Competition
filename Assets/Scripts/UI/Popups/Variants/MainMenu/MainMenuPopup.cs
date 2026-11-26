@@ -1,5 +1,6 @@
 using System;
 using Services;
+using UI.Managers;
 using UI.Popups.Variants.MainMenu.Widgets;
 using UI.Widgets;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace UI.Popups.Variants.MainMenu
     {
         [Header("Buttons")]
         [SerializeField] private MenuButton _newGame;
+        [SerializeField] private MenuButton _settings;
         [SerializeField] private MenuButton _exit;
 
         [Header("Backdrop")]
@@ -50,9 +52,10 @@ namespace UI.Popups.Variants.MainMenu
             }
 
             ApplyIntro();
-            _newGame.SetPrimary(true);
 
             _newGame.Clicked += HandleNewGame;
+            _settings.Clicked += HandleSettings;
+            _settings.Hovered += HandleHovered;
             _exit.Clicked += HandleExit;
             _newGame.Hovered += HandleHovered;
             _exit.Hovered += HandleHovered;
@@ -63,6 +66,8 @@ namespace UI.Popups.Variants.MainMenu
         private void OnDestroy()
         {
             _newGame.Clicked -= HandleNewGame;
+            _settings.Clicked -= HandleSettings;
+            _settings.Hovered -= HandleHovered;
             _exit.Clicked -= HandleExit;
             _newGame.Hovered -= HandleHovered;
             _exit.Hovered -= HandleHovered;
@@ -100,6 +105,12 @@ namespace UI.Popups.Variants.MainMenu
         }
 
         private void HandleNewGame() => Leave(NewGameChosen);
+
+        private void HandleSettings()
+        {
+            PlayFlat(_clickClip, 1f);
+            UIManager.Instance.PopupsManager.ShowPopup(PopupTypes.Settings);
+        }
 
         private void Leave(Action chosen)
         {

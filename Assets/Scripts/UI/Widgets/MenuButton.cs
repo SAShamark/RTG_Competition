@@ -18,7 +18,6 @@ namespace UI.Widgets
         [SerializeField] private float _sharpness = 14f;
 
         private bool _isHovered;
-        private bool _isPrimary;
         private float _glow;
 
         public event Action Clicked;
@@ -27,8 +26,6 @@ namespace UI.Widgets
         private void Awake() => _button.onClick.AddListener(HandleClick);
 
         private void OnDestroy() => _button.onClick.RemoveListener(HandleClick);
-
-        public void SetPrimary(bool isPrimary) => _isPrimary = isPrimary;
 
         public void OnPointerEnter(PointerEventData eventData)
         {
@@ -40,7 +37,7 @@ namespace UI.Widgets
 
         private void Update()
         {
-            float target = _isHovered || _isPrimary ? 1f : 0f;
+            float target = _isHovered ? 1f : 0f;
             _glow = Mathf.Lerp(_glow, target, Easing.Damp(_sharpness, Time.unscaledDeltaTime));
 
             Color plate = _activePlate.color;

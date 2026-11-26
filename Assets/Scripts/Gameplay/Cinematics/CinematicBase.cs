@@ -107,6 +107,11 @@ namespace Gameplay.Cinematics
         {
             _director.stopped -= HandleStopped;
             IsPlaying = false;
+            if (!gameObject.scene.isLoaded)
+            {
+                return;
+            }
+
             OnStopped();
             Finished?.Invoke();
         }

@@ -1,5 +1,6 @@
 using System;
 using Services;
+using Services.Audio;
 using UnityEngine;
 
 namespace Gameplay.Cinematics.IntroDrift
@@ -48,6 +49,8 @@ namespace Gameplay.Cinematics.IntroDrift
             _siren.volume = 0f;
             _siren.Play();
             _music.clip = _musicClip;
+            _music.ignoreListenerVolume = true;
+            _music.volume = MusicVolume;
             _music.Play();
         }
 
@@ -56,7 +59,7 @@ namespace Gameplay.Cinematics.IntroDrift
             float pitch = Mathf.Lerp(1f, _slowPitch, slowness);
             _siren.pitch = pitch;
             _mech.pitch = pitch;
-            _music.volume = _musicVolume * MusicEndFade();
+            _music.volume = MusicVolume * MusicEndFade();
         }
 
         public void Screech()
@@ -77,7 +80,7 @@ namespace Gameplay.Cinematics.IntroDrift
         {
             _tail += deltaTime;
             float fadeIn = Easing.Smooth(Mathf.Clamp01(_tail / _soundsFadeIn));
-            _music.volume = _musicVolume * MusicEndFade() * (1f - Easing.Smooth(Mathf.Clamp01(_tail / _musicFadeOut)));
+            _music.volume = MusicVolume * MusicEndFade() * (1f - Easing.Smooth(Mathf.Clamp01(_tail / _musicFadeOut)));
             _siren.volume = _sirenVolume * fadeIn * Mathf.Clamp01((_sirenTail - _tail) / _fadeOut);
             if (_tail >= Mathf.Max(_sirenTail, _musicFadeOut))
             {
@@ -100,6 +103,8 @@ namespace Gameplay.Cinematics.IntroDrift
             _siren.spatialBlend = _sirenSpatial;
             _music.volume = _musicVolume;
         }
+
+        private float MusicVolume => _musicVolume * AudioService.Instance.MusicLevel;
 
         private float MusicEndFade() => Easing.Smooth(Mathf.Clamp01((_musicClip.length - _music.time) / _musicEndFade));
     }

@@ -1,4 +1,5 @@
 using System;
+using UI.Managers;
 using UI.Widgets;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ namespace UI.Popups.Variants.Pause
 
         [SerializeField] private MenuButton _continue;
         [SerializeField] private MenuButton _restart;
+        [SerializeField] private MenuButton _settings;
         [SerializeField] private MenuButton _mainMenu;
 
         [Header("Loading Curtain")]
@@ -38,11 +40,12 @@ namespace UI.Popups.Variants.Pause
         private void Awake()
         {
             _audio.ignoreListenerPause = true;
-            _continue.SetPrimary(true);
             _curtain.alpha = 0f;
 
             _continue.Clicked += HandleContinue;
             _restart.Clicked += HandleRestart;
+            _settings.Clicked += HandleSettings;
+            _settings.Hovered += HandleHovered;
             _mainMenu.Clicked += HandleMainMenu;
             _continue.Hovered += HandleHovered;
             _restart.Hovered += HandleHovered;
@@ -53,6 +56,8 @@ namespace UI.Popups.Variants.Pause
         {
             _continue.Clicked -= HandleContinue;
             _restart.Clicked -= HandleRestart;
+            _settings.Clicked -= HandleSettings;
+            _settings.Hovered -= HandleHovered;
             _mainMenu.Clicked -= HandleMainMenu;
             _continue.Hovered -= HandleHovered;
             _restart.Hovered -= HandleHovered;
@@ -90,6 +95,17 @@ namespace UI.Popups.Variants.Pause
 
             _audio.PlayOneShot(_clickClip);
             Continued?.Invoke();
+        }
+
+        private void HandleSettings()
+        {
+            if (_isLoading)
+            {
+                return;
+            }
+
+            _audio.PlayOneShot(_clickClip);
+            UIManager.Instance.PopupsManager.ShowPopup(PopupTypes.Settings);
         }
 
         private void HandleRestart() => Leave(() => RestartChosen?.Invoke());

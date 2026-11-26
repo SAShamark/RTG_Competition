@@ -74,7 +74,11 @@ namespace Gameplay.Mission.Floor3
             bool tooFar = Math.Abs(turns) > Math.Abs(target);
             if (wrongWay || tooFar)
             {
-                valve.ResetTurns();
+                foreach (PipeValve other in _valves)
+                {
+                    other.Rewind();
+                }
+
                 AudioService.Instance.PlayAt(SoundType.ValveRoomBurst, valve.transform.position);
 
                 _screen.ShowToast(_texts[TextId.ToastValveWrongWay]);
@@ -91,6 +95,11 @@ namespace Gameplay.Mission.Floor3
             }
 
             IsSolved = true;
+            foreach (PipeValve other in _valves)
+            {
+                other.Lock();
+            }
+
             _screen.ShowToast(_texts[TextId.ToastGasClosed]);
             Solved?.Invoke();
         }

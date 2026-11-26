@@ -19,10 +19,11 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private Transform _spinner;
         [SerializeField] private Vector3 _spinAxis = Vector3.right;
         [SerializeField] private float _turnTime = 0.7f;
+        [SerializeField] private float _rewindTime = 1.5f;
 
         private Func<bool> _takeWheel;
         private MotionHandle _turn = MotionHandle.Idle;
-        private int _direction;
+        private int _spinTurns;
         private Quaternion _spinRest;
 
         public PipeKind Kind => _kind;
@@ -30,15 +31,34 @@ namespace Gameplay.Entities.Interactive
         public int Turns { get; private set; }
         public bool HasWheel => _hasWheel;
         public bool IsTurning => _turn.IsPlaying;
-        public override bool CanInteract => !IsTurning;
+        public bool IsRewinding { get; private set; }
+        public bool IsLocked { get; private set; }
+        public override bool CanInteract => !IsTurning && !IsLocked;
         public override HandGesture Gesture => _hasWheel ? HandGesture.Grab : HandGesture.Rattle;
 
         public event Action<PipeValve> Turned;
         public event Action<PipeValve> NoWheel;
+        public event Action<PipeValve> RewindStarted;
+        public event Action<PipeValve> Rewound;
 
         public void Setup(Func<bool> takeWheel) => _takeWheel = takeWheel;
 
-        public void ResetTurns() => Turns = 0;
+        public void Lock() => IsLocked = true;
+
+        public void Rewind()
+        {
+            _turn.Stop();
+            _spinTurns = -Turns;
+            Turns = 0;
+            IsRewinding = true;
+            _turn = MotionService.Instance.Play(_rewindTime, Spin, CompleteRewind);
+            if (_spinTurns != 0)
+            {
+                AudioService.Instance.PlayAt(SoundType.PipeValveTurn, transform.position);
+            }
+
+            RewindStarted?.Invoke(this);
+        }
 
         public override string GetHint(Transform interactor) => _hasWheel
             ? _texts[TextId.HintTurnValve]
@@ -46,7 +66,7 @@ namespace Gameplay.Entities.Interactive
 
         protected override void OnInteract(Transform interactor)
         {
-            if (IsTurning)
+            if (!CanInteract)
             {
                 return;
             }
@@ -71,7 +91,7 @@ namespace Gameplay.Entities.Interactive
 
         public void AltInteract(Transform interactor)
         {
-            if (!IsTurning && _hasWheel)
+            if (CanInteract && _hasWheel)
             {
                 Turn(-1);
             }
@@ -79,7 +99,7 @@ namespace Gameplay.Entities.Interactive
 
         private void Turn(int direction)
         {
-            _direction = direction;
+            _spinTurns = direction;
             _turn = MotionService.Instance.Play(_turnTime, Spin, CompleteTurn);
             AudioService.Instance.PlayAt(SoundType.PipeValveTurn, transform.position);
         }
@@ -93,15 +113,22 @@ namespace Gameplay.Entities.Interactive
 
         private void Spin(float progress)
         {
-            // the wheel faces the room: clockwise for the player is a negative turn around its axis
-            _spinner.localRotation = _spinRest * Quaternion.AngleAxis(-_direction * 360f * Easing.Smooth(progress), _spinAxis);
+            // the spin axis points at the player, so a positive turn around it looks clockwise
+            _spinner.localRotation = _spinRest * Quaternion.AngleAxis(_spinTurns * 360f * Easing.Smooth(progress), _spinAxis);
         }
 
         private void CompleteTurn()
         {
             _spinner.localRotation = _spinRest;
-            Turns += _direction;
+            Turns += _spinTurns;
             Turned?.Invoke(this);
+        }
+
+        private void CompleteRewind()
+        {
+            _spinner.localRotation = _spinRest;
+            IsRewinding = false;
+            Rewound?.Invoke(this);
         }
     }
 }

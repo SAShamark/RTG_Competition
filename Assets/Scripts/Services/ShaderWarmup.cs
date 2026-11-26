@@ -21,11 +21,6 @@ namespace Services
 
         public void Initialize()
         {
-            if (Application.platform != RuntimePlatform.WebGLPlayer)
-            {
-                return;
-            }
-
             _mesh = BuildQuad();
             var seen = new HashSet<string>();
             foreach (Material material in Resources.FindObjectsOfTypeAll<Material>())

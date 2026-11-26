@@ -6,6 +6,9 @@ namespace Services.Audio
     [DefaultExecutionOrder(-1000)]
     public sealed class AudioService : MonoSingleton<AudioService>
     {
+        private const string MusicLevelKey = "MusicLevel";
+        private const string SoundsLevelKey = "SoundsLevel";
+
         [SerializeField] private AudioConfig _config;
         [SerializeField] private AudioSource _voiceSource;
         [SerializeField] private AudioSource[] _oneShotSources;
@@ -27,6 +30,8 @@ namespace Services.Audio
         private float _voiceUntil;
         private Transform _listener;
 
+        public float MusicLevel { get; private set; } = 1f;
+        public float SoundsLevel { get; private set; } = 1f;
         public Vector3 ListenerPosition => _listener != null ? _listener.position : transform.position;
 
         private void Awake()
@@ -34,7 +39,11 @@ namespace Services.Audio
             InitializeSingleton(false);
             AudioListener listener = FindAnyObjectByType<AudioListener>();
             _listener = listener != null ? listener.transform : null;
+            MusicLevel = PlayerPrefs.GetFloat(MusicLevelKey, 1f);
+            SoundsLevel = PlayerPrefs.GetFloat(SoundsLevelKey, 1f);
+            AudioListener.volume = SoundsLevel;
             _music.ignoreListenerPause = true;
+            _music.ignoreListenerVolume = true;
             _music.volume = 0f;
             _streetAmbience.volume = 0f;
             _buildingAmbience.volume = 0f;
@@ -52,12 +61,25 @@ namespace Services.Audio
                 duck = Mathf.Min(duck, _voiceDuck);
             }
 
-            _music.volume = Mathf.MoveTowards(_music.volume, _musicVolume * duck, step * _musicVolume);
+            _music.volume = Mathf.MoveTowards(_music.volume, _musicVolume * duck * MusicLevel, step * _musicVolume);
             _streetAmbience.volume = Mathf.MoveTowards(_streetAmbience.volume, _isIndoors ? 0f : _ambienceVolume, step * _ambienceVolume);
             _buildingAmbience.volume = Mathf.MoveTowards(_buildingAmbience.volume, _isIndoors ? _ambienceVolume : 0f, step * _ambienceVolume);
         }
 
         public void SetDucked(bool isDucked) => _isDucked = isDucked;
+
+        public void SetMusicLevel(float level)
+        {
+            MusicLevel = Mathf.Clamp01(level);
+            PlayerPrefs.SetFloat(MusicLevelKey, MusicLevel);
+        }
+
+        public void SetSoundsLevel(float level)
+        {
+            SoundsLevel = Mathf.Clamp01(level);
+            AudioListener.volume = SoundsLevel;
+            PlayerPrefs.SetFloat(SoundsLevelKey, SoundsLevel);
+        }
 
         public void SetIndoors(bool isIndoors) => _isIndoors = isIndoors;
 

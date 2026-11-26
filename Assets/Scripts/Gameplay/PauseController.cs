@@ -64,7 +64,7 @@ namespace Gameplay
 
         public void Tick()
         {
-            if (_menu != null || !GameInput.CancelPressed)
+            if (_menu != null || !GameInput.CancelPressed || _openPopups > 0 || _lastClosedFrame == Time.frameCount)
             {
                 return;
             }
@@ -73,7 +73,7 @@ namespace Gameplay
             {
                 Resume();
             }
-            else if (_openPopups == 0 && _lastClosedFrame != Time.frameCount)
+            else
             {
                 Pause();
             }

@@ -35,3 +35,6 @@ MonoBehaviour:
   - _popupType: 8
     _template: {fileID: 5799766479657252036, guid: f28802a9a3424bd468a03849514a295f, type: 3}
     _useTotalFader: 0
+  - _popupType: 1
+    _template: {fileID: 7940176773807898519, guid: 26b7eb8788e97ff419241b7eb4d52279, type: 3}
+    _useTotalFader: 0

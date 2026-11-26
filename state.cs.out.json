@@ -1,1 +1,0 @@
-{"output":null,"diagnostics":[],"success":false,"errorCode":"INVALID_COMMAND_ARGS","error":"Bad Request","errorDetails":"Give the code to evaluate, or --file with a path to a .cs file"}

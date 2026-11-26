@@ -65,7 +65,9 @@ namespace Gameplay.Mission.Floor2
             new FindGrandmaStep(_setup, _doorPlanks, Context),
             new ReachGrandmaStep(_setup, Context),
             new GetDocumentsStep(_setup, Context),
-            new EvacuateGrandmaStep(_setup, Context),
+            new EvacuateResidentStep(_setup.Grandma, _setup.Window,
+                new EvacuationBrief(TextId.ObjectiveEvacuateGrandma, TextId.RadioEvacuateGrandma, DialogIds.PlayerHoldOn, DialogIds.GrandmaReady, true),
+                Context, ShowDocumentsSaved),
         };
 
         protected override void OnFinished()
@@ -78,6 +80,8 @@ namespace Gameplay.Mission.Floor2
 
             Say(DialogIds.PartnerGrandmaReceived);
         }
+
+        private void ShowDocumentsSaved() => ShowToast(TextId.ToastDocumentsSaved);
 
         private void HandleArrived(TriggerZone zone) => Begin();
 

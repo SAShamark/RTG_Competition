@@ -1,7 +1,7 @@
 using Gameplay.Entities.Interactive;
 using System;
-using Gameplay.Entities.Characters.Residents;
 using Services;
+using Gameplay.Entities.Characters;
 using UnityEngine;
 
 namespace Gameplay.Cinematics.Finale
@@ -9,7 +9,7 @@ namespace Gameplay.Cinematics.Finale
     [Serializable]
     public sealed class FinaleUncleScene
     {
-        [SerializeField] private PosedActor _uncle;
+        [SerializeField] private CharacterControl _uncle;
         [SerializeField] private Transform _uncleSpot;
         [SerializeField] private FireSource _lastFlame;
         [SerializeField] private ParticleSystem _stream;
@@ -82,7 +82,7 @@ namespace Gameplay.Cinematics.Finale
             if (uncle.position != _uncleSpot.position && time - Time.deltaTime < _runIn)
             {
                 uncle.SetPositionAndRotation(_uncleSpot.position, _uncleSpot.rotation);
-                _uncle.SetPose(ResidentPose.Animated);
+                _uncle.SetPose(CharacterPose.Animated);
             }
 
             float local = time - _runIn;
@@ -104,11 +104,11 @@ namespace Gameplay.Cinematics.Finale
             _lastFlame.ForceOut();
             if (_uncle.gameObject.activeSelf)
             {
-                _uncle.SetPose(ResidentPose.Victory);
+                _uncle.SetPose(CharacterPose.Victory);
             }
         }
 
-        public void StandIdle() => _uncle.SetPose(ResidentPose.Animated);
+        public void StandIdle() => _uncle.SetPose(CharacterPose.Animated);
 
         private void Start(Transform cam)
         {
@@ -116,7 +116,7 @@ namespace Gameplay.Cinematics.Finale
             _lastFlame.gameObject.SetActive(true);
             Vector3 from = _uncleSpot.position + _runInFrom;
             _uncle.gameObject.SetActive(true);
-            _uncle.SetPose(ResidentPose.Running);
+            _uncle.SetPose(CharacterPose.Running);
             _uncle.transform.SetPositionAndRotation(from, Quaternion.LookRotation(Vector3.ProjectOnPlane(_uncleSpot.position - from, Vector3.up)));
             cam.SetPositionAndRotation(_peeCamera.position, _peeCamera.rotation);
         }
@@ -131,7 +131,7 @@ namespace Gameplay.Cinematics.Finale
             uncle.rotation = Quaternion.Slerp(heading, _uncleSpot.rotation, Easing.Smooth(Mathf.InverseLerp(_uncleTurnStart, 1f, k)));
             if (k > _uncleArriveAt)
             {
-                _uncle.SetPose(ResidentPose.Animated);
+                _uncle.SetPose(CharacterPose.Animated);
             }
 
             AimAtUncle(cam);
@@ -184,7 +184,7 @@ namespace Gameplay.Cinematics.Finale
             uncle.rotation = Quaternion.Slerp(_orbitFromRotation, toCamera, Easing.Smooth(Mathf.InverseLerp(_orbitTurnStart, _orbitTurnEnd, o)));
             if (o > _orbitLookAt)
             {
-                _uncle.SetPose(ResidentPose.Victory);
+                _uncle.SetPose(CharacterPose.Victory);
             }
 
             Vector3 centre = uncle.position;

@@ -2,20 +2,25 @@ using Gameplay.Entities.Environment;
 using Gameplay.Entities.Interactive;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 // Reversible draw-call optimisation for the Location scene.
 // Combine: static environment renderers are merged per material inside 12 m grid cells (per top-level group).
 //          The originals stay in the scene with their colliders; only their MeshRenderer is switched off.
 // Uncombine: deletes the combined meshes and switches the original renderers back on (for hand editing).
+// Build: the merged originals that are nothing but a switched-off renderer are left out of the built scene, so it loads faster.
 public static class SceneOptimizer
 {
     const string RootName = "--- Combined (generated) ---";
     const string OriginalsFile = "Assets/Contents/Generated/CombinedOriginals.txt";
     const string MeshDir = "Assets/Contents/Generated/Combined";
     const float Cell = 12f;
+    const int BareComponentCount = 3;
 
     static readonly string[] ExcludedRoots =
     {
@@ -140,5 +145,59 @@ public static class SceneOptimizer
         // second-level object under a folder ("--- Environment ---/OppositeSide"), or the root itself
         while (t.parent != null && t.parent.parent != null) t = t.parent;
         return t.name;
+    }
+
+    // Bare originals of a combined scene: static leaf objects holding only Transform + MeshFilter + a disabled MeshRenderer,
+    // which no script points at. Everything with a collider, a script or children stays.
+    public static List<GameObject> FindBareOriginals(Scene scene)
+    {
+        var result = new List<GameObject>();
+        var roots = scene.GetRootGameObjects();
+        if (!System.Array.Exists(roots, root => root.name == RootName)) return result;
+
+        var referenced = new HashSet<Object>();
+        foreach (var root in roots)
+        {
+            foreach (var behaviour in root.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (behaviour == null) continue;
+                var property = new SerializedObject(behaviour).GetIterator();
+                while (property.NextVisible(true))
+                {
+                    if (property.propertyType != SerializedPropertyType.ObjectReference) continue;
+                    var target = property.objectReferenceValue;
+                    if (target is GameObject go) referenced.Add(go);
+                    else if (target is Component component) referenced.Add(component.gameObject);
+                }
+            }
+        }
+
+        foreach (var root in roots)
+        {
+            foreach (var r in root.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (r.enabled || !r.gameObject.isStatic || r.transform.childCount > 0) continue;
+                if (r.GetComponents<Component>().Length != BareComponentCount) continue;
+                if (referenced.Contains(r.gameObject)) continue;
+                result.Add(r.gameObject);
+            }
+        }
+
+        return result;
+    }
+
+    sealed class BuildStripper : IProcessSceneWithReport
+    {
+        public int callbackOrder => 0;
+
+        public void OnProcessScene(Scene scene, BuildReport report)
+        {
+            // no report = the scene is being prepared for Play Mode in the editor, where deleting would only cost time
+            if (report == null) return;
+
+            var originals = FindBareOriginals(scene);
+            foreach (var original in originals) Object.DestroyImmediate(original);
+            if (originals.Count > 0) Debug.Log($"SceneOptimizer: left {originals.Count} combined originals out of '{scene.name}'");
+        }
     }
 }

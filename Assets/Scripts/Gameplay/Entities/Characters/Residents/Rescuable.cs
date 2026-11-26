@@ -2,7 +2,6 @@ using System;
 using Gameplay.Dialogue;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Interactive;
-using Services;
 using UnityEngine;
 
 namespace Gameplay.Entities.Characters.Residents
@@ -15,13 +14,13 @@ namespace Gameplay.Entities.Characters.Residents
         Rescued = 3,
     }
 
+    [DefaultExecutionOrder(Order)]
     public sealed class Rescuable : Interactable
     {
         private const float MinLiftTime = 0.01f;
-        private const float MinFacingSqr = 0.001f;
+        private const int Order = 100;
 
-        [SerializeField] private string _displayName = "мешканця";
-        [SerializeField] private string _talkHint = "[E] Поговорити";
+        [SerializeField] private string _displayName;
 
         [Header("Carry (relative to the player's carry socket)")]
         [SerializeField] private Vector3 _carryPelvis = new(0.22f, 0.86f, 0.62f);
@@ -35,18 +34,10 @@ namespace Gameplay.Entities.Characters.Residents
         [SerializeField] private string _flyLineId;
         [SerializeField] private Sprite _icon;
         [SerializeField] private Vector3 _flightEuler = new(-70f, 0f, 0f);
-        [SerializeField] private float _bodyCenterHeight = 0.8f;
 
         [SerializeField] private Collider[] _colliders;
-        [SerializeField] private Animator _animator;
-        [SerializeField] private ResidentPoseLogic _pose = new();
+        [SerializeField] private CharacterControl _character;
         [SerializeField] private float _liftHop = 0.15f;
-        [SerializeField] private float _faceSharpness = 5f;
-
-        [Header("Conversation")]
-        [SerializeField] private float _lookLimit = 55f;
-        [SerializeField] private float _lookSharpness = 6f;
-        [SerializeField] private float _lookRelease = 0.3f;
 
         private RescueState _state;
         private bool _canBeCarried = true;
@@ -54,10 +45,6 @@ namespace Gameplay.Entities.Characters.Residents
         private float _lift = 1f;
         private Vector3 _liftFromPosition;
         private Quaternion _liftFromRotation;
-        private Vector3 _headForward;
-        private Vector3 _lookPoint;
-        private float _sinceLooked = float.MaxValue;
-        private Quaternion _lookTurn = Quaternion.identity;
 
         public RescueState State => _state;
         public string DisplayName => _displayName;
@@ -66,9 +53,8 @@ namespace Gameplay.Entities.Characters.Residents
         public Vector3 HeadCenter => _headBump.HeadCenter;
         public Sprite Icon => _icon;
         public Vector3 FlightEuler => _flightEuler;
-        public float BodyCenterHeight => _bodyCenterHeight;
-        public Animator Animator => _animator;
-        public Transform Head => _pose.Head != null ? _pose.Head : transform;
+        public CharacterControl Character => _character;
+        public Transform Head => _character.Head;
 
         public override bool CanInteract => _state == RescueState.Waiting;
         public override HandGesture Gesture => _canBeCarried ? HandGesture.Grab : HandGesture.None;
@@ -80,21 +66,12 @@ namespace Gameplay.Entities.Characters.Residents
 
         private void Awake()
         {
-            _pose.Init(_animator);
-            _headBump.Init(_animator);
-            _headForward = Head.InverseTransformDirection(transform.forward);
-        }
-
-        private void OnDestroy()
-        {
-            _pose.Dispose();
+            _headBump.Init(_character.Animator);
         }
 
         public void SetCanBeCarried(bool canBeCarried) => _canBeCarried = canBeCarried;
 
-        public void SetPose(ResidentPose pose) => _pose.SetMode(pose);
-
-        public override string GetHint(Transform interactor) => _canBeCarried ? _texts.Format(TextId.HintPickUpResident, _displayName) : _talkHint;
+        public override string GetHint(Transform interactor) => _canBeCarried ? _texts.Format(TextId.HintPickUpResident, _displayName) : _texts[TextId.HintTalk];
 
         protected override void OnInteract(Transform interactor)
         {
@@ -115,25 +92,6 @@ namespace Gameplay.Entities.Characters.Residents
             }
         }
 
-        public void Face(Vector3 point, float deltaTime)
-        {
-            Vector3 planar = Vector3.ProjectOnPlane(point - transform.position, Vector3.up);
-            if (_state != RescueState.Waiting || planar.sqrMagnitude < MinFacingSqr)
-            {
-                return;
-            }
-
-            _lookPoint = point;
-            _sinceLooked = 0f;
-
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(planar), Easing.Damp(_faceSharpness, deltaTime));
-        }
-
-        public void SetCenterPose(Vector3 center, Quaternion rotation)
-        {
-            transform.SetPositionAndRotation(center - rotation * Vector3.up * _bodyCenterHeight, rotation);
-        }
-
         public void AttachTo(Transform socket)
         {
             _state = RescueState.Carried;
@@ -143,7 +101,7 @@ namespace Gameplay.Entities.Characters.Residents
             _liftFromRotation = transform.rotation;
             _lift = 0f;
             transform.SetParent(socket, true);
-            _pose.SetMode(ResidentPose.Carried);
+            _character.SetPose(CharacterPose.Carried);
             _headBump.Begin(((Component)socket.GetComponentInParent<IRescueCarrier>()).transform);
             PickedUp?.Invoke(this);
         }
@@ -155,7 +113,7 @@ namespace Gameplay.Entities.Characters.Residents
             transform.SetParent(null, true);
             transform.SetPositionAndRotation(position, rotation);
             SetCollidersEnabled(true);
-            _pose.SetMode(ResidentPose.Animated);
+            _character.SetPose(CharacterPose.Animated);
             _state = RescueState.Waiting;
         }
 
@@ -165,7 +123,7 @@ namespace Gameplay.Entities.Characters.Residents
             _headBump.End();
             transform.SetParent(null, true);
             SetCollidersEnabled(false);
-            _pose.SetMode(ResidentPose.Flailing);
+            _character.SetPose(CharacterPose.Flailing);
             _state = RescueState.Flying;
         }
 
@@ -177,34 +135,17 @@ namespace Gameplay.Entities.Characters.Residents
             }
 
             _state = RescueState.Rescued;
-            _pose.SetMode(ResidentPose.Animated);
+            _character.SetPose(CharacterPose.Animated);
             SetCollidersEnabled(true);
             Rescued?.Invoke(this);
         }
 
         private void LateUpdate()
         {
-            _pose.Tick(Time.deltaTime);
-            TurnHead(Time.deltaTime);
             if (_state == RescueState.Carried)
             {
                 PlaceInArms();
             }
-        }
-
-        private void TurnHead(float deltaTime)
-        {
-            _sinceLooked += deltaTime;
-            Transform head = Head;
-            Quaternion target = Quaternion.identity;
-            if (_sinceLooked <= _lookRelease)
-            {
-                Quaternion full = Quaternion.FromToRotation(head.TransformDirection(_headForward), _lookPoint - head.position);
-                target = Quaternion.RotateTowards(Quaternion.identity, full, _lookLimit);
-            }
-
-            _lookTurn = Quaternion.Slerp(_lookTurn, target, Easing.Damp(_lookSharpness, deltaTime));
-            head.rotation = _lookTurn * head.rotation;
         }
 
         private void PlaceInArms()
@@ -212,7 +153,7 @@ namespace Gameplay.Entities.Characters.Residents
             Quaternion targetRotation = _socket.rotation * Quaternion.LookRotation(
                 Vector3.ProjectOnPlane(_carryForward, _carryUp).normalized, _carryUp.normalized);
             transform.rotation = targetRotation;
-            Vector3 pelvisOffset = _pose.Pelvis - transform.position;
+            Vector3 pelvisOffset = _character.Pelvis - transform.position;
             Vector3 targetPosition = _socket.TransformPoint(_carryPelvis) - pelvisOffset;
 
             if (_lift < 1f)

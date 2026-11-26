@@ -121,5 +121,6 @@ namespace Gameplay.Dialogue
         NavCoupling = 117,
         NavValve = 118,
         ToastComplaint = 119,
+        HintTalk = 120,
     }
 }

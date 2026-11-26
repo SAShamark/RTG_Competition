@@ -2,6 +2,7 @@ using Gameplay.Dialogue;
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
 using Gameplay.Mission.Core;
+using Gameplay.Entities.Characters;
 using UnityEngine;
 
 namespace Gameplay.Mission.Floor3
@@ -35,12 +36,12 @@ namespace Gameplay.Mission.Floor3
             }
         }
 
-        private Transform NeighborHead => _setup.Neighbor.Head;
+        private CharacterControl Neighbor => _setup.Neighbor.Character;
 
         public override void Enter()
         {
             SetObjective(TextId.ObjectiveReachNeighbor);
-            Say(DialogIds.NeighborTrapped, NeighborHead);
+            Say(DialogIds.NeighborTrapped, Neighbor.Head);
             _setup.Valve.Closed += Refresh;
             _setup.StoveFire.Extinguished += HandleStoveOut;
             if (_setup.Valve.IsClosed)
@@ -96,8 +97,8 @@ namespace Gameplay.Mission.Floor3
             ShowToast(TextId.ToastGasFeedsFire);
             Talk(new[]
             {
-                PlayerLine(DialogIds.PlayerGasBurning, NeighborHead),
-                LineToPlayer(DialogIds.NeighborValvesInPantry, NeighborHead),
+                PlayerLine(DialogIds.PlayerGasBurning, Neighbor),
+                LineToPlayer(DialogIds.NeighborValvesInPantry, Neighbor),
             }, ShowPantryRoute);
         }
 

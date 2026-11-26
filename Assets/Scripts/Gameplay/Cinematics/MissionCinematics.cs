@@ -33,9 +33,9 @@ namespace Gameplay.Cinematics
         public event Action FinaleJumpFinished;
         public event Action<Texture> FinaleFinished;
 
-        public void Initialize(UIManager uiManager, GameplayScreen screen, FirstPersonController player, Camera camera, AudioService audio)
+        public void Initialize(UIManager uiManager, GameplayScreen screen, FirstPersonController player, Camera camera)
         {
-            _presenter = new CinematicPresenter(uiManager, audio);
+            _presenter = new CinematicPresenter(uiManager);
             _screen = screen;
             _player = player;
             _uncleBurstCutscene.Init(player, camera);

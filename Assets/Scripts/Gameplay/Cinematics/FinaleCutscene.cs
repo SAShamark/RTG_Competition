@@ -1,12 +1,12 @@
 using Gameplay.Dialogue;
 using Gameplay.Cinematics.Finale;
 using Gameplay.Entities.Characters.Player;
-using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
 using Services.Motion;
 using Services;
 using Services.Audio;
 using Unity.Cinemachine;
+using Gameplay.Entities.Characters;
 using UnityEngine;
 
 namespace Gameplay.Cinematics
@@ -18,7 +18,7 @@ namespace Gameplay.Cinematics
         private const int DepthBits = 24;
 
         [SerializeField] private CinemachineCamera _camera;
-        [SerializeField] private PosedActor _stunt;
+        [SerializeField] private CharacterControl _stunt;
         [SerializeField] private EvacuationWindow _window;
         [SerializeField] private GameObject _firefighters;
         [SerializeField] private GameObject[] _firefighterGear;
@@ -177,7 +177,7 @@ namespace Gameplay.Cinematics
             player.enabled = false;
             _firefighters.SetActive(true);
             _stunt.gameObject.SetActive(true);
-            _stunt.SetPose(ResidentPose.Animated);
+            _stunt.SetPose(CharacterPose.Animated);
             _stunt.transform.SetPositionAndRotation(_safe, _safeRotation);
 
             _subtitles = new[]
@@ -236,13 +236,13 @@ namespace Gameplay.Cinematics
             Quaternion lying = Quaternion.LookRotation(Vector3.up, _outward);
             if (t < FallTime)
             {
-                _stunt.SetPose(ResidentPose.Carried);
+                _stunt.SetPose(CharacterPose.Carried);
                 _stunt.SetCenterPose(_launch + Vector3.up * _sillLift, facing * Quaternion.Euler(_sillTilt, 0f, 0f));
             }
             else if (t < LandTime)
             {
                 float u = (t - FallTime) / _fall;
-                _stunt.SetPose(ResidentPose.Flailing);
+                _stunt.SetPose(CharacterPose.Flailing);
                 _stunt.SetCenterPose(Arc(_launch, _landing, _fallApex, u), Quaternion.Slerp(facing, lying, Easing.Smooth(Mathf.InverseLerp(_tumbleStart, 1f, u))));
             }
             else if (t < SafeTime)
@@ -268,7 +268,7 @@ namespace Gameplay.Cinematics
             }
             else
             {
-                _stunt.SetPose(ResidentPose.Animated);
+                _stunt.SetPose(CharacterPose.Animated);
                 _stunt.transform.SetPositionAndRotation(_safe, _safeRotation);
             }
         }

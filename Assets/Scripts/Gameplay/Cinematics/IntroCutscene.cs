@@ -68,11 +68,12 @@ namespace Gameplay.Cinematics
         {
             _drift.StopEffects();
             _player.enabled = true;
-            _truckShutter.Interact(_player.transform);
             foreach (GameObject target in _enableOnFinish)
             {
                 target.SetActive(true);
             }
+
+            _truckShutter.Open();
         }
     }
 }

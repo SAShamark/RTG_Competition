@@ -2,6 +2,7 @@ using Gameplay.Dialogue;
 using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
 using Gameplay.Mission.Core;
+using Gameplay.Entities.Characters;
 using UnityEngine;
 
 namespace Gameplay.Mission.Floor2
@@ -18,7 +19,7 @@ namespace Gameplay.Mission.Floor2
 
         public override string RadioHint => Texts[_setup.IsSafeFound ? TextId.RadioOpenSafe : TextId.RadioFindSafe];
 
-        private Transform GrandmaHead => _setup.Grandma.Head;
+        private CharacterControl Grandma => _setup.Grandma.Character;
 
         public override void Enter()
         {
@@ -29,14 +30,15 @@ namespace Gameplay.Mission.Floor2
             }
 
             RefreshObjective();
+            Screen.ClearDialog();
             Talk(new[]
             {
-                PlayerLine(DialogIds.PlayerEvacuateGrandma, GrandmaHead),
-                LineToPlayer(DialogIds.GrandmaNoDocuments, GrandmaHead),
-                PlayerLine(DialogIds.PlayerWhichDocuments, GrandmaHead),
-                LineToPlayer(DialogIds.GrandmaNowhereWithout, GrandmaHead),
-                PlayerLine(DialogIds.PlayerWhereAreThey, GrandmaHead),
-                LineToPlayer(DialogIds.GrandmaSafeBehindPainting, GrandmaHead),
+                PlayerLine(DialogIds.PlayerEvacuateGrandma, Grandma),
+                LineToPlayer(DialogIds.GrandmaNoDocuments, Grandma),
+                PlayerLine(DialogIds.PlayerWhichDocuments, Grandma),
+                LineToPlayer(DialogIds.GrandmaNowhereWithout, Grandma),
+                PlayerLine(DialogIds.PlayerWhereAreThey, Grandma),
+                LineToPlayer(DialogIds.GrandmaSafeBehindPainting, Grandma),
             });
 
             foreach (WallPainting painting in _setup.Paintings)
@@ -81,7 +83,7 @@ namespace Gameplay.Mission.Floor2
         {
             string line = ++_refusals % 2 == 1 ? DialogIds.GrandmaInsists
                 : _setup.IsSafeFound ? DialogIds.GrandmaOpenSafe : DialogIds.GrandmaLookAtPaintings;
-            Say(line, GrandmaHead);
+            Say(line, Grandma.Head);
         }
     }
 }

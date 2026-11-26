@@ -1,4 +1,3 @@
-using Gameplay.Entities.Characters.Residents;
 using Gameplay.Entities.Interactive;
 using UnityEngine;
 
@@ -8,7 +7,7 @@ namespace Gameplay.Entities.Characters
     {
         [SerializeField] private Transform _body;
         [SerializeField] private bool _holdsPose = true;
-        [SerializeField] private ResidentReactionLogic _reactions = new();
+        [SerializeField] private CharacterReactionLogic _reactions = new();
 
         public void React(in ToolHit hit) => _reactions.Hit(hit, out _);
 

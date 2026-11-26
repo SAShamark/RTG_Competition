@@ -1,7 +1,8 @@
+using Gameplay.Dialogue;
 using System;
 using Gameplay.Entities.Characters.Player;
 using UI.Screens.Variants.Gameplay;
-using UnityEngine.InputSystem;
+using Services;
 
 namespace Gameplay.Mission.Systems
 {
@@ -22,13 +23,13 @@ namespace Gameplay.Mission.Systems
 
         public void Tick()
         {
-            if (!Keyboard.current.digit4Key.wasPressedThisFrame || !_player.enabled)
+            if (!GameInput.RadioPressed || !_player.enabled)
             {
                 return;
             }
 
             _screen.PulseRadio();
-            _screen.PartnerSay(_currentHint(), HintHold);
+            _screen.Say(DialogPhrase.Radio(_currentHint(), HintHold));
         }
     }
 }

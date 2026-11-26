@@ -8,5 +8,7 @@ namespace UI.Popups
         LevelComplete = 4,
         Lockpick = 5,
         SafePuzzle = 6,
+        Pause = 7,
+        MainMenu = 8,
     }
 }

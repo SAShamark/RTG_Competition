@@ -1,10 +1,11 @@
-using Services;
-using Services.Audio;
 using System;
 using System.Collections;
-using Gameplay.Entities.Characters.Residents;
+using Gameplay.Entities.Characters;
+using Services;
+using Services.Audio;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace UI.Popups.Variants.Results
@@ -22,12 +23,18 @@ namespace UI.Popups.Variants.Results
     {
         private const float PhotoSlotAspect = 1001f / 455f;
         private const int DepthBits = 24;
+        private const int SecondsInMinute = 60;
+        private const float Idle = -1f;
 
         [Header("Timing")]
-        [SerializeField] private float _fadeTime = 1.0f;
+        [FormerlySerializedAs("_fadeTime")]
+        [SerializeField] private float _introTime = 1.0f;
+        [SerializeField] private float _pageDelayFactor = 0.7f;
+        [SerializeField] private float _pageInTime = 0.55f;
+        [SerializeField] private float _countDelay = 0.5f;
+        [SerializeField] private float _countTime = 1.3f;
 
         [Header("Layout")]
-        [SerializeField] private Image _black;
         [SerializeField] private RectTransform _page;
         [SerializeField] private CanvasGroup _pageGroup;
         [SerializeField] private RawImage _photo;
@@ -36,21 +43,20 @@ namespace UI.Popups.Variants.Results
         [SerializeField] private Text _timeText;
         [SerializeField] private Button _replay;
         [SerializeField] private Button _continue;
+
+        [Header("Photo")]
         [SerializeField] private int _photoWidth = 1320;
         [SerializeField] private int _photoHeight = 600;
-        [SerializeField] private float _dimAlpha = 0.35f;
-        [SerializeField] private Color _shadeColor = new(0.05f, 0.03f, 0.02f);
-        [SerializeField] private float _fadeAlpha = 0.8f;
-        [SerializeField] private float _pageDelayFactor = 0.7f;
-        [SerializeField] private float _pageInTime = 0.55f;
+
+        [Header("Look")]
         [SerializeField] private float _pageStartScale = 1.25f;
         [SerializeField] private float _pageStartTilt = 9f;
         [SerializeField] private float _pageEndTilt = -1.2f;
-        [SerializeField] private float _countTime = 1.3f;
+
         private MissionResults _results;
         private RenderTexture _photoTexture;
         private ResultsPhotoRig _rig;
-        private float _time = -1f;
+        private float _time = Idle;
 
         public event Action Continued;
 
@@ -60,50 +66,34 @@ namespace UI.Popups.Variants.Results
             _continue.onClick.AddListener(Continue);
         }
 
+        private void OnDestroy()
+        {
+            _replay.onClick.RemoveListener(Replay);
+            _continue.onClick.RemoveListener(Continue);
+            if (_photoTexture != null)
+            {
+                _photoTexture.Release();
+                Destroy(_photoTexture);
+            }
+        }
+
         public void Present(MissionResults results, Texture photo, ResultsPhotoRig rig)
         {
             _results = results;
             _rig = rig;
             _time = 0f;
-            _dimOnly = photo != null;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            _canvasGroup.interactable = false;
+            UnlockCursor();
+
             if (photo != null)
             {
-                _photo.texture = photo;
-                _photo.color = Color.white;
+                ShowPhoto(photo);
                 FitPhoto(photo);
             }
             else
             {
                 StartCoroutine(TakePhoto());
             }
-        }
-
-        private bool _dimOnly;
-
-        private void FitPhoto(Texture photo)
-        {
-            float slot = PhotoSlotAspect;
-            float aspect = (float)photo.width / Mathf.Max(1, photo.height);
-            _photo.uvRect = aspect > slot
-                ? new Rect((1f - slot / aspect) * 0.5f, 0f, slot / aspect, 1f)
-                : new Rect(0f, (1f - aspect / slot) * 0.5f, 1f, aspect / slot);
-        }
-
-        private IEnumerator TakePhoto()
-        {
-            _rig.Set.SetActive(true);
-            _rig.Actor.SetPose(ResidentPose.Flailing);
-            yield return new WaitForEndOfFrame();
-            yield return null;
-            _photoTexture = new RenderTexture(_photoWidth, _photoHeight, DepthBits);
-            _rig.Camera.targetTexture = _photoTexture;
-            _rig.Camera.Render();
-            _rig.Camera.targetTexture = null;
-            _photo.texture = _photoTexture;
-            _photo.color = Color.white;
-            _rig.Set.SetActive(false);
         }
 
         private void Update()
@@ -113,22 +103,65 @@ namespace UI.Popups.Variants.Results
                 return;
             }
 
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            UnlockCursor();
             _time += Time.unscaledDeltaTime;
-            _black.color = new Color(_shadeColor.r, _shadeColor.g, _shadeColor.b, Mathf.Clamp01(_time / _fadeTime) * (_dimOnly ? _dimAlpha : _fadeAlpha));
+            AnimatePage();
+            AnimateCounters();
+        }
 
-            float k = Mathf.Clamp01((_time - _fadeTime * _pageDelayFactor) / _pageInTime);
-            float ease = Easing.OutCubic(k);
-            _pageGroup.alpha = k;
+        private void AnimatePage()
+        {
+            float progress = Mathf.Clamp01((_time - _introTime * _pageDelayFactor) / _pageInTime);
+            float ease = Easing.OutCubic(progress);
+            _pageGroup.alpha = progress;
             _page.localScale = Vector3.one * Mathf.Lerp(_pageStartScale, 1f, ease);
             _page.localRotation = Quaternion.Euler(0f, 0f, Mathf.Lerp(_pageStartTilt, _pageEndTilt, ease));
+            _canvasGroup.interactable = progress >= 1f;
+        }
 
-            float count = Mathf.Clamp01((_time - _fadeTime - 0.5f) / _countTime);
+        private void AnimateCounters()
+        {
+            float count = Mathf.Clamp01((_time - _introTime - _countDelay) / _countTime);
+            int seconds = Mathf.RoundToInt(_results.TimeSeconds * count);
             _fireValue.text = $"{Mathf.RoundToInt(_results.FirePercent * count)}%";
             _peopleValue.text = $"{Mathf.RoundToInt(_results.Rescued * count)}";
-            int seconds = Mathf.RoundToInt(_results.TimeSeconds * count);
-            _timeText.text = $"{seconds / 60:00}:{seconds % 60:00}";
+            _timeText.text = $"{seconds / SecondsInMinute:00}:{seconds % SecondsInMinute:00}";
+        }
+
+        private IEnumerator TakePhoto()
+        {
+            _rig.Set.SetActive(true);
+            _rig.Actor.SetPose(CharacterPose.Flailing);
+            yield return new WaitForEndOfFrame();
+            yield return null;
+
+            _photoTexture = new RenderTexture(_photoWidth, _photoHeight, DepthBits);
+            _rig.Camera.targetTexture = _photoTexture;
+            _rig.Camera.Render();
+            _rig.Camera.targetTexture = null;
+            _rig.Set.SetActive(false);
+            ShowPhoto(_photoTexture);
+        }
+
+        private void ShowPhoto(Texture photo)
+        {
+            _photo.texture = photo;
+            _photo.color = Color.white;
+        }
+
+        // center-crop: visible fraction = slot / aspect (wide) or aspect / slot (tall)
+        private void FitPhoto(Texture photo)
+        {
+            float aspect = (float)photo.width / Mathf.Max(1, photo.height);
+            _photo.uvRect = aspect > PhotoSlotAspect
+                ? new Rect((1f - PhotoSlotAspect / aspect) * 0.5f, 0f, PhotoSlotAspect / aspect, 1f)
+                : new Rect(0f, (1f - aspect / PhotoSlotAspect) * 0.5f, 1f, aspect / PhotoSlotAspect);
+        }
+
+        private static void UnlockCursor()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
         private static void Replay()
@@ -140,18 +173,9 @@ namespace UI.Popups.Variants.Results
         private void Continue()
         {
             AudioService.Instance.Play(SoundType.UiConfirm);
-            _time = -1f;
+            _time = Idle;
             Continued?.Invoke();
-        }
-
-        private void OnDestroy()
-        {
-            _replay.onClick.RemoveListener(Replay);
-            _continue.onClick.RemoveListener(Continue);
-            if (_photoTexture != null)
-            {
-                _photoTexture.Release();
-            }
+            CloseTrigger();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace UI.Popups
         [SerializeField] private Button _closeButton;
         
         private string _defaultClipName = "PopupOn";
+        private bool _isClosing;
 
         public PopupModelData PopupData { get; set; }
 
@@ -36,6 +37,12 @@ namespace UI.Popups
 
         public virtual async void CloseTrigger()
         {
+            if (_isClosing)
+            {
+                return;
+            }
+
+            _isClosing = true;
             if (_animator != null)
             {
                 _canvasGroup.interactable = false;

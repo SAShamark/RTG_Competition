@@ -5,6 +5,7 @@ using System;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Characters.Residents;
 using Unity.Cinemachine;
+using Gameplay.Entities.Characters;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
@@ -114,7 +115,7 @@ namespace Gameplay.Cinematics
             _handOffFrom = resident.transform.position;
             _handOffFromRotation = resident.transform.rotation;
             resident.Launch();
-            resident.SetPose(ResidentPose.Carried);
+            resident.Character.SetPose(CharacterPose.Carried);
 
             _player.enabled = false;
 
@@ -165,16 +166,16 @@ namespace Gameplay.Cinematics
             {
                 CutOutside();
                 float wobble = Mathf.Sin((t - CutTime) / _hang * Mathf.PI * 2f) * _hangWobble;
-                _resident.SetCenterPose(_launch + Vector3.up * wobble, _flightRotation);
+                _resident.Character.SetCenterPose(_launch + Vector3.up * wobble, _flightRotation);
             }
             else if (t < LandTime)
             {
                 CutOutside();
-                _resident.SetPose(ResidentPose.Flailing);
+                _resident.Character.SetPose(CharacterPose.Flailing);
                 float u = (t - LaunchTime) / _flightTime;
                 // slight backward tumble, ending flat on the back for the bed
                 Quaternion tumble = Quaternion.Slerp(_flightRotation, _lyingRotation, Easing.Smooth(Mathf.InverseLerp(_tumbleStart, 1f, u)));
-                _resident.SetCenterPose(Arc(_launch, _landing, _flightApex, u), tumble);
+                _resident.Character.SetCenterPose(Arc(_launch, _landing, _flightApex, u), tumble);
             }
             else if (t < SafeTime)
             {
@@ -188,13 +189,13 @@ namespace Gameplay.Cinematics
                 float since = t - LandTime;
                 if (since < contact)
                 {
-                    _resident.SetCenterPose(_landing + Vector3.up * _trampoline.SampleDent(_landing), _lyingRotation);
+                    _resident.Character.SetCenterPose(_landing + Vector3.up * _trampoline.SampleDent(_landing), _lyingRotation);
                 }
                 else
                 {
                     float u = (since - contact) / (_bounceTime - contact);
-                    Vector3 safeCenter = _safe + Vector3.up * _resident.BodyCenterHeight;
-                    _resident.SetCenterPose(Arc(_landing, safeCenter, _bounceApex, u),
+                    Vector3 safeCenter = _safe + Vector3.up * _resident.Character.BodyCenterHeight;
+                    _resident.Character.SetCenterPose(Arc(_landing, safeCenter, _bounceApex, u),
                         Quaternion.Slerp(_lyingRotation, _safeRotation, Easing.Smooth(u * _settleSpeed)));
                 }
             }
@@ -222,7 +223,7 @@ namespace Gameplay.Cinematics
                 return;
             }
 
-            Vector3 target = _resident.transform.position + _resident.transform.rotation * Vector3.up * _resident.BodyCenterHeight
+            Vector3 target = _resident.transform.position + _resident.transform.rotation * Vector3.up * _resident.Character.BodyCenterHeight
                 + _lookOffset;
             Quaternion desired = Quaternion.LookRotation(target - cam.position, Vector3.up);
             cam.rotation = Quaternion.Slerp(cam.rotation, desired, Easing.Damp(_lookSharpness, Time.deltaTime));

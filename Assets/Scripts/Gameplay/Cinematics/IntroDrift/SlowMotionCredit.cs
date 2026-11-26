@@ -28,7 +28,7 @@ namespace Gameplay.Cinematics.IntroDrift
 
         public void Tick(float unscaledDeltaTime)
         {
-            if (_time < 0f)
+            if (_time < 0f || PauseController.IsPaused)
             {
                 return;
             }

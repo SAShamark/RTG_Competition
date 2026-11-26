@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Gameplay.Entities.Characters;
-using Gameplay.Entities.Characters.Residents;
 using Services.Audio;
 using UnityEngine;
 
@@ -86,8 +85,7 @@ namespace Gameplay.Entities.Interactive.Items
                 return marked.Type;
             }
 
-            if (collider is CharacterController || collider.GetComponentInParent<Rescuable>() != null || collider.GetComponentInParent<PosedActor>() != null
-                || collider.GetComponentInParent<CharacterReactions>() != null)
+            if (collider is CharacterController || collider.GetComponentInParent<CharacterControl>() != null)
             {
                 return SurfaceType.Flesh;
             }

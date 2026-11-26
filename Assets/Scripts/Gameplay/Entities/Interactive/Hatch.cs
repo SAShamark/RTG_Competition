@@ -31,6 +31,18 @@ namespace Gameplay.Entities.Interactive
 
         public void SetLocked(bool isLocked) => _isLocked = isLocked;
 
+        public void Open()
+        {
+            if (IsOpen)
+            {
+                return;
+            }
+
+            _isLocked = false;
+            _motion.Stop();
+            Toggle();
+        }
+
         public override string GetHint(Transform interactor)
         {
             if (_isLocked)
@@ -54,6 +66,11 @@ namespace Gameplay.Entities.Interactive
                 return;
             }
 
+            Toggle();
+        }
+
+        private void Toggle()
+        {
             IsOpen = !IsOpen;
             float from = _openness;
             float to = IsOpen ? 1f : 0f;

@@ -6,12 +6,11 @@ using Services;
 using Services.Audio;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Gameplay.Entities.Characters.Player
 {
     [RequireComponent(typeof(CharacterController))]
-    public sealed class FirstPersonController : MonoBehaviour, IItemHolder, IRescueCarrier, IPropHolder
+    public sealed class FirstPersonController : MonoBehaviour, IItemHolder, IRescueCarrier, IPropHolder, IDialogueActor
     {
         private const float HalfTurn = 180f;
         private const float FullTurn = 360f;
@@ -19,12 +18,8 @@ namespace Gameplay.Entities.Characters.Player
 
         [SerializeField] private Transform _head;
         [SerializeField] private Transform _aim;
-        [SerializeField] private float _walkSpeed = 3.2f;
-        [SerializeField] private float _runSpeed = 5.5f;
-        [SerializeField, Range(0f, 1f)] private float _backwardRunFactor = 0.76f;
-        [SerializeField, Range(0f, 1f)] private float _strafeRunFactor = 0.8f;
         [SerializeField] private float _mouseSensitivity = 0.12f;
-        [SerializeField] private float _gravity = -18f;
+        [SerializeField] private PlayerMotorLogic _motor = new();
         [SerializeField] private InteractionLogic _interactionLogic = new();
         [SerializeField] private HandsAnimationControl _hands = new();
         [SerializeField] private InventoryLogic _heldItem = new();
@@ -44,15 +39,8 @@ namespace Gameplay.Entities.Characters.Player
 
         [Header("Jump")]
         [SerializeField] private PlayerJumpLogic _jump = new();
-        [SerializeField] private float _hardLandingRecovery = 0.35f;
-        [SerializeField, Range(0f, 1f)] private float _hardLandingSpeedFactor = 0.35f;
         [SerializeField] private CinemachineImpulseSource _landImpulse;
         [SerializeField, Range(0f, 1f)] private float _firstPersonShake = 0.35f;
-
-        [Header("Acceleration")]
-        [SerializeField] private float _groundAcceleration = 35f;
-        [SerializeField] private float _groundDeceleration = 45f;
-        [SerializeField] private float _airAcceleration = 7f;
 
         [Header("Body & view")]
         [SerializeField] private PlayerViewLogic _view = new();
@@ -64,6 +52,7 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField, Range(0f, 1f)] private float _idleTremor = 0.15f;
 
         [Header("Third person actions")]
+        [SerializeField] private BodyActionLogic _bodyAction = new();
         [SerializeField] private float _bodyPickupContact = 0.37f;
         [SerializeField] private float _bodyPickupDuration = 0.95f;
         [SerializeField, Range(0f, 1f)] private float _lowPickupReach = 0.6f;
@@ -73,7 +62,6 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField] private float _handPickupDuration = 0.65f;
         [SerializeField] private float _handPickupDip = 0.07f;
         [SerializeField] private float _reachPickupDuration = 0.6f;
-        [SerializeField, Range(0f, 1f)] private float _reachReleaseShare = 0.6f;
         [SerializeField] private AxeSwingProfile _swing = new();
         [SerializeField] private float _chopAimSharpness = 12f;
         [SerializeField] private float _recoilDuration = 0.45f;
@@ -83,33 +71,21 @@ namespace Gameplay.Entities.Characters.Player
 
         [Header("Conversation")]
         [SerializeField] private float _conversationTurnSharpness = 7f;
+        [SerializeField] private JawControl _jaw;
 
         private CharacterController _characterController;
         private ClutterItem _prop;
         private float _pitch;
-        private Vector3 _planarVelocity;
         private Transform _aimCamera;
-        private float _landingRecovery;
-        private Action _bodyContact;
-        private float _bodyActionTime;
-        private float _bodyContactTime;
-        private float _bodyActionDuration;
-        private bool _bodyLocksMovement;
         private bool _isChopping;
         private bool _chopAlternate;
         private float _swingSoundTimer = -1f;
         private float _chopAimWeight;
-        private Vector3 _reachPoint;
-        private float _reachStrength;
         private bool _isViewTogglePending;
 
         public event Action<ClutterItem> PropChanged;
 
         public Transform Head => _head;
-        public float WalkSpeed => _walkSpeed;
-        public float RunSpeed => _runSpeed;
-        public float MouseSensitivity => _mouseSensitivity;
-        public float Gravity => _gravity;
         public InteractionLogic Interaction => _interactionLogic;
         public InventoryLogic Items => _heldItem;
         public ExtinguisherLogic Extinguisher => _extinguisher;
@@ -123,7 +99,7 @@ namespace Gameplay.Entities.Characters.Player
         private bool IsHoldingProp => _prop != null;
         private bool HasFreeHands => !_carry.IsCarrying && !IsHoldingProp;
         private float ShakeFactor => _view.IsThirdPerson ? 1f : _firstPersonShake;
-        private bool IsBodyBusy => _bodyActionDuration > 0f;
+        private bool IsBodyBusy => _bodyAction.IsBusy;
         private bool CanAct => !_hands.IsBusy && !IsBodyBusy;
         private bool IsSpraying => _extinguisher.IsSpraying || _hose.IsSpraying;
         private float SprayPressure => _hose.IsSpraying ? 1f : _extinguisher.Pressure;
@@ -146,6 +122,9 @@ namespace Gameplay.Entities.Characters.Player
             _heldItem.SetBodyHold(_view.IsThirdPerson);
             _view.ViewChanged += HandleViewChanged;
             _jump.Init(_characterController);
+            _motor.Init(_characterController, transform, _jump);
+            _bodyAction.Init(_bodyIK);
+            _bodyAction.Finished += HandleBodyActionFinished;
             _footprints.Init(transform);
             _jump.Jumped += HandleJumped;
             _jump.Landed += HandleLanded;
@@ -163,6 +142,7 @@ namespace Gameplay.Entities.Characters.Player
             _jump.Jumped -= HandleJumped;
             _jump.Landed -= HandleLanded;
             _axe.Struck -= HandleAxeStruck;
+            _bodyAction.Finished -= HandleBodyActionFinished;
         }
 
         private void OnEnable()
@@ -186,27 +166,25 @@ namespace Gameplay.Entities.Characters.Player
 
         private void Update()
         {
-            Keyboard keyboard = Keyboard.current;
-            Mouse mouse = Mouse.current;
             float deltaTime = Time.deltaTime;
 
-            Vector2 look = mouse.delta.ReadValue() * _mouseSensitivity + _hose.AimKick(deltaTime);
+            Vector2 look = GameInput.Look * _mouseSensitivity + _hose.AimKick(deltaTime);
             HandleLook(look);
             UpdateAim();
-            TickBodyAction(deltaTime);
+            _bodyAction.Tick(deltaTime, _body.IsHitStopped);
             TickSwingSound(deltaTime);
             _view.Tick(deltaTime);
-            _landingRecovery = Mathf.Max(0f, _landingRecovery - deltaTime);
-            Vector3 move = HandleMovement(keyboard, deltaTime);
-            HandleViewToggle(keyboard);
+            _motor.Tick(deltaTime);
+            Vector3 move = HandleMovement(deltaTime);
+            HandleViewToggle();
 
             _interactionLogic.Tick();
-            HandleInteraction(keyboard);
-            HandlePrimaryAction(mouse);
-            HandleDrop(keyboard);
-            HandleHotbar(keyboard);
+            HandleInteraction();
+            HandlePrimaryAction();
+            HandleDrop();
+            HandleHotbar();
 
-            bool wantsToSpray = mouse.leftButton.isPressed && CanAct && HasFreeHands;
+            bool wantsToSpray = GameInput.IsPrimaryHeld && CanAct && HasFreeHands;
             bool isStanceActive = IsStanceActive;
             _stance.Tick(isStanceActive, wantsToSpray, _heldItem.HeldTool, _view.IsThirdPerson, deltaTime);
             bool wasSpraying = IsSpraying;
@@ -219,12 +197,12 @@ namespace Gameplay.Entities.Characters.Player
             _hands.SetCarrying(_carry.IsCarrying);
 
             float planarSpeed = new Vector2(move.x, move.z).magnitude;
-            _hands.Tick(deltaTime, Mathf.Clamp01(planarSpeed / _runSpeed), _audio.StepPhase, look);
+            _hands.Tick(deltaTime, Mathf.Clamp01(planarSpeed / _motor.RunSpeed), _audio.StepPhase, look);
 
             Vector3 localMove = transform.InverseTransformDirection(move);
-            _body.Tick(localMove, _runSpeed, _jump.IsNearGround, _jump.VerticalSpeed, !_stance.IsAiming, deltaTime);
-            bool isRunning = keyboard.leftShiftKey.isPressed && !_carry.IsCarrying && !(_stance.IsAiming);
-            _cameraFeel.Tick(localMove, _runSpeed, _audio.StepPhase, _jump.IsNearGround, isRunning, _carry.IsCarrying, _stance.Weight, deltaTime);
+            _body.Tick(localMove, _motor.RunSpeed, _jump.IsNearGround, _jump.VerticalSpeed, !_stance.IsAiming, deltaTime);
+            bool isRunning = GameInput.IsRunHeld && !_carry.IsCarrying && !(_stance.IsAiming);
+            _cameraFeel.Tick(localMove, _motor.RunSpeed, _audio.StepPhase, _jump.IsNearGround, isRunning, _carry.IsCarrying, _stance.Weight, deltaTime);
             _body.SetSpraying(IsSpraying);
             _body.SetCarrying(_carry.IsCarrying);
             UpdateBodyIK();
@@ -245,14 +223,16 @@ namespace Gameplay.Entities.Characters.Player
             }
         }
 
+        public void SetTalking(bool isTalking) => _jaw.SetTalking(isTalking);
+
         public void BeginConversation()
         {
-            _planarVelocity = Vector3.zero;
+            _motor.Stop();
             _stance.Reset();
             _chopAimWeight = 0f;
             _hands.SetStance(0f);
             _body.Rest();
-            _bodyIK.SetReach(_reachPoint, 0f);
+            _bodyAction.ClearReach();
             _bodyIK.SetAim(0f, 0f);
 
             ToolItem tool = _heldItem.HeldTool;
@@ -288,10 +268,7 @@ namespace Gameplay.Entities.Characters.Player
 
         public void Teleport(Vector3 position, Quaternion rotation)
         {
-            _characterController.enabled = false;
-            transform.SetPositionAndRotation(position, rotation);
-            _characterController.enabled = true;
-            _planarVelocity = Vector3.zero;
+            _motor.Teleport(position, rotation);
             _head.localRotation = Quaternion.identity;
         }
 
@@ -307,53 +284,6 @@ namespace Gameplay.Entities.Characters.Player
 
             Transform leftTarget = tool != null && tool.LeftGrip != null ? tool.LeftGrip : _hands.LeftHand;
             _bodyIK.SetTargets(isActive, _hands.RightHand, leftTarget);
-        }
-
-        private void StartBodyAction(float contactTime, float duration, bool locksMovement, Action onContact, Vector3 reachPoint = default, float reachStrength = 0f)
-        {
-            _reachPoint = reachPoint;
-            _reachStrength = reachStrength;
-            _bodyActionTime = 0f;
-            _bodyContactTime = contactTime;
-            _bodyActionDuration = duration;
-            _bodyLocksMovement = locksMovement;
-            _bodyContact = onContact;
-        }
-
-        private void TickBodyAction(float deltaTime)
-        {
-            if (!IsBodyBusy || _body.IsHitStopped)
-            {
-                return;
-            }
-
-            _bodyActionTime += deltaTime;
-            _bodyIK.SetReach(_reachPoint, ReachWeight() * _reachStrength);
-            if (_bodyContact != null && _bodyActionTime >= _bodyContactTime)
-            {
-                Action contact = _bodyContact;
-                _bodyContact = null;
-                contact();
-            }
-
-            if (_bodyActionTime >= _bodyActionDuration)
-            {
-                _bodyActionDuration = 0f;
-                _isChopping = false;
-                _bodyLocksMovement = false;
-                _bodyIK.SetReach(_reachPoint, 0f);
-            }
-        }
-
-        private float ReachWeight()
-        {
-            if (_bodyActionTime <= _bodyContactTime)
-            {
-                return Mathf.SmoothStep(0f, 1f, _bodyActionTime / _bodyContactTime);
-            }
-
-            float release = (_bodyActionDuration - _bodyContactTime) * _reachReleaseShare;
-            return Mathf.SmoothStep(1f, 0f, (_bodyActionTime - _bodyContactTime) / release);
         }
 
         private void StartPickup(IInteractable target)
@@ -377,11 +307,11 @@ namespace Gameplay.Entities.Characters.Player
             if (isLow)
             {
                 _body.PickUp();
-                StartBodyAction(_bodyPickupContact, _bodyPickupDuration, true, grab, point, _lowPickupReach);
+                _bodyAction.Start(_bodyPickupContact, _bodyPickupDuration, true, grab, point, _lowPickupReach);
                 return;
             }
 
-            StartBodyAction(_reachPickupContact, _reachPickupDuration, true, grab, point, 1f);
+            _bodyAction.Start(_reachPickupContact, _reachPickupDuration, true, grab, point, 1f);
         }
 
         private void StartChop()
@@ -398,7 +328,7 @@ namespace Gameplay.Entities.Characters.Player
             if (_view.IsThirdPerson)
             {
                 _body.Chop(isAlternate);
-                StartBodyAction(_swing.Contact, _swing.Duration, false, () => _axe.Strike(isAlternate));
+                _bodyAction.Start(_swing.Contact, _swing.Duration, false, () => _axe.Strike(isAlternate));
                 _isChopping = true;
                 return;
             }
@@ -439,9 +369,11 @@ namespace Gameplay.Entities.Characters.Player
             if (impact.Bounces)
             {
                 _body.Bounce();
-                _bodyActionDuration = _bodyActionTime + _recoilDuration;
+                _bodyAction.Extend(_recoilDuration);
             }
         }
+
+        private void HandleBodyActionFinished() => _isChopping = false;
 
         private void HandleViewChanged(PlayerView view)
         {
@@ -500,36 +432,21 @@ namespace Gameplay.Entities.Characters.Player
             _aim.SetPositionAndRotation(origin, _aimCamera.rotation);
         }
 
-        private Vector3 HandleMovement(Keyboard keyboard, float deltaTime)
+        private Vector3 HandleMovement(float deltaTime)
         {
-            Vector2 input = _bodyLocksMovement ? Vector2.zero : ReadMoveInput(keyboard);
-            float speed = GetMoveSpeed(keyboard, input) * LandingSpeedFactor();
-            Vector3 target = (transform.forward * input.y + transform.right * input.x).normalized * speed;
-            _planarVelocity = Vector3.MoveTowards(_planarVelocity, target, GetAcceleration(target) * deltaTime);
-            _planarVelocity = _hose.LimitMove(_planarVelocity);
+            Vector2 input = _bodyAction.LocksMovement ? Vector2.zero : GameInput.Move;
+            float speed = GetMoveSpeed(input) * _motor.LandingSpeedFactor;
+            Vector3 target = _motor.Steer(input, speed, deltaTime);
+            _motor.PlanarVelocity = _hose.LimitMove(_motor.PlanarVelocity);
 
             _jump.HeightBoost = _hose.JumpBoost;
-            _jump.Tick(keyboard.spaceKey.wasPressedThisFrame, keyboard.spaceKey.isPressed, !_carry.IsCarrying && !IsBodyBusy, _gravity, deltaTime);
-            Vector3 move = _planarVelocity + _hose.RecoilPush(target);
-            move.y = _jump.VerticalSpeed;
-            _jump.HandleCollision(_characterController.Move(move * deltaTime));
-            bool isFast = speed > _walkSpeed;
+            _jump.Tick(GameInput.JumpPressed, GameInput.IsJumpHeld, !_carry.IsCarrying && !IsBodyBusy, _motor.Gravity, deltaTime);
+            Vector3 move = _motor.Move(_hose.RecoilPush(target), deltaTime);
+            bool isFast = speed > _motor.WalkSpeed;
             bool isStriding = _body.TryGetStride(isFast, out float stride);
-            _audio.Tick(_characterController.isGrounded, isFast, isStriding, stride, deltaTime);
+            _audio.Tick(_motor.IsGrounded, isFast, isStriding, stride, deltaTime);
             return move;
         }
-
-        private float GetAcceleration(Vector3 target)
-        {
-            if (!_jump.IsNearGround)
-            {
-                return _airAcceleration;
-            }
-
-            return target.sqrMagnitude >= _planarVelocity.sqrMagnitude ? _groundAcceleration : _groundDeceleration;
-        }
-
-        private float LandingSpeedFactor() => _landingRecovery > 0f ? _hardLandingSpeedFactor : 1f;
 
         private void HandleJumped()
         {
@@ -546,13 +463,13 @@ namespace Gameplay.Entities.Characters.Player
             _cameraFeel.Land(impact * ShakeFactor);
             if (isHard)
             {
-                _landingRecovery = _hardLandingRecovery;
+                _motor.BeginLandingRecovery();
             }
         }
 
-        private void HandleViewToggle(Keyboard keyboard)
+        private void HandleViewToggle()
         {
-            _isViewTogglePending |= keyboard.vKey.wasPressedThisFrame;
+            _isViewTogglePending |= GameInput.ViewTogglePressed;
             if (_isViewTogglePending && CanAct)
             {
                 _isViewTogglePending = false;
@@ -584,33 +501,23 @@ namespace Gameplay.Entities.Characters.Player
             _body.SetAiming(_stance.IsAiming);
         }
 
-        private float RunDirectionFactor(Vector2 input)
-        {
-            if (input.y > 0f)
-            {
-                return 1f;
-            }
-
-            return input.y < 0f ? _backwardRunFactor : _strafeRunFactor;
-        }
-
-        private float GetMoveSpeed(Keyboard keyboard, Vector2 input)
+        private float GetMoveSpeed(Vector2 input)
         {
             if (IsStanceActive && _stance.IsAiming)
             {
-                return _walkSpeed * _stance.MoveFactor;
+                return _motor.WalkSpeed * _stance.MoveFactor;
             }
 
             if (_carry.IsCarrying)
             {
-                return _walkSpeed * _carry.SpeedMultiplier;
+                return _motor.WalkSpeed * _carry.SpeedMultiplier;
             }
 
-            float speed = keyboard.leftShiftKey.isPressed ? _runSpeed * RunDirectionFactor(input) : _walkSpeed;
+            float speed = GameInput.IsRunHeld ? _motor.RunSpeedFor(input) : _motor.WalkSpeed;
             return _isChopping ? speed * _swing.MoveFactor : speed;
         }
 
-        private void HandleInteraction(Keyboard keyboard)
+        private void HandleInteraction()
         {
             IInteractable target = _interactionLogic.Current;
             if (!CanAct || target == null || !target.CanInteract)
@@ -618,7 +525,7 @@ namespace Gameplay.Entities.Characters.Player
                 return;
             }
 
-            if (keyboard.eKey.wasPressedThisFrame)
+            if (GameInput.InteractPressed)
             {
                 if (target.Gesture == HandGesture.Grab)
                 {
@@ -628,15 +535,15 @@ namespace Gameplay.Entities.Characters.Player
 
                 _hands.Play(target.Gesture, () => _interactionLogic.Interact(target));
             }
-            else if (keyboard.qKey.wasPressedThisFrame && target is IAltInteractable alt)
+            else if (GameInput.AltInteractPressed && target is IAltInteractable alt)
             {
                 _hands.Play(target.Gesture, () => alt.AltInteract(transform));
             }
         }
 
-        private void HandlePrimaryAction(Mouse mouse)
+        private void HandlePrimaryAction()
         {
-            if (!CanAct || !mouse.leftButton.wasPressedThisFrame)
+            if (!CanAct || !GameInput.PrimaryPressed)
             {
                 return;
             }
@@ -651,9 +558,9 @@ namespace Gameplay.Entities.Characters.Player
             }
         }
 
-        private void HandleDrop(Keyboard keyboard)
+        private void HandleDrop()
         {
-            if (!CanAct || !keyboard.gKey.wasPressedThisFrame)
+            if (!CanAct || !GameInput.DropPressed)
             {
                 return;
             }
@@ -681,27 +588,15 @@ namespace Gameplay.Entities.Characters.Player
                 return;
             }
 
-            StartBodyAction(_tossContact, _tossDuration, false, release, _head.position + _head.forward * _tossReach, 1f);
+            _bodyAction.Start(_tossContact, _tossDuration, false, release, _head.position + _head.forward * _tossReach, 1f);
         }
 
-        private void HandleHotbar(Keyboard keyboard)
+        private void HandleHotbar()
         {
-            if (!HasFreeHands || !CanAct)
+            int slot = GameInput.HotbarSlot;
+            if (HasFreeHands && CanAct && slot != GameInput.NoSlot)
             {
-                return;
-            }
-
-            if (keyboard.digit1Key.wasPressedThisFrame)
-            {
-                _heldItem.SelectSlot(0);
-            }
-            else if (keyboard.digit2Key.wasPressedThisFrame)
-            {
-                _heldItem.SelectSlot(1);
-            }
-            else if (keyboard.digit3Key.wasPressedThisFrame)
-            {
-                _heldItem.SelectSlot(2);
+                _heldItem.SelectSlot(slot);
             }
         }
 
@@ -762,18 +657,8 @@ namespace Gameplay.Entities.Characters.Player
                 return;
             }
 
-            Animator body = resident.Animator;
+            Animator body = resident.Character.Animator;
             _hands.SetCarryGrips(body.GetBoneTransform(HumanBodyBones.LeftUpperArm), body.GetBoneTransform(HumanBodyBones.LeftLowerLeg));
-        }
-
-        private static Vector2 ReadMoveInput(Keyboard keyboard)
-        {
-            Vector2 input = Vector2.zero;
-            input.y += keyboard.wKey.isPressed ? 1f : 0f;
-            input.y -= keyboard.sKey.isPressed ? 1f : 0f;
-            input.x += keyboard.dKey.isPressed ? 1f : 0f;
-            input.x -= keyboard.aKey.isPressed ? 1f : 0f;
-            return input;
         }
 
         private static float NormalizeAngle(float angle) => angle > HalfTurn ? angle - FullTurn : angle;

@@ -4924,6 +4924,7 @@ GameObject:
   - component: {fileID: 1416455073870837417}
   - component: {fileID: 8302718747558828508}
   - component: {fileID: 2806812447320912951}
+  - component: {fileID: 1248042367499838570}
   m_Layer: 0
   m_Name: Neighbor
   m_TagString: Untagged
@@ -5051,10 +5052,26 @@ MonoBehaviour:
   _flyLineId: 
   _icon: {fileID: 0}
   _flightEuler: {x: -70, y: 0, z: 0}
-  _bodyCenterHeight: 0.85
   _colliders:
   - {fileID: 1416455073870837417}
+  _character: {fileID: 2806812447320912951}
+  _liftHop: 0.15
+--- !u!114 &2806812447320912951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6242269399097307012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
   _animator: {fileID: 7656940734006471044}
+  _rescuable: {fileID: 8302718747558828508}
+  _jaw: {fileID: 1248042367499838570}
+  _bodyCenterHeight: 0.85
   _pose:
     _hipFlex: 85
     _kneeBend: 85
@@ -5083,25 +5100,6 @@ MonoBehaviour:
     _victoryArmForward: 18
     _victoryForearmIn: 25
     _pelvisHeight: 0.9
-  _liftHop: 0.15
-  _faceSharpness: 5
-  _lookLimit: 55
-  _lookSharpness: 6
-  _lookRelease: 0.3
---- !u!114 &2806812447320912951
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6242269399097307012}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f451dd7e9ab97546a1fce13878976e4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.CharacterReactions
-  _animator: {fileID: 7656940734006471044}
-  _rescuable: {fileID: 8302718747558828508}
   _reactions:
     _coatMaterial: {fileID: 2100000, guid: 85c8e5bab8a0d274e978c280f3c29af1, type: 2}
     _powderColor: {r: 0.95, g: 0.95, b: 0.97, a: 1}
@@ -5130,6 +5128,30 @@ MonoBehaviour:
     - N09
     _strikeLines:
     - N10
+  _look:
+    _faceSharpness: 5
+    _lookLimit: 55
+    _lookSharpness: 6
+    _lookRelease: 0.3
+--- !u!114 &1248042367499838570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6242269399097307012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e9320078425a7842b01ff1ceb6b2b87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.JawControl
+  _jaw: {fileID: 3397870207839943679}
+  _axis: {x: 1, y: 0, z: 0}
+  _openAngle: 11
+  _syllableRate: 5.5
+  _emphasisRate: 1.7
+  _minEmphasis: 0.35
+  _sharpness: 28
 --- !u!1 &6304998961120636807
 GameObject:
   m_ObjectHideFlags: 0

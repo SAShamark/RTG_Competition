@@ -22,10 +22,16 @@ MonoBehaviour:
   _popupModels:
   - _popupType: 5
     _template: {fileID: 5119343309373187324, guid: e13a72b7d0e6a574c978a805d3ee4272, type: 3}
-    _useTotalFader: 0
+    _useTotalFader: 1
   - _popupType: 6
     _template: {fileID: 7389498106130670803, guid: dd019f03fa6f70e468295be0ac02b7ba, type: 3}
-    _useTotalFader: 0
+    _useTotalFader: 1
   - _popupType: 0
     _template: {fileID: 106538049512724979, guid: 7e4f1296a414b0e4486ed1665b512a42, type: 3}
+    _useTotalFader: 1
+  - _popupType: 7
+    _template: {fileID: 16660863587419046, guid: 4468c142e1d067d42b57c43fa16e31c4, type: 3}
+    _useTotalFader: 1
+  - _popupType: 8
+    _template: {fileID: 5799766479657252036, guid: f28802a9a3424bd468a03849514a295f, type: 3}
     _useTotalFader: 0

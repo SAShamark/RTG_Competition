@@ -1,5 +1,5 @@
 using System;
-using Gameplay.Entities.Characters.Residents;
+using Gameplay.Entities.Characters;
 using UnityEngine;
 
 namespace UI.Popups.Variants.Results
@@ -9,10 +9,10 @@ namespace UI.Popups.Variants.Results
     {
         [SerializeField] private Camera _camera;
         [SerializeField] private GameObject _set;
-        [SerializeField] private PosedActor _actor;
+        [SerializeField] private CharacterControl _actor;
 
         public Camera Camera => _camera;
         public GameObject Set => _set;
-        public PosedActor Actor => _actor;
+        public CharacterControl Actor => _actor;
     }
 }

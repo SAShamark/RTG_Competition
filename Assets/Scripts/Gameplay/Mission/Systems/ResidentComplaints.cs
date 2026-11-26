@@ -9,7 +9,7 @@ namespace Gameplay.Mission.Systems
     [Serializable]
     public sealed class ResidentComplaints
     {
-        [SerializeField] private CharacterReactions[] _characters = Array.Empty<CharacterReactions>();
+        [SerializeField] private CharacterControl[] _characters = Array.Empty<CharacterControl>();
 
         private GameplayScreen _screen;
         private TextLibrary _texts;
@@ -23,7 +23,7 @@ namespace Gameplay.Mission.Systems
             _screen = screen;
             _texts = texts;
             _dialogs = dialogs;
-            foreach (CharacterReactions character in _characters)
+            foreach (CharacterControl character in _characters)
             {
                 character.Bothered += HandleBothered;
             }
@@ -31,13 +31,13 @@ namespace Gameplay.Mission.Systems
 
         public void Dispose()
         {
-            foreach (CharacterReactions character in _characters)
+            foreach (CharacterControl character in _characters)
             {
                 character.Bothered -= HandleBothered;
             }
         }
 
-        private void HandleBothered(CharacterReactions character, string lineId)
+        private void HandleBothered(CharacterControl character, string lineId)
         {
             // A newer reaction takes the window over from an older one, but never cuts into any other line.
             if (_screen.IsDialogBusy)
@@ -54,7 +54,7 @@ namespace Gameplay.Mission.Systems
             _screen.ShowToast(_texts.Format(TextId.ToastComplaint, Count));
             DialogPhrase phrase = _dialogs.Get(lineId);
             _reactionEnd = Time.unscaledTime + phrase.Hold;
-            _screen.CharacterSay(phrase.Speaker, phrase.Text, phrase.Hold, character.Head);
+            _screen.Say(phrase, character.Head);
         }
     }
 }

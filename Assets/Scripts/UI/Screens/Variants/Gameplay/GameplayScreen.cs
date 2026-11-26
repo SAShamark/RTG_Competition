@@ -7,12 +7,12 @@ using UI.Screens.Variants.Cutscene.Widgets;
 using UI.Screens.Variants.Gameplay.Widgets;
 using UI.Screens.Base;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UI.Screens.Variants.Gameplay
 {
     public sealed class GameplayScreen : BaseScreen
     {
-        [SerializeField] private GameObject _hudRoot;
         [SerializeField] private GameObject _crosshair;
 
         [Header("Widgets")]
@@ -20,7 +20,8 @@ namespace UI.Screens.Variants.Gameplay
         [SerializeField] private RescueNoticeWidget _rescued;
         [SerializeField] private InteractionPromptWidget _prompt;
         [SerializeField] private TargetFrameWidget _targetFrame;
-        [SerializeField] private PartnerDialogWidget _partner;
+        [FormerlySerializedAs("_partner")]
+        [SerializeField] private DialogWidget _dialog;
         [SerializeField] private HotbarWidget _hotbar;
         [SerializeField] private NavMarkerWidget _navMarker;
         [SerializeField] private HotbarSlot _activeSlot;
@@ -47,12 +48,7 @@ namespace UI.Screens.Variants.Gameplay
 
         public void UpdateObjectiveText(string text) => _objective.UpdateText(text);
 
-        public void SetObjectiveVisible(bool isVisible) => SetHudVisible(isVisible);
-
-        public void SetHudVisible(bool isVisible)
-        {
-            _hudRoot.SetActive(isVisible);
-        }
+        public void SetHudVisible(bool isVisible) => _safeAreaFitter.gameObject.SetActive(isVisible);
 
         public void ShowRescued(int value, int total) => _rescued.Show(value, total);
 
@@ -91,32 +87,18 @@ namespace UI.Screens.Variants.Gameplay
 
         public void SetInteractionTarget(Component target) => _targetFrame.SetTarget(target);
 
-        public void PartnerSay(string line, float hold) => _partner.Say(line, hold);
+        public void Say(DialogPhrase phrase, Transform anchor = null) => _dialog.Say(phrase, anchor);
 
-        public void CharacterSay(string speaker, string line, float hold, Transform anchor = null) =>
-            _partner.Say(line, hold, speaker, anchor);
+        public bool IsDialogBusy => _dialog.IsBusy;
 
-        public void Say(DialogPhrase phrase, Transform anchor = null)
-        {
-            if (phrase.Character == CharactersType.Partner)
-            {
-                _partner.Say(phrase.Text, phrase.Hold);
-                return;
-            }
-
-            _partner.Say(phrase.Text, phrase.Hold, phrase.Speaker, anchor);
-        }
-
-        public bool IsDialogBusy => _partner.IsBusy;
-
-        public void ClearDialog() => _partner.Clear();
+        public void ClearDialog() => _dialog.Clear();
 
         public void ShowToast(string message) => _toasts.Show(message);
 
         public void Init(FirstPersonController player, FireHeatLogic fireHeat, TextLibrary texts, Camera camera)
         {
             _targetFrame.Init(camera);
-            _partner.Init(camera);
+            _dialog.Init(camera);
             _player = player;
             _fireHeat = fireHeat;
             _pressure.Init(player.Extinguisher, player.Axe);

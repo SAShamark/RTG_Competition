@@ -34,6 +34,7 @@ namespace Services.Audio
             InitializeSingleton(false);
             AudioListener listener = FindAnyObjectByType<AudioListener>();
             _listener = listener != null ? listener.transform : null;
+            _music.ignoreListenerPause = true;
             _music.volume = 0f;
             _streetAmbience.volume = 0f;
             _buildingAmbience.volume = 0f;
@@ -45,7 +46,7 @@ namespace Services.Audio
         private void Update()
         {
             float step = Time.unscaledDeltaTime * _fadeSpeed;
-            float duck = _isDucked ? _duckedMusic : 1f;
+            float duck = _isDucked && !AudioListener.pause ? _duckedMusic : 1f;
             if (Time.unscaledTime < _voiceUntil)
             {
                 duck = Mathf.Min(duck, _voiceDuck);

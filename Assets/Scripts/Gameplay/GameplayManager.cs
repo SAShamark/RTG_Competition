@@ -47,6 +47,9 @@ namespace Gameplay
         [SerializeField] private MissionCinematics _cinematics = new();
         [SerializeField] private float _facadeLinePause = 0.6f;
 
+        [Header("Pause")]
+        [SerializeField] private PauseController _pause = new();
+
         private GameplayScreen _screen;
         private IPopupsManager _popups;
         private EvacuationController _evacuation;
@@ -67,9 +70,9 @@ namespace Gameplay
             _fog.Init();
             _grass.Init();
             _fireHeat.Init(_player.Head);
-            _dialogue.Init(_screen, _player, _playerBody, AudioService.Instance);
+            _dialogue.Init(_screen, _player, _playerBody);
             _navigation.Init(_player.Head, _camera, _screen.NavMarker, _texts);
-            _cinematics.Initialize(uiManager, _screen, _player, _camera, AudioService.Instance);
+            _cinematics.Initialize(uiManager, _screen, _player, _camera);
             _facade.Init(_screen, _texts, _cinematics.HouseFires, _navigation);
 
             _evacuation = new EvacuationController(_player, _evacuationWindows, _rescueTotal, _cinematics.Throw, _cinematics.Present, _screen, _texts, _dialogue.Library);
@@ -92,6 +95,7 @@ namespace Gameplay
             _cinematics.FinaleFinished += HandleFinaleFinished;
             _player.Hose.WaterLanded += HandleWaterLanded;
 
+            _pause.Init(_popups, _player);
             if (!_cinematics.TryPresentIntro())
             {
                 StartMission();
@@ -100,6 +104,12 @@ namespace Gameplay
 
         public void Tick(float deltaTime)
         {
+            _pause.Tick();
+            if (PauseController.IsPaused)
+            {
+                return;
+            }
+
             _fireHeat.Tick(deltaTime);
             _dialogue.Tick(deltaTime);
             _mission.Tick(deltaTime);
@@ -127,10 +137,17 @@ namespace Gameplay
             }
         }
 
-        public void LateTick() => _dialogue.LateTick();
+        public void LateTick()
+        {
+            if (!PauseController.IsPaused)
+            {
+                _dialogue.LateTick();
+            }
+        }
 
         public void Dispose()
         {
+            _pause.Dispose();
             _mission.EntranceOpened -= _cinematics.PlayUncleBurst;
             _mission.Completed -= _cinematics.PlayGasBurst;
             _cinematics.IntroFinished -= HandleIntroFinished;
@@ -216,7 +233,6 @@ namespace Gameplay
         private void HandleResultsContinued()
         {
             _resultsPopup.Continued -= HandleResultsContinued;
-            _popups.HidePopup(PopupTypes.Result);
             _cinematics.ReleaseFinale();
             _screen.SetHudVisible(true);
             _screen.SetCrosshairVisible(true);

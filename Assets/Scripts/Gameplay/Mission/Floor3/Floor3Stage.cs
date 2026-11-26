@@ -61,11 +61,15 @@ namespace Gameplay.Mission.Floor3
         {
             new FindNeighborStep(_setup, _flatDoorPlanks, Context),
             new CloseGasStep(_setup, _wheelSearch, Context),
-            new EvacuateNeighborStep(_setup, Context),
+            new EvacuateResidentStep(_setup.Neighbor, _setup.Window,
+                new EvacuationBrief(TextId.ObjectiveEvacuateNeighbor, TextId.RadioEvacuateNeighbor, DialogIds.PlayerRescueNeighbor, DialogIds.NeighborIsItFree, false),
+                Context, MovePartnerToSpot),
             new LeaveBuildingStep(Context),
         };
 
         protected override void OnFinished() => SetObjective(TextId.ObjectiveRun);
+
+        private void MovePartnerToSpot() => _setup.Partner.SetPositionAndRotation(_setup.PartnerSpot.position, _setup.PartnerSpot.rotation);
 
         private void HandleFlatDoorChopped(BreakableDoor planks, Vector3 point) => Begin();
 

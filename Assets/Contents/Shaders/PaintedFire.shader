@@ -71,6 +71,7 @@ Shader "FlameBlame/PaintedFire"
                 float4 positionOS : POSITION;
                 half4 color : COLOR;
                 float4 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -79,11 +80,14 @@ Shader "FlameBlame/PaintedFire"
                 half4 color : COLOR;
                 float4 uv : TEXCOORD0;
                 float4 screenPos : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
                 output.color = input.color;
@@ -94,6 +98,7 @@ Shader "FlameBlame/PaintedFire"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 uv = input.uv.xy;
                 float seed = input.uv.z;
                 float time = _Time.y * _NoiseSpeed;

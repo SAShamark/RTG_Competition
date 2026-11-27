@@ -14,6 +14,7 @@ namespace UI.Popups
 
         private Dictionary<PopupTypes, PopupModelData> _popupModelsParsed = new();
         private List<BasePopup> _currentPopups = new();
+        public int OpenCount => _currentPopups.Count;
         public event Action<PopupTypes> PopupShowed;
         public event Action<PopupTypes> PopupHidden;
 

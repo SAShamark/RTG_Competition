@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
 {
-    public sealed class Door : Interactable, IUsableWhileCarrying, IChoppable
+    public sealed class Door : Interactable, IUsableWhileCarrying, IChoppable, IHandDraggable
     {
         private const float MinDuration = 0.01f;
         private const float ProbeAngle = 10f;
@@ -23,12 +23,18 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private string _lockedHint = "Зачинено";
         [SerializeField] private string _lockedAction = "Відчинити";
         [SerializeField] private ItemType _forceItem = ItemType.None;
-        [SerializeField] private string _forceHint = "[ЛКМ] Збити замок сокирою";
+        [SerializeField] private string _forceHint = "[Замах] Збий замок сокирою";
         [SerializeField] private float _rattleAngle = 2.5f;
         [SerializeField] private float _rattleDuration = 0.35f;
         [SerializeField] private float _rattleShakes = 6f;
         [SerializeField] private bool _isChopOnly;
-        [SerializeField] private string _chopHint = "[ЛКМ] Рубай сокирою";
+        [SerializeField] private string _chopHint = "[Замах] Рубай сокирою";
+
+        [Header("Hand drag")]
+        [SerializeField] private float _dragOpenAngle = 12f;
+        [SerializeField] private float _dragCloseAngle = 4f;
+        [SerializeField] private float _dragMoveAngle = 3f;
+        [SerializeField] private float _minDragRadius = 0.15f;
 
         private float _closedYaw;
         private float _currentAngle;
@@ -36,11 +42,14 @@ namespace Gameplay.Entities.Interactive
         private MotionHandle _swing = MotionHandle.Idle;
         private bool _isAjar;
         private BreakableDoor _planks;
+        private float _dragOffset;
+        private float _dragStart;
+        private float _dragTravel;
 
         public bool IsOpen { get; private set; }
         public bool IsLocked => _isLocked;
-        public override HandGesture Gesture => _isChopOnly ? HandGesture.None : _isLocked ? HandGesture.Rattle : HandGesture.Push;
         public override bool CanInteract => !_isChopOnly || !_planks.IsBreached;
+        public bool CanDrag => !_isLocked && !_isChopOnly;
 
         public event Action<Door> LockedAttempt;
         public event Action<Door> Opened;
@@ -149,6 +158,41 @@ namespace Gameplay.Entities.Interactive
 
         public void Open(Vector3 awayFrom) => Open(awayFrom, _openDuration, SoundType.DoorOpen);
 
+        public void BeginDrag(Transform interactor, Pose hand, bool isLeft)
+        {
+            _swing.Stop();
+            _isAjar = false;
+            _dragStart = _currentAngle;
+            _dragTravel = 0f;
+            _dragOffset = _currentAngle - HandAngle(hand.position);
+        }
+
+        public void Drag(Pose hand)
+        {
+            if (HingeLocal(hand.position).sqrMagnitude < _minDragRadius * _minDragRadius)
+            {
+                return;
+            }
+
+            _currentAngle = Mathf.Clamp(Mathf.DeltaAngle(0f, HandAngle(hand.position) + _dragOffset), -_openAngle, _openAngle);
+            ApplyRotation();
+            _dragTravel = Mathf.Max(_dragTravel, Mathf.Abs(Mathf.DeltaAngle(_dragStart, _currentAngle)));
+            float opening = Mathf.Abs(_currentAngle);
+            if (!IsOpen && opening >= _dragOpenAngle)
+            {
+                IsOpen = true;
+                Play(SoundType.DoorOpen);
+                Opened?.Invoke(this);
+            }
+            else if (IsOpen && opening <= _dragCloseAngle)
+            {
+                IsOpen = false;
+                Play(SoundType.DoorClose);
+            }
+        }
+
+        public bool EndDrag() => _dragTravel > _dragMoveAngle;
+
         public void BurstOpen(Vector3 awayFrom, float duration) => Open(awayFrom, duration, SoundType.DoorBurst);
 
         private void Open(Vector3 awayFrom, float duration, SoundType sound)
@@ -199,6 +243,21 @@ namespace Gameplay.Entities.Interactive
             Vector3 positiveMove = Quaternion.AngleAxis(ProbeAngle, transform.up) * radius - radius;
             Vector3 toPoint = awayFrom - leafCenter;
             return Vector3.Dot(positiveMove, toPoint) > 0f ? -1f : 1f;
+        }
+
+        private Vector3 HingeLocal(Vector3 point)
+        {
+            Transform parent = transform.parent;
+            Vector3 local = (parent != null ? parent.InverseTransformPoint(point) : point) - transform.localPosition;
+            local.y = 0f;
+            return local;
+        }
+
+        // Yaw that turns the parent's +X toward the point: rotating +X by yaw gives (cos, 0, -sin).
+        private float HandAngle(Vector3 point)
+        {
+            Vector3 local = HingeLocal(point);
+            return Mathf.Atan2(-local.z, local.x) * Mathf.Rad2Deg;
         }
 
         private Vector3 LeafCenter()

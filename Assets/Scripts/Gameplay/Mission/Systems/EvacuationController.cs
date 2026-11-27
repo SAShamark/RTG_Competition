@@ -84,7 +84,7 @@ namespace Gameplay.Mission.Systems
             AudioService.Instance.PlayAt(SoundType.PropImpact, resident.HeadCenter);
             if (!_screen.IsDialogBusy && !string.IsNullOrEmpty(resident.BumpLineId))
             {
-                _screen.Say(_dialogs.Get(resident.BumpLineId), resident.Head);
+                _screen.Say(_dialogs.Get(resident.BumpLineId));
             }
         }
 
@@ -111,7 +111,6 @@ namespace Gameplay.Mission.Systems
 
         private void HandleThrowFinished()
         {
-            _screen.SetCrosshairVisible(true);
             _screen.ShowToast(_texts.Format(TextId.ToastRescuedCount, Rescued, _rescueTotal));
         }
     }

@@ -26,7 +26,7 @@ namespace Gameplay.Mission.Core
 
         protected void ShowToast(TextId id) => Screen.ShowToast(Texts[id]);
 
-        protected void Say(string lineId, Transform speaker = null) => Screen.Say(Dialogue.Library.Get(lineId), speaker);
+        protected void Say(string lineId) => Screen.Say(Dialogue.Library.Get(lineId));
 
         protected void Talk(DialogueLine[] lines, Action onFinished = null) => Dialogue.Play(lines, onFinished);
 

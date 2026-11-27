@@ -37,6 +37,7 @@ namespace Gameplay.Entities.Interactive.Items
         private bool _isEmpty;
 
         public bool IsSpraying { get; private set; }
+        public ExtinguisherItem Current => _current;
         public float Pressure { get; private set; } = 1f;
         public bool IsEmpty => _isEmpty;
 

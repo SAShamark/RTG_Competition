@@ -2,19 +2,12 @@ using Gameplay.Dialogue;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Interactive;
 using Services;
-using Unity.Cinemachine;
 using UnityEngine;
 
 namespace Gameplay.Cinematics
 {
     public sealed class GasBurstCutscene : CinematicBase
     {
-        private const float ShakeVerticalRatio = 1.3f;
-
-        [SerializeField] private CinemachineCamera _camera;
-        [SerializeField] private Transform _shotStart;
-        [SerializeField] private Transform _shotEnd;
-        [SerializeField] private Transform _lookAt;
         [SerializeField] private GasValve _valve;
         [SerializeField] private ParticleSystem _pipeBreak;
         [SerializeField] private ParticleSystem _gasJet;
@@ -28,9 +21,8 @@ namespace Gameplay.Cinematics
         [SerializeField] private float _ignitionTime = 2.3f;
         [SerializeField] private float _flashIntensity = 8f;
         [SerializeField] private float _flashFade = 0.7f;
-        [SerializeField] private float _shakeTime = 0.6f;
-        [SerializeField] private float _shakeAmount = 0.05f;
-        [SerializeField] private float _shakeFrequency = 35f;
+        [SerializeField, Range(0f, 1f)] private float _ignitionPulse = 0.9f;
+        [SerializeField, Min(0.01f)] private float _ignitionPulseDuration = 0.5f;
 
         [SerializeField] private CinematicSettings _settings = new(0.35f, 0f);
         [SerializeField] private SubtitleCue[] _subtitles =
@@ -60,9 +52,6 @@ namespace Gameplay.Cinematics
             _isSparked = false;
             _isIgnited = false;
             _flash.enabled = false;
-
-            _camera.transform.SetPositionAndRotation(_shotStart.position, Quaternion.LookRotation(_lookAt.position - _shotStart.position));
-            _camera.gameObject.SetActive(true);
             PlayClock();
         }
 
@@ -75,7 +64,6 @@ namespace Gameplay.Cinematics
 
             float t = ElapsedTime;
             TriggerBeats(t);
-            MoveCamera(t);
             FadeFlash(t);
             StopAtEnd();
         }
@@ -102,21 +90,9 @@ namespace Gameplay.Cinematics
                 _gasJet.Stop(true, ParticleSystemStopBehavior.StopEmitting);
                 EffectPlayback.Restart(_ignition);
                 _flash.enabled = true;
+                _player.Rig.Input.Pulse(true, _ignitionPulse, _ignitionPulseDuration);
+                _player.Rig.Input.Pulse(false, _ignitionPulse, _ignitionPulseDuration);
             }
-        }
-
-        private void MoveCamera(float t)
-        {
-            float k = Easing.Smooth(Mathf.Clamp01(t / _duration));
-            Vector3 position = Vector3.Lerp(_shotStart.position, _shotEnd.position, k);
-            float sinceIgnition = t - _ignitionTime;
-            if (sinceIgnition > 0f && sinceIgnition < _shakeTime)
-            {
-                float fade = 1f - sinceIgnition / _shakeTime;
-                position += new Vector3(Mathf.Sin(t * _shakeFrequency), Mathf.Cos(t * _shakeFrequency * ShakeVerticalRatio), 0f) * (_shakeAmount * fade);
-            }
-
-            _camera.transform.SetPositionAndRotation(position, Quaternion.LookRotation(_lookAt.position - position));
         }
 
         private void FadeFlash(float t)
@@ -131,7 +107,6 @@ namespace Gameplay.Cinematics
 
         protected override void OnStopped()
         {
-            _camera.gameObject.SetActive(false);
             _flash.enabled = false;
             _player.enabled = true;
         }

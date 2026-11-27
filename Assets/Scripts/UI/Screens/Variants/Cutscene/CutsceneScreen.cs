@@ -113,7 +113,7 @@ namespace UI.Screens.Variants.Cutscene
             CinematicSettings settings = _cinematic.Settings;
 
             _barsShown = Mathf.Min(FadeIn(time, settings.BarsInTime), FadeIn(duration - time, settings.BarsOutTime));
-            ApplyBars(_barsShown);
+            ApplyBars(_cinematic.IsInWorld ? 0f : _barsShown);
             UpdateFireProgress();
             UpdateTitle(time, settings);
             UpdateSubtitles(time);
@@ -247,6 +247,7 @@ namespace UI.Screens.Variants.Cutscene
             _skipRing.fillAmount = Mathf.Clamp01(_skipHold / _skipHoldTime);
 
             float hint = time > _skipHintDelay || isAnyPress || isHolding ? _barsShown : 0f;
+            hint = _cinematic.IsInWorld ? 0f : hint;
             _skipGroup.alpha = Mathf.MoveTowards(_skipGroup.alpha, hint, deltaTime * _skipFadeSpeed);
 
             if (_skipHold >= _skipHoldTime)

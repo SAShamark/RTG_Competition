@@ -1545,7 +1545,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "\u0423\u0442\u0440\u0438\u043C\u0443\u0439 SPACE \u2014 \u043F\u0440\u043E\u043F\u0443\u0441\u0442\u0438\u0442\u0438"
+  m_Text: "\u0423\u0442\u0440\u0438\u043C\u0443\u0439 A \u2014 \u043F\u0440\u043E\u043F\u0443\u0441\u0442\u0438\u0442\u0438"
 --- !u!1 &6772205016630751798
 GameObject:
   m_ObjectHideFlags: 0

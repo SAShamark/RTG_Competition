@@ -23,6 +23,7 @@ namespace Gameplay.Cinematics
 
         public override CinematicSettings Settings => _settings;
         public override SubtitleCue[] Subtitles => _subtitles;
+        public override bool IsInWorld => false;
 
         private void Start()
         {

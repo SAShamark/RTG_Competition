@@ -2,7 +2,7 @@ using Gameplay.Dialogue;
 using Gameplay.Entities.Interactive;
 using Gameplay.Entities.Interactive.Items;
 using Gameplay.Mission.Core;
-using UI.Popups;
+using Services.Audio;
 using UnityEngine;
 
 namespace Gameplay.Mission.Floor3
@@ -13,6 +13,7 @@ namespace Gameplay.Mission.Floor3
         private readonly ValveRoomController _valveRoom;
         private readonly WheelSearchController _wheelSearch;
         private BreakableDoor _flatDoorPlanks;
+        private DoorKey _pantryKey;
 
         public Floor3Stage(Floor3Setup setup, StackItem flywheel, MissionContext context) : base(context)
         {
@@ -32,11 +33,14 @@ namespace Gameplay.Mission.Floor3
             _flatDoorPlanks = _setup.FlatDoor.GetComponentInChildren<BreakableDoor>();
             _setup.PantryDoor.SetLocked(true);
             _setup.PantryDoor.SetLockedPrompt(Texts[TextId.PromptLockpick], "");
+            _setup.PantryDoor.SetForceItem(ItemType.Axe);
+            _pantryKey = _setup.PantryDoor.GetComponentInChildren<DoorKey>();
 
             _valveRoom.Init();
             _wheelSearch.Init();
 
-            _setup.PantryDoor.LockedAttempt += HandlePantryLocked;
+            _pantryKey.Turned += HandlePantryKeyTurned;
+            _setup.PantryDoor.Forced += HandlePantryForced;
             _valveRoom.Solved += _setup.Valve.ForceClose;
             _setup.Valve.Closed += HandleGasClosed;
             _setup.Handle.Taken += HandleHandleTaken;
@@ -45,7 +49,8 @@ namespace Gameplay.Mission.Floor3
 
         protected override void OnDispose()
         {
-            _setup.PantryDoor.LockedAttempt -= HandlePantryLocked;
+            _pantryKey.Turned -= HandlePantryKeyTurned;
+            _setup.PantryDoor.Forced -= HandlePantryForced;
             _valveRoom.Solved -= _setup.Valve.ForceClose;
             _setup.Valve.Closed -= HandleGasClosed;
             _setup.Handle.Taken -= HandleHandleTaken;
@@ -82,19 +87,22 @@ namespace Gameplay.Mission.Floor3
             Say(DialogIds.NeighborGasClosed);
         }
 
-        private void HandlePantryLocked(Door door)
-        {
-            if (Context.Puzzles.IsBusy || !Context.Player.enabled)
-            {
-                return;
-            }
+        private void HandlePantryKeyTurned(DoorKey key) => OpenPantry();
 
-            Context.Puzzles.Present(PopupTypes.Lockpick, () =>
-            {
-                door.LockedAttempt -= HandlePantryLocked;
-                door.Open(Context.Player.transform.position);
-                ShowToast(TextId.ToastLockOpened);
-            });
+        private void HandlePantryForced(Door door)
+        {
+            _pantryKey.SetTurned();
+            AudioService.Instance.PlayAt(SoundType.LockBreak, door.transform.position);
+            OpenPantry();
+        }
+
+        private void OpenPantry()
+        {
+            _pantryKey.Turned -= HandlePantryKeyTurned;
+            _setup.PantryDoor.Forced -= HandlePantryForced;
+            _setup.PantryDoor.SetForceItem(ItemType.None);
+            _setup.PantryDoor.Open(Context.Player.transform.position);
+            ShowToast(TextId.ToastLockOpened);
         }
     }
 }

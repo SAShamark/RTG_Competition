@@ -30,12 +30,6 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private float _recoilPush = 2.4f;
         [SerializeField] private float _recoilJump = 2.5f;
 
-        [Header("Aim kick")]
-        [SerializeField] private float _kickClimb = 9f;
-        [SerializeField] private float _kickSway = 16f;
-        [SerializeField] private float _kickFrequency = 1.7f;
-        [SerializeField, Range(0f, 1f)] private float _kickPitchShare = 0.5f;
-
         private Transform _aim;
         private Transform _owner;
         private InventoryLogic _items;
@@ -46,20 +40,7 @@ namespace Gameplay.Entities.Interactive.Items
         private bool _wasTaut;
 
         public bool IsSpraying { get; private set; }
-        // Degrees of look the jet adds this frame: a steady climb plus a slow wander the player has to hold against.
-        public Vector2 AimKick(float deltaTime)
-        {
-            if (!IsSpraying)
-            {
-                return Vector2.zero;
-            }
-
-            float time = Time.time * _kickFrequency;
-            float yaw = (Mathf.PerlinNoise(time, 0f) - 0.5f) * 2f * _kickSway;
-            float pitch = _kickClimb + (Mathf.PerlinNoise(0f, time) - 0.5f) * 2f * _kickSway * _kickPitchShare;
-            return new Vector2(yaw, pitch) * (_current.Supply * deltaTime);
-        }
-
+        public HoseNozzleItem Current => _current;
         public float JumpBoost => IsSpraying ? Mathf.Max(0f, -_current.Nozzle.forward.y) * (_recoilJump * _current.Supply) : 0f;
 
         // The jet never shoves a standing player; it only speeds up a step taken the way it is already pushing.

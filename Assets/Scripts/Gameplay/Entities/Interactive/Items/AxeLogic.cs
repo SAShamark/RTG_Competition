@@ -10,12 +10,11 @@ namespace Gameplay.Entities.Interactive.Items
     public sealed class AxeLogic
     {
         private const int MaxRayHits = 12;
-        private const float TangentStep = 2f;
         private const int EdgeSearchSteps = 6;
         private const float Half = 0.5f;
+        private const int IgnoreRaycastLayer = 2;
 
-        [SerializeField] private float _reach = 2.4f;
-        [SerializeField] private float _radius = 0.08f;
+        [SerializeField] private float _radius = 0.05f;
         [SerializeField] private LayerMask _hitMask = ~0;
         [SerializeField] private AxeImpactLibrary _library;
 
@@ -28,7 +27,16 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private Color _fallbackColor = new(0.6f, 0.6f, 0.6f);
 
         [Header("Swing")]
-        [SerializeField] private float _alternateTilt = 40f;
+        [SerializeField] private Vector3 _bladeOffset = new(-0.33f, 0f, 0f);
+        [SerializeField] private float _minStrikeSpeed = 2.2f;
+        [SerializeField] private float _fullStrikeSpeed = 5f;
+        [SerializeField] private float _swingSoundSpeed = 3.5f;
+        [SerializeField] private float _strikeCooldown = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float _weakPushFactor = 0.3f;
+
+        [Header("Two hands")]
+        [SerializeField, Range(0.1f, 1f)] private float _twoHandedSpeedFactor = 0.75f;
+        [SerializeField, Range(0.1f, 1f)] private float _twoHandedCostFactor = 0.6f;
 
         [Header("Stamina")]
         [SerializeField, Range(0f, 1f)] private float _swingCost = 0.22f;
@@ -46,26 +54,95 @@ namespace Gameplay.Entities.Interactive.Items
 
         private readonly RaycastHit[] _hits = new RaycastHit[MaxRayHits];
         private readonly Queue<GameObject> _marks = new();
-        private Transform _aim;
         private Transform _owner;
+        private Transform _trackingSpace;
+        private Vector3 _bladeTracked;
         private InventoryLogic _items;
+        private int _queryMask;
         private float _recoverTimer;
+        private float _cooldown;
+        private Vector3 _blade;
+        private bool _hasBlade;
+        private bool _isSwinging;
+        private Transform _support;
 
         public float Stamina { get; private set; } = 1f;
-        public bool IsReady => _items.HeldItem == ItemType.Axe && Stamina >= _swingCost;
         public Vector3 SwingDirection { get; private set; }
+        public bool IsTwoHanded => _support != null;
+        public Vector3 HandleAxis => _bladeOffset.normalized;
+        public float HandleLength => _bladeOffset.magnitude;
 
-        public event Action<RaycastHit, AxeImpactLibrary.Impact> Struck;
-        public event Action Missed;
+        public event Action<RaycastHit, AxeImpactLibrary.Impact, float> Struck;
 
-        public void Init(Transform aim, Transform owner, InventoryLogic items)
+        public void Init(Transform owner, InventoryLogic items, Transform trackingSpace)
         {
-            _aim = aim;
             _owner = owner;
+            _trackingSpace = trackingSpace;
             _items = items;
+            _queryMask = _hitMask & ~(1 << IgnoreRaycastLayer);
         }
 
+        public void SetSupport(Transform support) => _support = support;
+
         public void Tick(float deltaTime)
+        {
+            RecoverStamina(deltaTime);
+            _cooldown -= deltaTime;
+            ToolItem axe = _items.HeldTool;
+            if (_items.HeldItem != ItemType.Axe || axe == null || !axe.gameObject.activeInHierarchy || deltaTime <= 0f)
+            {
+                _hasBlade = false;
+                return;
+            }
+
+            AlignToSupport(axe.transform);
+            Vector3 blade = axe.transform.TransformPoint(_bladeOffset);
+            Vector3 tracked = _trackingSpace.InverseTransformPoint(blade);
+            Vector3 from = _blade;
+            Vector3 trackedFrom = _bladeTracked;
+            _blade = blade;
+            _bladeTracked = tracked;
+            if (!_hasBlade)
+            {
+                _hasBlade = true;
+                return;
+            }
+
+            Vector3 travel = blade - from;
+            float speed = (tracked - trackedFrom).magnitude / deltaTime;
+            TickSwingSound(speed);
+            float minSpeed = IsTwoHanded ? _minStrikeSpeed * _twoHandedSpeedFactor : _minStrikeSpeed;
+            float cost = IsTwoHanded ? _swingCost * _twoHandedCostFactor : _swingCost;
+            if (_cooldown > 0f || speed < minSpeed || Stamina < cost || !TrySweep(from, travel, out RaycastHit hit))
+            {
+                return;
+            }
+
+            _cooldown = _strikeCooldown;
+            Stamina = Mathf.Max(0f, Stamina - cost);
+            _recoverTimer = _recoverDelay;
+            Strike(hit, travel.normalized, Mathf.InverseLerp(minSpeed, _fullStrikeSpeed, speed));
+        }
+
+        private void AlignToSupport(Transform axe)
+        {
+            if (_support == null)
+            {
+                return;
+            }
+
+            Vector3 handle = axe.TransformDirection(HandleAxis);
+            Vector3 toSupport = _support.position - axe.position;
+            if (toSupport.sqrMagnitude < Mathf.Epsilon)
+            {
+                return;
+            }
+
+            Vector3 target = toSupport.normalized * Mathf.Sign(Vector3.Dot(toSupport, handle));
+            axe.rotation = Quaternion.FromToRotation(handle, target) * axe.rotation;
+        }
+
+        private void RecoverStamina(float deltaTime)
         {
             if (_recoverTimer > 0f)
             {
@@ -76,21 +153,20 @@ namespace Gameplay.Entities.Interactive.Items
             Stamina = Mathf.Min(1f, Stamina + _recoverRate * deltaTime);
         }
 
-        public void SpendSwing()
+        private void TickSwingSound(float speed)
         {
-            Stamina = Mathf.Max(0f, Stamina - _swingCost);
-            _recoverTimer = _recoverDelay;
-        }
-
-        public void Strike(bool isAlternate)
-        {
-            if (!TrySweep(isAlternate, out RaycastHit hit))
+            bool isSwinging = speed >= _swingSoundSpeed;
+            if (isSwinging && !_isSwinging)
             {
-                Missed?.Invoke();
-                return;
+                AudioService.Instance.Play(SoundType.AxeSwing);
             }
 
-            Vector3 direction = SwingDirection;
+            _isSwinging = isSwinging;
+        }
+
+        private void Strike(RaycastHit hit, Vector3 direction, float power)
+        {
+            SwingDirection = direction;
             AxeImpactLibrary.Impact impact = _library.Get(_library.Resolve(hit.collider));
             AudioService.Instance.PlayAt(impact.Sound, hit.point, impact.Pitch);
             SpawnEffect(impact, hit, direction);
@@ -99,7 +175,7 @@ namespace Gameplay.Entities.Interactive.Items
             if (!impact.BlocksDamage)
             {
                 ChopTargets(hit, direction);
-                Push(hit, direction, impact.PushForce);
+                Push(hit, direction, impact.PushForce * Mathf.Lerp(_weakPushFactor, 1f, power));
                 PlaceMarks(impact, hit, direction);
             }
             else
@@ -107,32 +183,12 @@ namespace Gameplay.Entities.Interactive.Items
                 Push(hit, direction, 0f);
             }
 
-            Struck?.Invoke(hit, impact);
+            Struck?.Invoke(hit, impact, power);
         }
 
-        // The hit always lands on the crosshair; the blade's arc only decides which way the edge travels through it.
-        private bool TrySweep(bool isAlternate, out RaycastHit hit)
+        private bool TrySweep(Vector3 from, Vector3 travel, out RaycastHit nearest)
         {
-            Vector3 forward = _aim.forward;
-            Vector3 axis = Quaternion.AngleAxis(isAlternate ? _alternateTilt : 0f, forward) * _aim.right;
-            SwingDirection = ((Quaternion.AngleAxis(TangentStep, axis) * forward) - (Quaternion.AngleAxis(-TangentStep, axis) * forward)).normalized;
-            return TryCast(forward, out hit);
-        }
-
-        private bool TryRay(Vector3 direction, out RaycastHit nearest)
-        {
-            int count = Physics.RaycastNonAlloc(_aim.position, direction, _hits, _reach, _hitMask, QueryTriggerInteraction.Ignore);
-            return TryPickNearest(count, out nearest);
-        }
-
-        private bool TryCast(Vector3 direction, out RaycastHit nearest)
-        {
-            if (TryRay(direction, out nearest))
-            {
-                return true;
-            }
-
-            int count = Physics.SphereCastNonAlloc(_aim.position, _radius, direction, _hits, _reach, _hitMask, QueryTriggerInteraction.Ignore);
+            int count = Physics.SphereCastNonAlloc(from, _radius, travel.normalized, _hits, travel.magnitude, _queryMask, QueryTriggerInteraction.Ignore);
             return TryPickNearest(count, out nearest);
         }
 
@@ -248,7 +304,7 @@ namespace Gameplay.Entities.Interactive.Items
             Vector3 swing = Vector3.ProjectOnPlane(direction, hit.normal);
             if (swing.sqrMagnitude < Mathf.Epsilon)
             {
-                swing = Vector3.ProjectOnPlane(_aim.up, hit.normal);
+                swing = Vector3.ProjectOnPlane(Vector3.up, hit.normal);
             }
 
             swing.Normalize();

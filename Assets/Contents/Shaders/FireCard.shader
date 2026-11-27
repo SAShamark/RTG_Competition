@@ -53,6 +53,7 @@ Shader "FlameBlame/FireCard"
                 float4 positionOS : POSITION;
                 half4 color : COLOR;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -61,11 +62,14 @@ Shader "FlameBlame/FireCard"
                 half4 color : COLOR;
                 float2 uv : TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
                 output.positionWS = positions.positionWS;
@@ -76,6 +80,7 @@ Shader "FlameBlame/FireCard"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 uv = input.uv;
                 // World position seeds the noise so neighbouring windows never sway in sync.
                 float seed = dot(input.positionWS, float3(0.37, 0.11, 0.53));

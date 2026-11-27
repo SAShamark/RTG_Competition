@@ -25,8 +25,6 @@ namespace Gameplay.Entities.Interactive
 
         public bool IsCleared { get; private set; }
         public override bool CanInteract => enabled && !IsCleared && !_push.IsPlaying;
-        public override HandGesture Gesture => _smashNow ? HandGesture.Pry : HandGesture.Push;
-
         public event Action<PushableBlocker, bool> Cleared;
 
         public override string GetHint(Transform interactor)

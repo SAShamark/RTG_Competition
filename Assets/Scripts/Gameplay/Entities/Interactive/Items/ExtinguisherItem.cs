@@ -81,10 +81,14 @@ namespace Gameplay.Entities.Interactive.Items
         private Collider _impactSurface;
         private Collider _floorSurface;
 
+        private Quaternion _nozzleRest;
+
         public Transform Nozzle => _nozzle;
+        public Quaternion RestRotation => _nozzle.parent.rotation * _nozzleRest;
 
         private void Awake()
         {
+            _nozzleRest = _nozzle.localRotation;
             _flowSystems = new[] { _jet, _grains };
             _jetRate = TakeRate(_jet);
             _grainsRate = TakeRate(_grains);

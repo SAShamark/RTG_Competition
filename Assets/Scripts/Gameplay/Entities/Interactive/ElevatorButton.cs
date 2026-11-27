@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
 {
-    public sealed class ElevatorButton : Interactable
+    public sealed class ElevatorButton : Interactable, IPressable
     {
         [SerializeField] private Renderer _lamp;
         [SerializeField] private Color _idleColor = new(0.35f, 0.08f, 0.05f);
@@ -17,7 +17,6 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private float _blinkOnTime = 0.15f;
 
         private MaterialPropertyBlock _block;
-        public override HandGesture Gesture => HandGesture.Push;
         public int Presses { get; private set; }
 
         public event Action<ElevatorButton> Pressed;

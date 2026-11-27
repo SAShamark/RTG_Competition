@@ -51,7 +51,10 @@ namespace Gameplay.Entities.Interactive.Items
         private bool _isHitting;
         private float _sinceImpulse;
 
+        private Quaternion _nozzleRest;
+
         public Transform Nozzle => _nozzle;
+        public Quaternion RestRotation => _nozzle.parent.rotation * _nozzleRest;
         public Transform HoseSocket => _hoseSocket;
         public Vector3 TetherPull { get; private set; }
         public float TetherTension { get; private set; }
@@ -69,6 +72,7 @@ namespace Gameplay.Entities.Interactive.Items
         {
             _droplets.Play(false);
             _leverRest = _lever.localRotation;
+            _nozzleRest = _nozzle.localRotation;
         }
 
         private void Update()

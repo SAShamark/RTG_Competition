@@ -9,8 +9,6 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] protected TextLibrary _texts;
 
         public virtual bool CanInteract => true;
-        public abstract HandGesture Gesture { get; }
-
         public abstract string GetHint(Transform interactor);
         public void Interact(Transform interactor)
         {

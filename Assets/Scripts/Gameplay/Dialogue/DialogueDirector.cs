@@ -5,9 +5,7 @@ using System.Collections.Generic;
 using Gameplay.Entities.Characters;
 using Gameplay.Entities.Characters.Player;
 using UI.Screens.Variants.Gameplay;
-using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Gameplay.Dialogue
 {
@@ -31,43 +29,20 @@ namespace Gameplay.Dialogue
         private const float UntilCleared = 9999f;
         private const float MinDirectionSqr = 0.001f;
 
-        [SerializeField] private CinemachineCamera _camera;
-        [SerializeField] private float _shoulderBack = 0.75f;
-        [SerializeField] private float _shoulderSide = 0.38f;
-        [SerializeField] private float _shoulderUp = 0.08f;
-        [SerializeField, Range(0f, 1f)] private float _shoulderLevelling = 0.5f;
-        [SerializeField] private float _pushInSpeed = 0.04f;
         [SerializeField] private float _charsPerSecond = 45f;
         [SerializeField] private float _holdAfterTyping = 1.6f;
-        [SerializeField] private float _moveSharpness = 6f;
 
         [SerializeField] private DialogLibrary _dialogLibrary;
         [SerializeField] private float _lineGap = 0.25f;
-        [SerializeField] private float _headAimDrop = 0.08f;
-        [SerializeField] private float _nearShoulderFactor = 0.75f;
-        [SerializeField] private float _farShoulderFactor = 1.3f;
-        [SerializeField] private float _narrowSideFactor = 0.4f;
-        [SerializeField] private float[] _faceDistances = { 1.2f, 0.9f, 1.6f };
-        [SerializeField] private float[] _faceSides = { 0.35f, -0.35f, 0f };
-        [SerializeField] private float _cameraLift = 0.05f;
-        [SerializeField] private float _overListenerDistance = 0.45f;
-        [SerializeField] private float _boundsPadding = 0.25f;
-        [SerializeField] private float _cameraRadius = 0.15f;
-        [SerializeField] private float _rayShortening = 0.25f;
-        [SerializeField] private float[] _orbitDistances = { 1.1f, 1.5f, 0.8f };
-        [SerializeField] private int _orbitSteps = 12;
         [SerializeField] private float _minTalkDistance = 1.25f;
         [SerializeField] private float _talkDistance = 1.5f;
         [SerializeField] private int _standSteps = 8;
         [SerializeField] private float _groundProbe = 0.5f;
-        [SerializeField] private float _minShotDistance = 2f;
 
         private readonly Queue<DialogueLine> _lines = new();
         private GameplayScreen _screen;
         private FirstPersonController _player;
         private CharacterController _playerCollider;
-        private Renderer[] _playerBody;
-        private ShadowCastingMode[] _bodyModes;
         private Action _onFinished;
         private DialogueLine _current;
         private CharacterControl _companion;
@@ -75,7 +50,6 @@ namespace Gameplay.Dialogue
         private float _voiceLeft;
         private float _talkLeft;
         private IDialogueActor _talker;
-        private bool _snapCamera;
         private bool _isWaiting;
         private bool _isWalking;
 
@@ -87,14 +61,11 @@ namespace Gameplay.Dialogue
             return new DialogueLine(_dialogLibrary.Get(id), speaker, listener);
         }
 
-        public void Init(GameplayScreen screen, FirstPersonController player, Transform playerBody)
+        public void Init(GameplayScreen screen, FirstPersonController player)
         {
             _screen = screen;
             _player = player;
             _playerCollider = player.GetComponent<CharacterController>();
-            _playerBody = playerBody.GetComponentsInChildren<Renderer>(true);
-            _bodyModes = new ShadowCastingMode[_playerBody.Length];
-            _camera.gameObject.SetActive(false);
         }
 
         public void Play(IEnumerable<DialogueLine> lines, Action onFinished = null)
@@ -123,15 +94,9 @@ namespace Gameplay.Dialogue
         {
             _isWaiting = false;
             IsPlaying = true;
-            _snapCamera = true;
             _player.BeginConversation();
             _player.enabled = false;
             AudioService.Instance.SetDucked(true);
-
-            SetBodyVisible(true);
-            _screen.SetCrosshairVisible(false);
-            _camera.gameObject.SetActive(true);
-
             NextLine();
         }
 
@@ -153,8 +118,7 @@ namespace Gameplay.Dialogue
             _talkLeft = hasVoice ? phrase.Clip.length : phrase.Text.Length / _charsPerSecond;
             SetTalker(_current.Speaker);
             _screen.ClearDialog();
-            _screen.Say(phrase.WithHold(UntilCleared), _current.Speaker.Head);
-            _snapCamera = true;
+            _screen.Say(phrase.WithHold(UntilCleared));
             ReleaseIfCarried();
         }
 
@@ -172,9 +136,6 @@ namespace Gameplay.Dialogue
         private void ReleasePlayer()
         {
             AudioService.Instance.SetDucked(false);
-            _screen.SetCrosshairVisible(true);
-            SetBodyVisible(false);
-            _camera.gameObject.SetActive(false);
             _player.EndConversation();
             _player.enabled = true;
         }
@@ -211,42 +172,11 @@ namespace Gameplay.Dialogue
                 return;
             }
 
-            _player.FaceConversation(_companion.Head.position, deltaTime);
             _companion.Face(_player.Head.position, deltaTime);
 
             if ((GameInput.AdvancePressed && _timeLeft <= 0f) || _voiceLeft <= 0f)
             {
                 NextLine();
-            }
-        }
-
-        public void LateTick()
-        {
-            if (!IsPlaying || _isWalking)
-            {
-                return;
-            }
-
-            Vector3 speaker = _current.Speaker.Head.position;
-            Vector3 listener = _current.Listener.Head.position;
-            Vector3 dir = Vector3.ProjectOnPlane(speaker - listener, Vector3.up);
-            dir = dir.sqrMagnitude > MinDirectionSqr ? dir.normalized : Vector3.forward;
-            Vector3 right = Vector3.Cross(Vector3.up, dir);
-
-            Transform cam = _camera.transform;
-            if (_snapCamera)
-            {
-                _snapCamera = false;
-                ChooseShot(speaker, listener, dir, right, out Vector3 position, out Quaternion rotation);
-                cam.SetPositionAndRotation(position, rotation);
-                return;
-            }
-
-            Quaternion aim = Quaternion.LookRotation(speaker + Vector3.down * _headAimDrop - cam.position, Vector3.up);
-            cam.rotation = Quaternion.Slerp(cam.rotation, aim, Easing.Damp(_moveSharpness, Time.deltaTime));
-            if (Vector3.Distance(cam.position, speaker) > _minShotDistance)
-            {
-                cam.position += cam.forward * (_pushInSpeed * Time.deltaTime);
             }
         }
 
@@ -316,133 +246,6 @@ namespace Gameplay.Dialogue
             return true;
         }
 
-        private void ChooseShot(Vector3 speaker, Vector3 listener, Vector3 dir, Vector3 right, out Vector3 position, out Quaternion rotation)
-        {
-            float[] backs = { _shoulderBack, _shoulderBack * _nearShoulderFactor, _shoulderBack * _farShoulderFactor };
-            float[] sides = { _shoulderSide, -_shoulderSide, _shoulderSide * _narrowSideFactor, -_shoulderSide * _narrowSideFactor };
-            Vector3 target = speaker + Vector3.down * _headAimDrop;
-            foreach (float back in backs)
-            {
-                foreach (float side in sides)
-                {
-                    Vector3 candidate = listener - dir * back + right * side + Vector3.up * _shoulderUp;
-                    candidate.y += (speaker.y - listener.y) * _shoulderLevelling;
-                    if (Vector3.Distance(candidate, speaker) >= _minShotDistance && IsClear(candidate, target, listener))
-                    {
-                        position = candidate;
-                        rotation = Quaternion.LookRotation(target - candidate, Vector3.up);
-                        return;
-                    }
-                }
-            }
-
-            float[] dists = _faceDistances;
-            float[] faceSides = _faceSides;
-            foreach (float dist in dists)
-            {
-                foreach (float side in faceSides)
-                {
-                    Vector3 candidate = speaker - dir * Mathf.Max(dist, _minShotDistance) + right * side + Vector3.up * _cameraLift;
-                    if (IsClear(candidate, target, target))
-                    {
-                        position = candidate;
-                        rotation = Quaternion.LookRotation(target - candidate, Vector3.up);
-                        return;
-                    }
-                }
-            }
-
-            // The speaker can be around a corner from the listener: orbit him until a shot actually sees his face.
-            float step = 360f / _orbitSteps;
-            foreach (float dist in _orbitDistances)
-            {
-                for (int i = 0; i < _orbitSteps; i++)
-                {
-                    Vector3 around = Quaternion.AngleAxis(step * i, Vector3.up) * -dir;
-                    Vector3 candidate = speaker + around * Mathf.Max(dist, _minShotDistance) + Vector3.up * _cameraLift;
-                    if (IsClear(candidate, target, target))
-                    {
-                        position = candidate;
-                        rotation = Quaternion.LookRotation(target - candidate, Vector3.up);
-                        return;
-                    }
-                }
-            }
-
-            position = listener + dir * _overListenerDistance + Vector3.up * _cameraLift;
-            rotation = Quaternion.LookRotation(target - position, Vector3.up);
-        }
-
-        private bool InsideCharacter(Vector3 point)
-        {
-            foreach (Transform head in new[] { _current.Speaker.Head, _current.Listener.Head })
-            {
-                Animator body = head.GetComponentInParent<Animator>();
-                Transform root = body != null ? body.transform : head.root;
-                foreach (Renderer r in root.GetComponentsInChildren<Renderer>())
-                {
-                    Bounds b = r.bounds;
-                    b.Expand(_boundsPadding);
-                    if (b.Contains(point))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            foreach (Renderer r in _playerBody)
-            {
-                Bounds b = r.bounds;
-                b.Expand(_boundsPadding);
-                if (b.Contains(point))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool IsClear(Vector3 cameraPosition, Vector3 target, Vector3 listener)
-        {
-            if (InsideCharacter(cameraPosition))
-            {
-                return false;
-            }
-
-            if (Physics.CheckSphere(cameraPosition, _cameraRadius, ~0, QueryTriggerInteraction.Ignore) && !OnlyCharacters(Physics.OverlapSphere(cameraPosition, _cameraRadius, ~0, QueryTriggerInteraction.Ignore)))
-            {
-                return false;
-            }
-
-            foreach (Vector3 to in new[] { target, listener })
-            {
-                Vector3 d = to - cameraPosition;
-                foreach (RaycastHit hit in Physics.RaycastAll(cameraPosition, d.normalized, d.magnitude - _rayShortening, ~0, QueryTriggerInteraction.Ignore))
-                {
-                    if (!IsCharacter(hit.collider))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private static bool OnlyCharacters(Collider[] colliders)
-        {
-            foreach (Collider c in colliders)
-            {
-                if (!IsCharacter(c))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private static bool IsCharacter(Collider c) =>
             c is CharacterController || c.GetComponentInParent<Animator>() != null || c.GetComponentInParent<CharacterControl>() != null;
 
@@ -468,22 +271,6 @@ namespace Gameplay.Dialogue
             Action done = _onFinished;
             _onFinished = null;
             done?.Invoke();
-        }
-
-        private void SetBodyVisible(bool isVisible)
-        {
-            for (int i = 0; i < _playerBody.Length; i++)
-            {
-                if (isVisible)
-                {
-                    _bodyModes[i] = _playerBody[i].shadowCastingMode;
-                    _playerBody[i].shadowCastingMode = ShadowCastingMode.On;
-                }
-                else
-                {
-                    _playerBody[i].shadowCastingMode = _bodyModes[i];
-                }
-            }
         }
     }
 }

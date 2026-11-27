@@ -1744,130 +1744,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FirstPersonController
   _head: {fileID: 4750588747378367939}
   _aim: {fileID: 3584038458824608146}
-  _walkSpeed: 3.2
-  _runSpeed: 5.5
-  _backwardRunFactor: 0.76
-  _strafeRunFactor: 0.8
-  _mouseSensitivity: 0.12
-  _gravity: -18
+  _rig: {fileID: 0}
+  _motor:
+    _walkSpeed: 3.2
+    _runSpeed: 5.5
+    _backwardRunFactor: 0.76
+    _strafeRunFactor: 0.8
+    _gravity: -18
+    _groundAcceleration: 35
+    _groundDeceleration: 45
+    _airAcceleration: 7
+    _hardLandingRecovery: 0.35
+    _hardLandingSpeedFactor: 0.35
   _interactionLogic:
-    _distance: 2.6
-    _radius: 0.08
+    _reachRadius: 0.14
+    _pressRadius: 0.035
     _mask:
       serializedVersion: 2
       m_Bits: 4294967295
-    _blockerTolerance: 0.08
-  _hands:
-    _leftHand: {fileID: 5313161045823745360}
-    _rightHand: {fileID: 6366772371657729728}
-    _leftRest: {x: -0.24, y: -0.285, z: 0.05}
-    _rightRest: {x: 0.24, y: -0.285, z: 0.05}
-    _leftRestEuler: {x: -8, y: 8, z: 25}
-    _rightRestEuler: {x: -8, y: -8, z: -25}
-    _bobAmplitude: {x: 0.012, y: 0.018}
-    _swayAmount: 0.0009
-    _swaySmoothing: 10
-    _breathAmplitude: 0.004
-    _runSwingStart: 0.7
-    _walkSwing: 0.3
-    _swingReach: 0.05
-    _swingLift: 0.03
-    _swingPitch: 2
-    _runRaise: -0.03
-    _toolSwing: 0.35
-    _fistSwing: 0.5
-    _tossDuration: 0.45
-    _tossContactTime: 0.2
-    _tossWindupShare: 0.5
-    _tossWindupOffset: {x: 0.03, y: -0.03, z: -0.08}
-    _tossReleaseOffset: {x: -0.03, y: 0.07, z: 0.16}
-    _tossWindupPitch: 8
-    _tossReleasePitch: -18
-    _viewHalfTan: 0.7
-    _sleeveRadius: 0.09
-    _reachCross: 0.02
-    _aimOffset: {x: -0.04, y: 0.04, z: 0.08}
-    _aimEuler: {x: -6, y: -10, z: 20}
-    _aimSpeed: 8
-    _carryLeftOffset: {x: -0.06, y: -0.2, z: 0.2}
-    _carryRightOffset: {x: 0.06, y: -0.2, z: 0.2}
-    _carryLeftEuler: {x: -5, y: 15, z: 70}
-    _carryRightEuler: {x: -5, y: -15, z: -70}
-    _carrySpeed: 5
-    _carryShoulderGrip: {x: 0, y: 0.03, z: 0.03}
-    _carryKneeGrip: {x: 0, y: 0.01, z: 0.05}
-    _carryLeftElbow: {x: -0.25, y: -0.6, z: 0.35}
-    _carryRightElbow: {x: 0.3, y: -0.55, z: 0.25}
-    _longGestureDuration: 0.8
-    _gestureDuration: 0.6
-    _rattleContactTime: 0.16
-    _contactTime: 0.2
-    _moveBlendSpeed: 4
-    _breathFrequency: 1.6
-    _maxSway: 0.05
-    _rightBobDown: 0.6
-    _rightBobUp: 0.4
-    _aimJitterFrequency: 47
-    _aimJitterAmplitude: 0.0025
-    _sprayKickOffset: {x: 0, y: 0.025, z: -0.05}
-    _sprayKickEuler: {x: -9, y: 0, z: 0}
-    _sprayKickDecay: 9
-    _aimLeftOffset: {x: 0.02, y: 0.01, z: 0.02}
-    _releaseDelay: 0.12
-    _pushRightOffset: {x: -0.1, y: 0.13, z: 0.3}
-    _pushRightEuler: {x: -12, y: -12, z: -55}
-    _pushLeftOffset: {x: 0, y: -0.04, z: -0.03}
-    _rattleSettleTime: 0.2
-    _rattleFrequency: 50
-    _rattleAmplitude: 0.025
-    _rattleTwist: 400
-    _rattleRightOffset: {x: -0.1, y: 0.1, z: 0.28}
-    _rattleRightEuler: {x: -10, y: -15, z: -65}
-    _pryFrequency: 22
-    _pryAmplitude: 0.03
-    _pryTwist: 300
-    _pryRightOffset: {x: -0.14, y: 0.1, z: 0.3}
-    _pryRightEuler: {x: -10, y: -20, z: -40}
-    _pryLeftOffset: {x: 0.12, y: 0.08, z: 0.22}
-    _pryLeftEuler: {x: -10, y: 20, z: 30}
-    _grabRightOffset: {x: -0.05, y: -0.06, z: 0.3}
-    _grabRightEuler: {x: 25, y: -8, z: -15}
-    _oneHandRightOffset: {x: 0.08, y: -0.1, z: 0.2}
-    _oneHandRightEuler: {x: -25, y: -6, z: -62}
-    _oneHandLeftOffset: {x: -0.05, y: -0.25, z: -0.05}
-    _holdBlendSpeed: 5
-    _fistCenter: {x: 0, y: -0.045, z: 0.345}
-    _leftMesh: {fileID: 8602594791577842800}
-    _rightMesh: {fileID: 3450411179142858568}
-    _leftOpen: {fileID: 4300000, guid: e2aa4144ca9f3fb46af3e23bd6af0cd2, type: 2}
-    _leftFist: {fileID: 4300000, guid: 8c002507adab55c429eb2dd1747aa2d4, type: 2}
-    _rightOpen: {fileID: 4300000, guid: e0cd613bd18cad44882f5058bc1a2670, type: 2}
-    _rightFist: {fileID: 4300000, guid: 9de9644031be86b42ab946325a8f94e9, type: 2}
-    _toolBlendSpeed: 9
-    _toolReleaseSpeed: 3
-    _gripBlendSpeed: 3
-    _chopDuration: 0.6
-    _chopWindupTime: 0.18
-    _chopContactTime: 0.27
-    _chopHoldTime: 0.08
-    _chopWindupOffset: {x: 0.12, y: -0.04, z: -0.04}
-    _chopWindupEuler: {x: -22, y: 22, z: -30}
-    _chopStrikeOffset: {x: -0.06, y: -0.06, z: 0.16}
-    _chopStrikeEuler: {x: 40, y: -4, z: -6}
-    _chopRecoil: 0.25
-    _chopBounceRecoil: 0.7
-    _chopAltWindupOffset: {x: 0.16, y: 0.04, z: -0.06}
-    _chopAltWindupEuler: {x: -18, y: 30, z: -70}
-    _chopAltStrikeOffset: {x: -0.14, y: -0.08, z: 0.14}
-    _chopAltStrikeEuler: {x: 30, y: -20, z: 35}
-    _reachMaxDistance: 0.6
-    _sputterThreshold: 0.25
-    _sputterAmplitude: 0.012
-    _sputterFrequency: 23
   _heldItem:
     _handSocket: {fileID: 6366772371657729728}
     _bodySocket: {fileID: 7593595491399653420}
-    _dropSpeed: 2.5
+  _belt:
+    _root: {fileID: 0}
+    _holsters: []
+    _icons: []
+    _rings: []
+    _waistBelowHead: 0.62
+    _forwardOffset: 0.05
+    _followAngle: 40
+    _turnSharpness: 6
+    _reach: 0.17
+    _idleColor: {r: 1, g: 1, b: 1, a: 0.25}
+    _hoverColor: {r: 1, g: 0.75, b: 0.2, a: 0.9}
   _extinguisher:
     _range: 4.5
     _coneAngle: 22
@@ -1875,7 +1784,7 @@ MonoBehaviour:
     _obstacleMask:
       serializedVersion: 2
       m_Bits: 4294967295
-    _aimRangeFactor: 0.7
+    _aimDistance: 12
     _minAimDistance: 1.2
     _farPowerFactor: 0.4
     _hitSlack: 0.9
@@ -1910,10 +1819,6 @@ MonoBehaviour:
     _pushForce: 60
     _recoilPush: 2.4
     _recoilJump: 2.5
-    _kickClimb: 9
-    _kickSway: 16
-    _kickFrequency: 1.7
-    _kickPitchShare: 0.5
   _audio:
     _minStepSpeed: 0.6
     _groundProbe: 1.5
@@ -1938,7 +1843,6 @@ MonoBehaviour:
     _landingPitch: 0.85
     _hardLandingPitch: 0.7
   _axe:
-    _reach: 2.4
     _radius: 0.08
     _hitMask:
       serializedVersion: 2
@@ -1950,7 +1854,12 @@ MonoBehaviour:
     _debrisSpread: 0.6
     _debrisShade: {x: 0.7, y: 1.1}
     _fallbackColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
-    _alternateTilt: 40
+    _bladeOffset: {x: -0.33, y: 0, z: 0}
+    _minStrikeSpeed: 2.2
+    _fullStrikeSpeed: 5
+    _swingSoundSpeed: 3.5
+    _strikeCooldown: 0.35
+    _weakPushFactor: 0.3
     _swingCost: 0.22
     _recoverDelay: 0.6
     _recoverRate: 0.35
@@ -1973,14 +1882,6 @@ MonoBehaviour:
     _minPutDownDistance: 0.3
     _wallClearance: 0.35
     _groundProbeDistance: 2.5
-  _throwSpeed: 6.5
-  _throwLift: 1.5
-  _dropReach: 1.4
-  _dropSurfaceOffset: 0.15
-  _limitedPitchDown: -15
-  _pitchDown: -80
-  _limitedPitchUp: 28
-  _pitchUp: 80
   _jump:
     _jumpHeight: 1.35
     _coyoteTime: 0.12
@@ -1996,26 +1897,6 @@ MonoBehaviour:
       m_Bits: 4294966783
     _minAirTime: 0.15
     _hardLandingSpeed: 9
-  _hardLandingRecovery: 0.35
-  _hardLandingSpeedFactor: 0.35
-  _landImpulse: {fileID: 487224903274835786}
-  _firstPersonShake: 0.35
-  _groundAcceleration: 35
-  _groundDeceleration: 45
-  _airAcceleration: 7
-  _view:
-    _firstPersonCamera: {fileID: 6436514220561026317}
-    _thirdPersonCamera: {fileID: 1093872476086593191}
-    _activePriority: 10
-    _inactivePriority: 0
-    _firstPersonOnly:
-    - {fileID: 4761826814827570109}
-    - {fileID: 3966755342228903664}
-    _body: {fileID: 7080047481574707949}
-    _startView: 1
-    _firstPersonRevealDelay: 0.35
-    _handsRig: {fileID: 4972367641326931057}
-    _thirdPersonHandsOffset: {x: 0.04, y: -0.3, z: 0.12}
   _body:
     _animator: {fileID: 463086264662103798}
     _moveDamp: 0.12
@@ -2027,14 +1908,6 @@ MonoBehaviour:
     _walkContactPhase: 0.02
     _runContactPhase: 0.33
     _carryContactPhase: 0.06
-  _bodyIK: {fileID: 8658550072594416440}
-  _stance:
-    _raiseSharpness: 9
-    _lowerSharpness: 6
-    _linger: 0.5
-    _sprayReadyWeight: 0.75
-    _moveFactor: 0.6
-    _aimAnchor: {fileID: 260940489015492998}
   _footprints:
     _body: {fileID: 463086264662103798}
     _halfWidth: 0.07
@@ -2043,53 +1916,17 @@ MonoBehaviour:
     _keep: 0.2
     _landingKeep: 0.1
     _plantedLift: 0.03
-  _cameraFeel:
-    _firstPersonCamera: {fileID: 6436514220561026317}
-    _thirdPersonCamera: {fileID: 1093872476086593191}
-    _follow: {fileID: 3813800654734933188}
-    _sprintFovBoost: 6
-    _aimFovDrop: 5
-    _fovSharpness: 6
-    _isBobEnabled: 1
-    _bobAmplitude: {x: 0.007, y: 0.011}
-    _runBobMultiplier: 1.4
-    _bobSharpness: 8
-    _strafeRoll: 1.2
-    _rollSharpness: 8
-    _dipPerSpeed: 0.012
-    _maxDip: 0.12
-    _springStiffness: 140
-    _springDamping: 16
-    _thirdPersonDipScale: 0.5
-    _sprintDistance: 0.35
-    _carryDistance: 0.5
-    _aimDistance: 1.9
-    _aimShoulder: {x: 0.6, y: 0.15, z: 0}
-    _distanceSharpness: 4
-    _hideBodyDistance: 0.55
-  _idleTremor: 0.15
-  _bodyPickupContact: 0.37
-  _bodyPickupDuration: 0.95
-  _lowPickupReach: 0.6
-  _lowPickupHeight: 0.5
-  _reachPickupContact: 0.28
-  _handPickupContact: 0.24
-  _handPickupDuration: 0.65
-  _handPickupDip: 0.07
-  _reachPickupDuration: 0.6
-  _reachReleaseShare: 0.6
-  _swing:
-    _contact: 0.38
-    _duration: 0.6
-    _windupShare: 0.6
-    _swingSoundLead: 0.12
-    _moveFactor: 0.7
-  _chopAimSharpness: 12
-  _recoilDuration: 0.45
-  _tossContact: 0.2
-  _tossDuration: 0.45
-  _tossReach: 0.6
-  _conversationTurnSharpness: 7
+  _jaw: {fileID: 0}
+  _throwFactor: 1.3
+  _throwSoundSpeed: 1.5
+  _nozzleGrabRadius: 0.18
+  _grabPulse: 0.2
+  _grabPulseDuration: 0.05
+  _weakStrikePulse: 0.35
+  _strikePulseDuration: 0.12
+  _bounceStrikePulseDuration: 0.25
+  _sprayPulse: 0.12
+  _sprayPulseDuration: 0.05
 --- !u!114 &487224903274835786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9590,7 +9427,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7080047481574707949}
   - component: {fileID: 463086264662103798}
-  - component: {fileID: 8658550072594416440}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -9659,36 +9495,3 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &8658550072594416440
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9176283207715366652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de61b817e609bde449c940227994389b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Entities.Characters.Player.PlayerBodyIK
-  _animator: {fileID: 463086264662103798}
-  _head: {fileID: 4750588747378367939}
-  _blendSharpness: 10
-  _rotationWeight: 0.6
-  _rightRotationOffset: {x: 0, y: -90, z: 90}
-  _leftRotationOffset: {x: 0, y: 90, z: -90}
-  _rightElbowHint: {x: 0.45, y: -0.4, z: -0.3}
-  _leftElbowHint: {x: -0.45, y: -0.4, z: -0.3}
-  _lookDistance: 10
-  _lookWeight: 0.8
-  _lookBodyWeight: 0.35
-  _lookHeadWeight: 0.9
-  _aimBodyWeight: 0.9
-  _lookClamp: 0.5
-  _aimLookClamp: 0.25
-  _tremorOffset: 0.12
-  _tremorFrequency: 17
-  _kickOffset: 0.6
-  _kickDecay: 10
-  _reachElbowHint: {x: 0.35, y: -0.2, z: -0.3}
-  _reachLookWeight: 0.8

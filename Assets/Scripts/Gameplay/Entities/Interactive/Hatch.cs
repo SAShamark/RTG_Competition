@@ -24,8 +24,6 @@ namespace Gameplay.Entities.Interactive
 
         public bool IsOpen { get; private set; }
         public override bool CanInteract => !_motion.IsPlaying;
-        public override HandGesture Gesture => _isLocked ? HandGesture.Rattle : HandGesture.Push;
-
         public event Action<Hatch> Opened;
         public event Action<float> Moved;
 

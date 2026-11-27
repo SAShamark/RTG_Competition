@@ -4,6 +4,7 @@ namespace UI.Popups
 {
     public interface IPopupsManager
     {
+        int OpenCount { get; }
         event Action<PopupTypes> PopupShowed; 
         event Action<PopupTypes> PopupHidden; 
         void ShowPopup(PopupTypes popupType);

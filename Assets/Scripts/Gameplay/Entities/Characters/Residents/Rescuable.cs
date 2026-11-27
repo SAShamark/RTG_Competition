@@ -57,8 +57,6 @@ namespace Gameplay.Entities.Characters.Residents
         public Transform Head => _character.Head;
 
         public override bool CanInteract => _state == RescueState.Waiting;
-        public override HandGesture Gesture => _canBeCarried ? HandGesture.Grab : HandGesture.None;
-
         public event Action<Rescuable> Refused;
         public event Action<Rescuable> PickedUp;
         public event Action<Rescuable> Rescued;

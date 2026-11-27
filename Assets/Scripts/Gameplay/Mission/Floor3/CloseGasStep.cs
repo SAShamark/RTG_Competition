@@ -41,7 +41,7 @@ namespace Gameplay.Mission.Floor3
         public override void Enter()
         {
             SetObjective(TextId.ObjectiveReachNeighbor);
-            Say(DialogIds.NeighborTrapped, Neighbor.Head);
+            Say(DialogIds.NeighborTrapped);
             _setup.Valve.Closed += Refresh;
             _setup.StoveFire.Extinguished += HandleStoveOut;
             if (_setup.Valve.IsClosed)

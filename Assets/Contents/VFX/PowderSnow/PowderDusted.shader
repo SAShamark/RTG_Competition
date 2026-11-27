@@ -63,6 +63,7 @@ Shader "FlameAndBlame/PowderDusted"
                 float3 normalWS : TEXCOORD1;
                 float fogFactor : TEXCOORD2;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             float Hash13(float3 p)
@@ -88,6 +89,8 @@ Shader "FlameAndBlame/PowderDusted"
             {
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
@@ -99,6 +102,7 @@ Shader "FlameAndBlame/PowderDusted"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 UNITY_SETUP_INSTANCE_ID(input);
                 float3 normal = normalize(input.normalWS);
 

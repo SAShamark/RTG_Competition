@@ -3,6 +3,7 @@ using System;
 using Services;
 using Gameplay.Entities.Characters;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Gameplay.Cinematics.Finale
 {
@@ -13,18 +14,19 @@ namespace Gameplay.Cinematics.Finale
         [SerializeField] private Transform _uncleSpot;
         [SerializeField] private FireSource _lastFlame;
         [SerializeField] private ParticleSystem _stream;
-        [SerializeField] private Transform _peeCamera;
+        [FormerlySerializedAs("_peeCamera")]
+        [SerializeField] private Transform _viewSpot;
 
         [Header("Timing")]
         [SerializeField] private float _runIn = 1.7f;
         [SerializeField] private Vector3 _runInFrom = new(5.0f, 0f, -3.0f);
         [SerializeField] private float _pee = 3.4f;
-        [SerializeField] private float _orbit = 2.6f;
+        [FormerlySerializedAs("_orbit")]
+        [SerializeField] private float _bow = 2.6f;
 
         [Header("Run-in")]
         [SerializeField] private float _uncleTurnStart = 0.6f;
         [SerializeField] private float _uncleArriveAt = 0.85f;
-        [SerializeField] private float _uncleAimHeight = 1.1f;
 
         [Header("Stream")]
         [SerializeField] private float _streamStart = 0.6f;
@@ -33,24 +35,24 @@ namespace Gameplay.Cinematics.Finale
         [SerializeField] private float _peePower = 0.6f;
         [SerializeField] private float _peeEndLead = 0.3f;
 
-        [Header("Orbit")]
-        [SerializeField] private float _orbitDistance = 2.3f;
-        [SerializeField] private float _orbitHeight = 1.55f;
-        [SerializeField] private float _orbitTurnStart = 0.15f;
-        [SerializeField] private float _orbitTurnEnd = 0.6f;
-        [SerializeField] private float _orbitLookAt = 0.45f;
-        [SerializeField] private float _orbitAngle = 25f;
-        [SerializeField] private float _orbitAimHeight = 1.25f;
+        [Header("Bow to the player")]
+        [FormerlySerializedAs("_orbitTurnStart")]
+        [SerializeField] private float _bowTurnStart = 0.15f;
+        [FormerlySerializedAs("_orbitTurnEnd")]
+        [SerializeField] private float _bowTurnEnd = 0.6f;
+        [FormerlySerializedAs("_orbitLookAt")]
+        [SerializeField] private float _victoryAt = 0.45f;
 
         private bool _started;
         private bool _streamOn;
-        private bool _orbitStarted;
-        private Vector3 _orbitFrom;
-        private Quaternion _orbitFromRotation;
+        private bool _bowStarted;
+        private Quaternion _bowFromRotation;
 
         public float RunIn => _runIn;
         public float Pee => _pee;
-        public float Duration => _runIn + _pee + _orbit;
+        public float Duration => _runIn + _pee + _bow;
+        public Transform ViewSpot => _viewSpot;
+        public Transform Spot => _uncleSpot;
 
         public void Init()
         {
@@ -62,19 +64,19 @@ namespace Gameplay.Cinematics.Finale
         {
             _started = false;
             _streamOn = false;
-            _orbitStarted = false;
+            _bowStarted = false;
         }
 
-        public void Tick(Transform cam, float time)
+        public void Tick(Transform viewer, float time)
         {
             if (!_started)
             {
-                Start(cam);
+                Start();
             }
 
             if (time < _runIn)
             {
-                TickRunIn(cam, time / _runIn);
+                TickRunIn(time / _runIn);
                 return;
             }
 
@@ -87,14 +89,10 @@ namespace Gameplay.Cinematics.Finale
 
             float local = time - _runIn;
             TickStream(local);
-
-            if (local < _pee)
+            if (local >= _pee)
             {
-                AimAtUncle(cam);
-                return;
+                Bow(viewer, Mathf.Clamp01((local - _pee) / _bow));
             }
-
-            Orbit(cam, Mathf.Clamp01((local - _pee) / _orbit));
         }
 
         public void Finish()
@@ -110,7 +108,7 @@ namespace Gameplay.Cinematics.Finale
 
         public void StandIdle() => _uncle.SetPose(CharacterPose.Animated);
 
-        private void Start(Transform cam)
+        private void Start()
         {
             _started = true;
             _lastFlame.gameObject.SetActive(true);
@@ -118,10 +116,9 @@ namespace Gameplay.Cinematics.Finale
             _uncle.gameObject.SetActive(true);
             _uncle.SetPose(CharacterPose.Running);
             _uncle.transform.SetPositionAndRotation(from, Quaternion.LookRotation(Vector3.ProjectOnPlane(_uncleSpot.position - from, Vector3.up)));
-            cam.SetPositionAndRotation(_peeCamera.position, _peeCamera.rotation);
         }
 
-        private void TickRunIn(Transform cam, float k)
+        private void TickRunIn(float k)
         {
             k = Mathf.Clamp01(k);
             Vector3 from = _uncleSpot.position + _runInFrom;
@@ -133,8 +130,6 @@ namespace Gameplay.Cinematics.Finale
             {
                 _uncle.SetPose(CharacterPose.Animated);
             }
-
-            AimAtUncle(cam);
         }
 
         private void TickStream(float local)
@@ -166,35 +161,26 @@ namespace Gameplay.Cinematics.Finale
             }
         }
 
-        private void AimAtUncle(Transform cam) =>
-            cam.rotation = Quaternion.LookRotation(_uncleSpot.position + Vector3.up * _uncleAimHeight - cam.position, Vector3.up);
-
-        private void Orbit(Transform cam, float o)
+        private void Bow(Transform viewer, float progress)
         {
             Transform uncle = _uncle.transform;
-            if (!_orbitStarted)
+            if (!_bowStarted)
             {
-                _orbitStarted = true;
-                _orbitFrom = cam.position;
-                _orbitFromRotation = uncle.rotation;
+                _bowStarted = true;
+                _bowFromRotation = uncle.rotation;
             }
 
-            float ease = Easing.Smooth(o);
-            Quaternion toCamera = Quaternion.LookRotation(Vector3.ProjectOnPlane(-_uncleSpot.forward, Vector3.up).normalized);
-            uncle.rotation = Quaternion.Slerp(_orbitFromRotation, toCamera, Easing.Smooth(Mathf.InverseLerp(_orbitTurnStart, _orbitTurnEnd, o)));
-            if (o > _orbitLookAt)
+            Vector3 toViewer = Vector3.ProjectOnPlane(viewer.position - uncle.position, Vector3.up);
+            if (toViewer.sqrMagnitude > Mathf.Epsilon)
+            {
+                Quaternion facing = Quaternion.LookRotation(toViewer.normalized);
+                uncle.rotation = Quaternion.Slerp(_bowFromRotation, facing, Easing.Smooth(Mathf.InverseLerp(_bowTurnStart, _bowTurnEnd, progress)));
+            }
+
+            if (progress > _victoryAt)
             {
                 _uncle.SetPose(CharacterPose.Victory);
             }
-
-            Vector3 centre = uncle.position;
-            Vector3 fromOffset = _orbitFrom - centre;
-            Vector3 toOffset = Quaternion.AngleAxis(_orbitAngle, Vector3.up) * (-_uncleSpot.forward * _orbitDistance) + Vector3.up * _orbitHeight;
-            float angle = Mathf.LerpAngle(Mathf.Atan2(fromOffset.x, fromOffset.z) * Mathf.Rad2Deg, Mathf.Atan2(toOffset.x, toOffset.z) * Mathf.Rad2Deg, ease);
-            float radius = Mathf.Lerp(new Vector2(fromOffset.x, fromOffset.z).magnitude, new Vector2(toOffset.x, toOffset.z).magnitude, ease);
-            float height = Mathf.Lerp(fromOffset.y, toOffset.y, ease);
-            cam.position = centre + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * radius + Vector3.up * height;
-            cam.rotation = Quaternion.LookRotation(centre + Vector3.up * _orbitAimHeight - cam.position, Vector3.up);
         }
     }
 }

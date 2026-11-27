@@ -7,7 +7,6 @@ namespace UI.Screens.Variants.Gameplay.Widgets
     public sealed class HeatVignetteWidget : MonoBehaviour
     {
         private const float VisibleThreshold = 0.01f;
-        private const float HiddenThreshold = 0.005f;
 
         [SerializeField] private Image _image;
         [SerializeField] private float _smoothing = 3f;
@@ -18,6 +17,9 @@ namespace UI.Screens.Variants.Gameplay.Widgets
         private float _target;
         private float _shown;
 
+        public Color Color => _image.color;
+        public Texture Texture => _image.mainTexture;
+
         public void SetIntensity(float value) => _target = Mathf.Clamp01(value);
 
         private void Update()
@@ -27,7 +29,6 @@ namespace UI.Screens.Variants.Gameplay.Widgets
             Color c = _image.color;
             c.a = Mathf.Clamp01(_shown * _maxAlpha + flicker);
             _image.color = c;
-            _image.enabled = c.a > HiddenThreshold;
         }
     }
 }

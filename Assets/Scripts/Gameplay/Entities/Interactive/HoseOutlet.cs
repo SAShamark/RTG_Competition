@@ -16,8 +16,6 @@ namespace Gameplay.Entities.Interactive
 
         public bool IsConnected { get; private set; }
         public override bool CanInteract => !IsConnected;
-        public override HandGesture Gesture => HandGesture.Push;
-
         public event Action Connected;
 
         public void Setup(Func<bool> hasHose) => _hasHose = hasHose;

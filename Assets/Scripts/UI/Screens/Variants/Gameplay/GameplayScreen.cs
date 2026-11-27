@@ -8,32 +8,25 @@ using UI.Screens.Variants.Gameplay.Widgets;
 using UI.Screens.Base;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Vr;
 
 namespace UI.Screens.Variants.Gameplay
 {
     public sealed class GameplayScreen : BaseScreen
     {
-        [SerializeField] private GameObject _crosshair;
-
         [Header("Widgets")]
-        [SerializeField] private ObjectiveWidget _objective;
         [SerializeField] private RescueNoticeWidget _rescued;
         [SerializeField] private InteractionPromptWidget _prompt;
-        [SerializeField] private TargetFrameWidget _targetFrame;
         [FormerlySerializedAs("_partner")]
         [SerializeField] private DialogWidget _dialog;
-        [SerializeField] private HotbarWidget _hotbar;
         [SerializeField] private NavMarkerWidget _navMarker;
-        [SerializeField] private HotbarSlot _activeSlot;
-        [SerializeField] private GameObject _activePanel;
-        [SerializeField] private HotbarSlot _radio;
-        [SerializeField] private GameObject _dropHint;
         [SerializeField] private ToastWidget _toasts;
         [SerializeField] private HeatVignetteWidget _heat;
         [SerializeField] private PressureGaugeWidget _pressure;
         [SerializeField] private FireProgressWidget _fireProgress;
 
         private FirstPersonController _player;
+        private VrWristDisplay _wrist;
         private FireHeatLogic _fireHeat;
         private TextLibrary _texts;
         private bool _extinguisherHintShown;
@@ -41,24 +34,29 @@ namespace UI.Screens.Variants.Gameplay
         private ClutterItem _heldProp;
         private Rescuable _carriedResident;
 
-        public HotbarWidget Hotbar => _hotbar;
         public NavMarkerWidget NavMarker => _navMarker;
 
-        public void SetObjective(string text) => _objective.SetObjective(text);
+        public void BindWrist(VrWristDisplay wrist) => _wrist = wrist;
 
-        public void UpdateObjectiveText(string text) => _objective.UpdateText(text);
+        public void SetObjective(string text) => _wrist.SetObjective(text);
+
+        public void UpdateObjectiveText(string text) => _wrist.UpdateObjective(text);
 
         public void SetHudVisible(bool isVisible) => _safeAreaFitter.gameObject.SetActive(isVisible);
 
-        public void ShowRescued(int value, int total) => _rescued.Show(value, total);
+        public void ShowRescued(int value, int total)
+        {
+            _rescued.Show(value, total);
+            _wrist.ShowRescued(value, total);
+        }
 
-        public void HideRescued() => _rescued.Hide();
+        public void HideRescued()
+        {
+            _rescued.Hide();
+            _wrist.HideRescued();
+        }
 
-        public void PulseRadio() => _radio.Pulse();
 
-        private static Sprite Icon(InventoryEntry entry) => entry.IsEmpty ? null : entry.Definition.Icon;
-
-        public void SetDropHint(bool isVisible) => _dropHint.SetActive(isVisible);
 
         public void SetHeat(float intensity01) => _heat.SetIntensity(intensity01);
 
@@ -72,22 +70,9 @@ namespace UI.Screens.Variants.Gameplay
 
         public void HideFireProgress() => _fireProgress.gameObject.SetActive(false);
 
-        public void SetCrosshairVisible(bool isVisible)
-        {
-            _crosshair.SetActive(isVisible);
-
-            if (!isVisible)
-            {
-                SetInteractionHint(null);
-                SetInteractionTarget(null);
-            }
-        }
-
         public void SetInteractionHint(string hint) => _prompt.Show(hint);
 
-        public void SetInteractionTarget(Component target) => _targetFrame.SetTarget(target);
-
-        public void Say(DialogPhrase phrase, Transform anchor = null) => _dialog.Say(phrase, anchor);
+        public void Say(DialogPhrase phrase) => _dialog.Say(phrase);
 
         public bool IsDialogBusy => _dialog.IsBusy;
 
@@ -95,10 +80,8 @@ namespace UI.Screens.Variants.Gameplay
 
         public void ShowToast(string message) => _toasts.Show(message);
 
-        public void Init(FirstPersonController player, FireHeatLogic fireHeat, TextLibrary texts, Camera camera)
+        public void Init(FirstPersonController player, FireHeatLogic fireHeat, TextLibrary texts)
         {
-            _targetFrame.Init(camera);
-            _dialog.Init(camera);
             _player = player;
             _fireHeat = fireHeat;
             _pressure.Init(player.Extinguisher, player.Axe);
@@ -109,7 +92,6 @@ namespace UI.Screens.Variants.Gameplay
             RefreshInventory();
 
             _player.Interaction.HintChanged += SetInteractionHint;
-            _player.Interaction.TargetChanged += SetInteractionTarget;
             _fireHeat.HeatChanged += SetHeat;
             _player.Items.ItemChanged += HandleItemChanged;
             _player.Items.InventoryChanged += RefreshInventory;
@@ -122,7 +104,6 @@ namespace UI.Screens.Variants.Gameplay
         public void Dispose()
         {
             _player.Interaction.HintChanged -= SetInteractionHint;
-            _player.Interaction.TargetChanged -= SetInteractionTarget;
             _fireHeat.HeatChanged -= SetHeat;
             _player.Items.ItemChanged -= HandleItemChanged;
             _player.Items.InventoryChanged -= RefreshInventory;
@@ -134,12 +115,6 @@ namespace UI.Screens.Variants.Gameplay
 
         private void RefreshInventory()
         {
-            for (int i = 0; i < InventoryLogic.SlotCount; i++)
-            {
-                InventoryEntry slot = _player.Items.Slot(i);
-                _hotbar.SetItem(i, Icon(slot), slot.Count);
-            }
-
             RefreshHand();
         }
 
@@ -165,12 +140,6 @@ namespace UI.Screens.Variants.Gameplay
             InventoryEntry hand = _player.Items.Hand;
             bool isCarrying = _carriedResident != null;
             bool isHoldingProp = _heldProp != null;
-            Sprite icon = isCarrying ? _carriedResident.Icon : isHoldingProp ? _heldProp.Icon : Icon(hand);
-
-            _activePanel.SetActive(icon != null);
-            _activeSlot.SetSelected(icon != null);
-            _activeSlot.SetItem(icon, isCarrying || isHoldingProp ? 1 : hand.Count);
-            SetDropHint(isCarrying || (!isHoldingProp && _player.Items.HeldTool != null));
             _pressure.SetItem(isCarrying || isHoldingProp ? default : hand.Type);
         }
 

@@ -35,6 +35,7 @@ Shader "FlameBlame/BacklitSmoke"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile_fog
@@ -75,6 +76,7 @@ Shader "FlameBlame/BacklitSmoke"
                 float4 uv : TEXCOORD0;
                 float blend : TEXCOORD1;
                 float4 tangentOS : TANGENT;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -90,11 +92,14 @@ Shader "FlameBlame/BacklitSmoke"
                 // w = fog factor.
                 float4 tangentWS : TEXCOORD4;
                 float3 bitangentWS : TEXCOORD5;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 VertexNormalInputs normals = GetVertexNormalInputs(input.normalOS, input.tangentOS);
                 output.positionCS = positions.positionCS;
@@ -115,6 +120,7 @@ Shader "FlameBlame/BacklitSmoke"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float blend = input.normalWS.w;
                 half4 current = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv.xy);
                 half4 next = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv.zw);

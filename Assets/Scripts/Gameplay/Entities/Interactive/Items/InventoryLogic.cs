@@ -9,13 +9,10 @@ namespace Gameplay.Entities.Interactive.Items
         public const int SlotCount = 3;
 
         [SerializeField] private Transform _handSocket;
-        [SerializeField] private Transform _bodySocket;
-        [SerializeField] private float _dropSpeed = 2.5f;
 
         private readonly InventoryEntry _hand = new();
         private readonly InventoryEntry[] _slots = { new(), new(), new() };
         private bool _hidden;
-        private bool _useBodySocket;
 
         public ItemType HeldItem => _hand.Type;
         public ToolItem HeldTool => _hand.Tool;
@@ -46,19 +43,24 @@ namespace Gameplay.Entities.Interactive.Items
             return false;
         }
 
-        public void SetHidden(bool isHidden)
+        public void SetHandSocket(Transform socket)
         {
-            _hidden = isHidden;
-            ShowHandBody();
+            _handSocket = socket;
+            ResetHold();
         }
 
-        public void SetBodyHold(bool useBodySocket)
+        public void ResetHold()
         {
-            _useBodySocket = useBodySocket;
             if (_hand.Tool != null)
             {
                 Attach(_hand.Tool);
             }
+        }
+
+        public void SetHidden(bool isHidden)
+        {
+            _hidden = isHidden;
+            ShowHandBody();
         }
 
         public bool Take(ToolItem tool)
@@ -159,7 +161,9 @@ namespace Gameplay.Entities.Interactive.Items
             Changed(true);
         }
 
-        public void Drop(Transform head) => Release(head.forward * _dropSpeed + Vector3.up);
+        public bool CanStow => !_hand.IsEmpty && !IsHoldingHandOnly;
+
+        public void Throw(Vector3 velocity) => Release(velocity);
 
         private void Release(Vector3 velocity)
         {
@@ -177,16 +181,13 @@ namespace Gameplay.Entities.Interactive.Items
 
         private void Attach(ToolItem tool)
         {
-            bool inBodyHand = _useBodySocket && tool.HoldInBodyHand;
             Transform item = tool.transform;
-            item.SetParent(inBodyHand ? _bodySocket : _handSocket, false);
-            item.localPosition = inBodyHand ? tool.BodyHoldPosition : tool.HoldPosition;
-            item.localRotation = Quaternion.Euler(inBodyHand ? tool.BodyHoldEuler : tool.HoldEuler);
-
-            var shadows = _useBodySocket ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+            item.SetParent(_handSocket, false);
+            item.localPosition = tool.HoldPosition;
+            item.localRotation = Quaternion.Euler(tool.HoldEuler);
             foreach (Renderer itemRenderer in item.GetComponentsInChildren<Renderer>(true))
             {
-                itemRenderer.shadowCastingMode = shadows;
+                itemRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
             }
         }
 

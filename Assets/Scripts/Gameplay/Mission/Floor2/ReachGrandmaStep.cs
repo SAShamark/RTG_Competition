@@ -24,7 +24,7 @@ namespace Gameplay.Mission.Floor2
                 return;
             }
 
-            Say(DialogIds.GrandmaInBedroom, _setup.Grandma.Head);
+            Say(DialogIds.GrandmaInBedroom);
             RefreshObjective();
             _setup.DoorFire.Extinguished += HandleDoorFireOut;
             _setup.Grandma.Refused += HandleRefused;

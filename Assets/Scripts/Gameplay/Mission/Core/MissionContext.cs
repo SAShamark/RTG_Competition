@@ -8,14 +8,13 @@ namespace Gameplay.Mission.Core
     public sealed class MissionContext
     {
         public MissionContext(GameplayScreen screen, FirstPersonController player, DialogueDirector dialogue,
-            NavigationGuide navigation, EvacuationController evacuation, PuzzlePresenter puzzles, TextLibrary texts)
+            NavigationGuide navigation, EvacuationController evacuation, TextLibrary texts)
         {
             Screen = screen;
             Player = player;
             Dialogue = dialogue;
             Navigation = navigation;
             Evacuation = evacuation;
-            Puzzles = puzzles;
             Texts = texts;
         }
 
@@ -24,7 +23,6 @@ namespace Gameplay.Mission.Core
         public DialogueDirector Dialogue { get; }
         public NavigationGuide Navigation { get; }
         public EvacuationController Evacuation { get; }
-        public PuzzlePresenter Puzzles { get; }
         public TextLibrary Texts { get; }
     }
 }

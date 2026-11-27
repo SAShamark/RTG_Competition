@@ -3,7 +3,6 @@ using Gameplay.Dialogue;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Environment;
 using Services.Audio;
-using Unity.Cinemachine;
 using UnityEngine;
 
 namespace Gameplay.Cinematics
@@ -13,13 +12,10 @@ namespace Gameplay.Cinematics
         private const float LineTime = 0.25f;
         private const float LineDuration = 2.6f;
 
-        [SerializeField] private CinemachineCamera _lookCamera;
         [SerializeField] private GameObject _actors;
         [SerializeField] private Transform _uncle;
-        [SerializeField] private Transform _lookTarget;
         [SerializeField] private ProceduralCarryRun _runner;
         [SerializeField] private CatFollower[] _cats;
-        [SerializeField] private CinemachineImpulseSource _burstImpulse;
         [SerializeField] private Vector3 _doorCenter;
         [SerializeField] private float _duration = 5.6f;
         [SerializeField] private float[] _meowTimes = { 0.5f, 1.8f, 3.3f };
@@ -31,7 +27,6 @@ namespace Gameplay.Cinematics
         };
 
         [SerializeField] private UncleBurstPath _path = new();
-        [SerializeField] private UncleBurstLook _look = new();
         [SerializeField] private UncleBurstExit _exit = new();
 
         private FirstPersonController _player;
@@ -48,7 +43,6 @@ namespace Gameplay.Cinematics
         {
             _player = player;
             _lanes = new Vector3[_cats.Length][];
-            _look.Init(_lookCamera, _lookTarget, player);
             _exit.Init(camera, _actors);
             _runner.LookAt(player.Head);
             _actors.SetActive(false);
@@ -75,8 +69,6 @@ namespace Gameplay.Cinematics
             }
 
             _player.enabled = false;
-            _look.Begin();
-            _burstImpulse.GenerateImpulse();
             _isRunning = true;
 
             PlayTimeline();
@@ -109,14 +101,6 @@ namespace Gameplay.Cinematics
             }
         }
 
-        private void LateUpdate()
-        {
-            if (IsPlaying)
-            {
-                _look.Tick(Time.deltaTime);
-            }
-        }
-
         private void PlayMeows()
         {
             while (_nextMeow < _meowTimes.Length && _pathTime >= _meowTimes[_nextMeow])
@@ -130,7 +114,6 @@ namespace Gameplay.Cinematics
         {
             _actors.SetActive(true);
             _exit.Begin();
-            _look.End();
             _player.enabled = true;
         }
     }

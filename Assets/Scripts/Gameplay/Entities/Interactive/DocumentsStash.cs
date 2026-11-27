@@ -14,8 +14,6 @@ namespace Gameplay.Entities.Interactive
 
         public bool IsTaken { get; private set; }
         public override bool CanInteract => !IsTaken;
-        public override HandGesture Gesture => _isUnlocked ? HandGesture.Grab : HandGesture.Rattle;
-
         public event Action Taken;
         public event Action BlockedAttempt;
 

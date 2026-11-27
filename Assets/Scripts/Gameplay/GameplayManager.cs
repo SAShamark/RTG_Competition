@@ -24,7 +24,6 @@ namespace Gameplay
 
         [Header("Player")]
         [SerializeField] private FirstPersonController _player;
-        [SerializeField] private Transform _playerBody;
 
         [Header("Systems")]
         [SerializeField] private TextLibrary _texts;
@@ -62,6 +61,7 @@ namespace Gameplay
         public void Initialize(UIManager uiManager)
         {
             _screen = (GameplayScreen)uiManager.ScreensManager.GetScreen(ScreenTypes.Gameplay);
+            _screen.BindWrist(_player.Wrist);
             _screen.SetObjective(_texts[TextId.ObjectiveEnterBuilding]);
             _popups = uiManager.PopupsManager;
             _camera = Camera.main;
@@ -70,7 +70,7 @@ namespace Gameplay
             _fog.Init();
             _grass.Init();
             _fireHeat.Init(_player.Head);
-            _dialogue.Init(_screen, _player, _playerBody);
+            _dialogue.Init(_screen, _player);
             _navigation.Init(_player.Head, _camera, _screen.NavMarker, _texts);
             _cinematics.Initialize(uiManager, _screen, _player, _camera);
             _facade.Init(_screen, _texts, _cinematics.HouseFires, _navigation);
@@ -79,10 +79,9 @@ namespace Gameplay
             _evacuation.Init();
             _complaints.Init(_screen, _texts, _dialogue.Library);
 
-            var puzzles = new PuzzlePresenter(_player, _screen, _popups);
-            _mission.Initialize(new MissionContext(_screen, _player, _dialogue, _navigation, _evacuation, puzzles, _texts));
+            _mission.Initialize(new MissionContext(_screen, _player, _dialogue, _navigation, _evacuation, _texts));
 
-            _screen.Init(_player, _fireHeat, _texts, _camera);
+            _screen.Init(_player, _fireHeat, _texts);
             _radio = new RadioController(_player, _screen, () => _mission.RadioHint);
 
             _mission.EntranceOpened += _cinematics.PlayUncleBurst;
@@ -137,14 +136,6 @@ namespace Gameplay
             }
         }
 
-        public void LateTick()
-        {
-            if (!PauseController.IsPaused)
-            {
-                _dialogue.LateTick();
-            }
-        }
-
         public void Dispose()
         {
             _pause.Dispose();
@@ -171,7 +162,6 @@ namespace Gameplay
 
         private void HandleFinaleJumpFinished()
         {
-            _screen.SetCrosshairVisible(true);
             _facade.Begin();
             _isFacadeLinePending = true;
             _sinceVoice = 0f;
@@ -194,7 +184,6 @@ namespace Gameplay
         private void StartMission()
         {
             _stats.Begin();
-            _screen.SetCrosshairVisible(true);
             _mission.Start();
         }
 
@@ -206,7 +195,6 @@ namespace Gameplay
 
         private void HandleUncleBurstFinished()
         {
-            _screen.SetCrosshairVisible(true);
             _screen.ShowToast(_texts[TextId.ToastCatsRescued]);
             _screen.Say(_dialogue.Library.Get(DialogIds.PartnerAfterUncle));
             _mission.BeginFloor1();
@@ -216,7 +204,6 @@ namespace Gameplay
         {
             _stats.Stop();
             _player.enabled = false;
-            _screen.SetCrosshairVisible(false);
             _screen.SetHudVisible(false);
             _resultsPopup = _popups.ShowPopup<ResultsPopup>(PopupTypes.Result);
             _resultsPopup.Continued += HandleResultsContinued;
@@ -235,7 +222,6 @@ namespace Gameplay
             _resultsPopup.Continued -= HandleResultsContinued;
             _cinematics.ReleaseFinale();
             _screen.SetHudVisible(true);
-            _screen.SetCrosshairVisible(true);
             _player.enabled = true;
         }
     }

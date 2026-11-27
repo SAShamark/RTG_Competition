@@ -54,7 +54,7 @@ namespace Gameplay.Mission.Systems
             _screen.ShowToast(_texts.Format(TextId.ToastComplaint, Count));
             DialogPhrase phrase = _dialogs.Get(lineId);
             _reactionEnd = Time.unscaledTime + phrase.Hold;
-            _screen.Say(phrase, character.Head);
+            _screen.Say(phrase);
         }
     }
 }

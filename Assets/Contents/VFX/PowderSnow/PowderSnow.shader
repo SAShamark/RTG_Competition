@@ -100,6 +100,7 @@ Shader "FlameAndBlame/PowderSnow"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fog
@@ -111,6 +112,7 @@ Shader "FlameAndBlame/PowderSnow"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float4 color : COLOR;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -122,11 +124,14 @@ Shader "FlameAndBlame/PowderSnow"
                 float fogFactor : TEXCOORD3;
                 float film : TEXCOORD4;
                 float packed : TEXCOORD5;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
                 output.positionWS = positions.positionWS;
@@ -140,6 +145,7 @@ Shader "FlameAndBlame/PowderSnow"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 ClipEdge(input.coverage, input.film, input.positionWS);
 
                 float3 normal = normalize(input.normalWS);
@@ -179,11 +185,13 @@ Shader "FlameAndBlame/PowderSnow"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
                 float4 color : COLOR;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -192,11 +200,14 @@ Shader "FlameAndBlame/PowderSnow"
                 float3 positionWS : TEXCOORD0;
                 float coverage : TEXCOORD1;
                 float film : TEXCOORD2;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
                 output.positionWS = positions.positionWS;
@@ -207,6 +218,7 @@ Shader "FlameAndBlame/PowderSnow"
 
             half Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 ClipEdge(input.coverage, input.film, input.positionWS);
                 return input.positionCS.z;
             }

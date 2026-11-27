@@ -83,7 +83,7 @@ namespace Gameplay.Mission.Floor2
         {
             string line = ++_refusals % 2 == 1 ? DialogIds.GrandmaInsists
                 : _setup.IsSafeFound ? DialogIds.GrandmaOpenSafe : DialogIds.GrandmaLookAtPaintings;
-            Say(line, Grandma.Head);
+            Say(line);
         }
     }
 }

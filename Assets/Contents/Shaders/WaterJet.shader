@@ -28,6 +28,7 @@ Shader "FlameBlame/WaterJet"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -50,6 +51,7 @@ Shader "FlameBlame/WaterJet"
                 half4 color : COLOR;
                 // x = metres along the jet, y = turn around it (0..1).
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -59,6 +61,7 @@ Shader "FlameBlame/WaterJet"
                 float2 uv : TEXCOORD0;
                 float3 normalWS : TEXCOORD1;
                 float3 viewDirWS : TEXCOORD2;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             float Hash(float2 cell)
@@ -84,6 +87,8 @@ Shader "FlameBlame/WaterJet"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
                 output.color = input.color;
@@ -95,6 +100,7 @@ Shader "FlameBlame/WaterJet"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float period = max(1.0, round(_StreakScale.y));
                 float2 flow = float2((input.uv.x - _Time.y * _FlowSpeed) * _StreakScale.x, input.uv.y * period);
                 float streak = WrappedNoise(flow, period) * 0.65 + WrappedNoise(flow * 2.0 + 17.0, period * 2.0) * 0.35;

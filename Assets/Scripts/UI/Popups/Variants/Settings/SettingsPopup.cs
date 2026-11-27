@@ -3,6 +3,7 @@ using Services.Audio;
 using UI.Widgets;
 using UnityEngine;
 using UnityEngine.UI;
+using Vr;
 
 namespace UI.Popups.Variants.Settings
 {
@@ -10,6 +11,9 @@ namespace UI.Popups.Variants.Settings
     {
         [SerializeField] private Slider _music;
         [SerializeField] private Slider _sounds;
+        [SerializeField] private OptionSlider _turn;
+        [SerializeField] private OptionSlider _vignette;
+        [SerializeField] private OptionSlider _moveDirection;
         [SerializeField] private MenuButton _back;
 
         [Header("Audio")]
@@ -29,6 +33,12 @@ namespace UI.Popups.Variants.Settings
 
             _music.onValueChanged.AddListener(HandleMusicChanged);
             _sounds.onValueChanged.AddListener(HandleSoundsChanged);
+            _turn.Show((int)VrComfort.TurnMode);
+            _vignette.Show((int)VrComfort.Vignette);
+            _moveDirection.Show((int)VrComfort.MoveDirection);
+            _turn.Changed += HandleTurnChanged;
+            _vignette.Changed += HandleVignetteChanged;
+            _moveDirection.Changed += HandleMoveDirectionChanged;
             _back.Clicked += HandleBack;
             _back.Hovered += HandleHovered;
         }
@@ -37,6 +47,9 @@ namespace UI.Popups.Variants.Settings
         {
             _music.onValueChanged.RemoveListener(HandleMusicChanged);
             _sounds.onValueChanged.RemoveListener(HandleSoundsChanged);
+            _turn.Changed -= HandleTurnChanged;
+            _vignette.Changed -= HandleVignetteChanged;
+            _moveDirection.Changed -= HandleMoveDirectionChanged;
             _back.Clicked -= HandleBack;
             _back.Hovered -= HandleHovered;
         }
@@ -59,6 +72,24 @@ namespace UI.Popups.Variants.Settings
                 _lastPreview = Time.unscaledTime;
                 _audio.PlayOneShot(_clickClip);
             }
+        }
+
+        private void HandleTurnChanged(int index)
+        {
+            VrComfort.SetTurnMode((VrTurnMode)index);
+            _audio.PlayOneShot(_clickClip);
+        }
+
+        private void HandleVignetteChanged(int index)
+        {
+            VrComfort.SetVignette((VrVignetteLevel)index);
+            _audio.PlayOneShot(_clickClip);
+        }
+
+        private void HandleMoveDirectionChanged(int index)
+        {
+            VrComfort.SetMoveDirection((VrMoveDirection)index);
+            _audio.PlayOneShot(_clickClip);
         }
 
         private void HandleBack()

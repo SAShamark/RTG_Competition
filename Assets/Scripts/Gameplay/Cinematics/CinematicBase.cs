@@ -18,6 +18,7 @@ namespace Gameplay.Cinematics
         public abstract CinematicSettings Settings { get; }
         public abstract SubtitleCue[] Subtitles { get; }
         public bool IsPlaying { get; private set; }
+        public virtual bool IsInWorld => true;
 
         protected float ElapsedTime => (float)_director.time;
         protected virtual float Duration => (float)_director.duration;

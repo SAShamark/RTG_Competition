@@ -58,6 +58,7 @@ namespace Gameplay.Cinematics
         CinematicSettings Settings { get; }
         SubtitleCue[] Subtitles { get; }
         bool IsPlaying { get; }
+        bool IsInWorld { get; }
         void Skip();
         event Action Started;
         event Action Finished;

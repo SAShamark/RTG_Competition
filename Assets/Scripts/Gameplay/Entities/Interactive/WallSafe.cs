@@ -1,6 +1,4 @@
-using Gameplay.Dialogue;
 using System;
-using Gameplay.Entities.Characters.Player;
 using Services;
 using Services.Audio;
 using Services.Motion;
@@ -8,31 +6,36 @@ using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
 {
-    public sealed class WallSafe : Interactable
+    public sealed class WallSafe : MonoBehaviour
     {
+        private const int CodeLength = 4;
+        private const int Digits = 10;
+
         [SerializeField] private Transform _doorHinge;
         [SerializeField] private Vector3 _axis = Vector3.up;
         [SerializeField] private float _openAngle = 110f;
         [SerializeField] private float _duration = 0.8f;
         [SerializeField] private DocumentsStash _documents;
+        [SerializeField] private TextMesh _note;
+        [SerializeField] private string _notePrefix = "Код сейфа: ";
 
         private Quaternion _closedRotation;
 
+        public string Code { get; private set; }
+        public bool IsUnlocked { get; private set; }
         public bool IsOpen { get; private set; }
-        public override bool CanInteract => !IsOpen;
-        public override HandGesture Gesture => HandGesture.Grab;
 
-        public event Action<WallSafe> OpenRequested;
         public event Action<WallSafe> Opened;
 
-        public override string GetHint(Transform interactor) => _texts[TextId.HintOpenSafe];
-
-        protected override void OnInteract(Transform interactor)
+        public void Unlock()
         {
-            if (!IsOpen)
+            if (IsUnlocked)
             {
-                OpenRequested?.Invoke(this);
+                return;
             }
+
+            IsUnlocked = true;
+            AudioService.Instance.PlayAt(SoundType.SafeSolved, transform.position);
         }
 
         public void Open()
@@ -54,7 +57,13 @@ namespace Gameplay.Entities.Interactive
         private void Awake()
         {
             _closedRotation = _doorHinge.localRotation;
-        }
+            Code = string.Empty;
+            for (int i = 0; i < CodeLength; i++)
+            {
+                Code += UnityEngine.Random.Range(0, Digits).ToString();
+            }
 
+            _note.text = _notePrefix + Code;
+        }
     }
 }

@@ -39,7 +39,6 @@ namespace Gameplay.Cinematics
             _screen = screen;
             _player = player;
             _uncleBurstCutscene.Init(player, camera);
-            _finale.Init(camera);
 
             _introCutscene.Finished += HandleIntroFinished;
             _uncleBurstCutscene.Finished += HandleUncleBurstFinished;
@@ -95,7 +94,6 @@ namespace Gameplay.Cinematics
 
         public void Present(ICinematic cinematic)
         {
-            _screen.SetCrosshairVisible(false);
             _presenter.Present(cinematic);
         }
 

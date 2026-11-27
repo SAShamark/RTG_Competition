@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
+using Vr;
 
 namespace UI.Screens.Variants.Gameplay.Widgets
 {
@@ -57,7 +58,7 @@ namespace UI.Screens.Variants.Gameplay.Widgets
 
         private void Fill(Text key, Text text, RectTransform layout, string keyText, string line)
         {
-            key.text = keyText;
+            key.text = VrKeyNames.Translate(keyText);
             var keyBox = (RectTransform)key.transform.parent;
             if (_keyWidth < 0f)
             {

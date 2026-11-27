@@ -15,11 +15,6 @@ public sealed class EntryPoint : MonoBehaviour
         _gameManager.Tick(Time.deltaTime);
     }
 
-    private void LateUpdate()
-    {
-        _gameManager.LateTick();
-    }
-
     private void OnDestroy()
     {
         _gameManager.Dispose();

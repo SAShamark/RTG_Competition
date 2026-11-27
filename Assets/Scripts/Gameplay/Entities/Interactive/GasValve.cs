@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Gameplay.Entities.Interactive
 {
-    public sealed class GasValve : Interactable
+    public sealed class GasValve : Interactable, IHandDraggable
     {
 
         [SerializeField] private GameObject _handleVisual;
@@ -24,20 +24,28 @@ namespace Gameplay.Entities.Interactive
         [SerializeField] private float _handleSpeed = 3.5f;
         [SerializeField] private float _handleSpin = 20f;
 
+        [Header("Hand turn")]
+        [SerializeField] private float _dragMoveAngle = 8f;
+        [SerializeField] private float _closeTolerance = 3f;
+
         private ISoundLoop _hiss = SilentLoop.Instance;
 
         private bool _hasHandle;
         private MotionHandle _turn = MotionHandle.Idle;
         private Quaternion _handleStart;
+        private Vector3 _twistAxis;
+        private Vector3 _lastTwist;
+        private bool _hasTwist;
+        private float _dragAngle;
+        private float _dragTravel;
 
         public bool IsClosed { get; private set; }
         public override bool CanInteract => !IsClosed && !_turn.IsPlaying && !_remoteOnly;
+        public bool CanDrag => CanInteract && _hasHandle;
 
         private bool _remoteOnly;
 
         public void SetRemoteOnly(bool remoteOnly) => _remoteOnly = remoteOnly;
-        public override HandGesture Gesture => _hasHandle ? HandGesture.Grab : HandGesture.Rattle;
-
         public event Action NoHandle;
         public event Action Closed;
 
@@ -110,11 +118,50 @@ namespace Gameplay.Entities.Interactive
             StartTurn(_turnTime);
         }
 
+        public void BeginDrag(Transform interactor, Pose hand, bool isLeft)
+        {
+            _handleVisual.SetActive(true);
+            _twistAxis = HandTwist.WorldAxis(_handleVisual.transform, _handleStart, _turnAxis);
+            _lastTwist = HandTwist.Reference(hand.rotation, _twistAxis);
+            _dragTravel = 0f;
+            _hasTwist = false;
+        }
+
+        public void Drag(Pose hand)
+        {
+            if (IsClosed)
+            {
+                return;
+            }
+
+            Vector3 reference = HandTwist.Reference(hand.rotation, _twistAxis);
+            if (!_hasTwist)
+            {
+                _hasTwist = true;
+                _lastTwist = reference;
+                return;
+            }
+
+            float delta = Vector3.SignedAngle(_lastTwist, reference, _twistAxis);
+            _lastTwist = reference;
+            _dragTravel += Mathf.Abs(delta);
+            _dragAngle = Mathf.Clamp(_dragAngle + delta, 0f, _turnAngle);
+            ApplyTurn(_dragAngle / _turnAngle);
+            if (_dragAngle >= _turnAngle - _closeTolerance)
+            {
+                ApplyTurn(1f);
+                CompleteTurn();
+            }
+        }
+
+        public bool EndDrag() => _dragTravel > _dragMoveAngle;
+
         private void StartTurn(float duration) => _turn = MotionService.Instance.Play(duration, TickTurn, CompleteTurn);
 
-        private void TickTurn(float progress)
+        private void TickTurn(float progress) => ApplyTurn(Easing.Smooth(progress));
+
+        private void ApplyTurn(float k)
         {
-            float k = Easing.Smooth(progress);
             _handleVisual.transform.localRotation = _handleStart * Quaternion.AngleAxis(_turnAngle * k, _turnAxis);
             _hiss.SetVolume(1f - k);
         }

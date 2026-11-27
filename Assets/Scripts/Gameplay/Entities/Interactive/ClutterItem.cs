@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Gameplay.Entities.Interactive
 {
     [RequireComponent(typeof(Rigidbody))]
-    public sealed class ClutterItem : Interactable, IToolReactive
+    public sealed class ClutterItem : Interactable, IToolReactive, IPullable
     {
         [SerializeField] private ToolResponse _response = new();
         [SerializeField] private string _displayName = "річ";
@@ -30,8 +30,8 @@ namespace Gameplay.Entities.Interactive
         public Vector3 HoldPosition => _holdPosition;
         public Vector3 HoldEuler => _holdEuler;
         public bool IsHeld { get; private set; }
-        public override HandGesture Gesture => HandGesture.Grab;
-
+        public bool CanPull => !IsHeld;
+        public Vector3 PullPoint => _body.worldCenterOfMass;
         public event Action<ClutterItem> Moved;
 
         public override string GetHint(Transform interactor) => IsHeld
@@ -84,6 +84,17 @@ namespace Gameplay.Entities.Interactive
             _body.angularVelocity = velocity.magnitude > 1f ? UnityEngine.Random.insideUnitSphere * _throwSpin : Vector3.zero;
         }
 
+        public void BeginPull()
+        {
+            Release(transform.position, Vector3.zero);
+            _body.isKinematic = true;
+            SetCollidersEnabled(false);
+        }
+
+        public void MovePull(Vector3 pullPoint) => transform.position += pullPoint - PullPoint;
+
+        public void EndPull(Vector3 velocity) => Release(transform.position, velocity);
+
         public void React(in ToolHit hit)
         {
             if (!IsHeld)
@@ -91,6 +102,10 @@ namespace Gameplay.Entities.Interactive
                 _response.Apply(_body, hit);
             }
         }
+
+        private void OnEnable() => Pullables.All.Add(this);
+
+        private void OnDisable() => Pullables.All.Remove(this);
 
         private void Awake()
         {

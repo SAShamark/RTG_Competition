@@ -2,7 +2,6 @@ using Gameplay.Dialogue;
 using Gameplay.Entities.Environment;
 using Gameplay.Entities.Interactive;
 using Gameplay.Mission.Core;
-using UI.Popups;
 using UnityEngine;
 
 namespace Gameplay.Mission.Floor2
@@ -41,7 +40,6 @@ namespace Gameplay.Mission.Floor2
                 painting.Moved += HandlePaintingMoved;
             }
 
-            _setup.Safe.OpenRequested += HandleSafeOpenRequested;
             _setup.Safe.Opened += HandleSafeOpened;
         }
 
@@ -56,7 +54,6 @@ namespace Gameplay.Mission.Floor2
                 painting.Moved -= HandlePaintingMoved;
             }
 
-            _setup.Safe.OpenRequested -= HandleSafeOpenRequested;
             _setup.Safe.Opened -= HandleSafeOpened;
         }
 
@@ -93,12 +90,10 @@ namespace Gameplay.Mission.Floor2
 
         private void HandlePaintingMoved(WallPainting painting) => Begin();
 
-        private void HandleSafeOpenRequested(WallSafe safe) => Context.Puzzles.Present(PopupTypes.SafePuzzle, safe.Open);
-
         private void HandleSafeOpened(WallSafe safe)
         {
             ShowToast(TextId.ToastSafeOpened);
-            Say(DialogIds.GrandmaThanks, _setup.Grandma.Head);
+            Say(DialogIds.GrandmaThanks);
         }
     }
 }

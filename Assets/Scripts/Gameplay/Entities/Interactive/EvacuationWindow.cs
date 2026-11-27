@@ -24,8 +24,6 @@ namespace Gameplay.Entities.Interactive
         public bool IsReady => _isReady;
 
         public override bool CanInteract => _carry.IsCarrying;
-        public override HandGesture Gesture => HandGesture.None;
-
         public event Action<EvacuationWindow> ThrowRequested;
 
         public void Init(CarryLogic carry)

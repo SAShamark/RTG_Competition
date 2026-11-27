@@ -21,8 +21,6 @@ namespace Gameplay.Entities.Interactive
         public bool HidesSafe => _hidesSafe;
         public bool IsMoved { get; private set; }
         public override bool CanInteract => !IsMoved;
-        public override HandGesture Gesture => HandGesture.Push;
-
         public event Action<WallPainting> Moved;
 
         public override string GetHint(Transform interactor) => _texts[TextId.HintMovePainting];

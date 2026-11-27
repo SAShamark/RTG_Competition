@@ -56,9 +56,10 @@ namespace Gameplay.Entities.Characters.Player
             return _runSpeed * (input.y < 0f ? _backwardRunFactor : _strafeRunFactor);
         }
 
-        public Vector3 Steer(Vector2 input, float speed, float deltaTime)
+        public Vector3 Steer(Vector2 input, Vector3 forward, float speed, float deltaTime)
         {
-            Vector3 target = (_body.forward * input.y + _body.right * input.x).normalized * speed;
+            Vector3 right = Vector3.Cross(Vector3.up, forward);
+            Vector3 target = (forward * input.y + right * input.x).normalized * speed;
             PlanarVelocity = Vector3.MoveTowards(PlanarVelocity, target, Acceleration(target) * deltaTime);
             return target;
         }

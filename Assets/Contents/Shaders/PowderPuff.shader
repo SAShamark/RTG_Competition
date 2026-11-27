@@ -37,6 +37,7 @@ Shader "FlameBlame/PowderPuff"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -71,6 +72,7 @@ Shader "FlameBlame/PowderPuff"
                 half4 color : COLOR;
                 // xy = quad UV, z = age (0..1), w = stable per-particle random.
                 float4 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -80,11 +82,14 @@ Shader "FlameBlame/PowderPuff"
                 float4 uv : TEXCOORD0;
                 float4 screenPos : TEXCOORD1;
                 float eyeDepth : TEXCOORD2;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs positions = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = positions.positionCS;
                 output.screenPos = ComputeScreenPos(positions.positionCS);
@@ -96,6 +101,7 @@ Shader "FlameBlame/PowderPuff"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 centered = input.uv.xy * 2.0 - 1.0;
                 float age = input.uv.z;
                 float seed = input.uv.w;

@@ -12,19 +12,8 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField] private bool _isHandOnly;
         [SerializeField] private Transform _leftGrip;
         [SerializeField] private Transform _rightGrip;
-        [SerializeField] private bool _hasHandPose;
-        [SerializeField] private Vector3 _handPosition;
-        [SerializeField] private Vector3 _handEuler;
-        [SerializeField] private Vector3 _handAimPosition;
-        [SerializeField] private Vector3 _handAimEuler;
-
-        [Header("Third person")]
-        [SerializeField] private bool _holdInBodyHand;
-        [SerializeField] private Vector3 _bodyHoldPosition;
-        [SerializeField] private Vector3 _bodyHoldEuler;
-        [SerializeField] private bool _hasAimHold;
-        [SerializeField] private Vector3 _bodyAimPosition;
-        [SerializeField] private Vector3 _bodyAimEuler;
+        [SerializeField, Range(0.005f, 0.05f)] private float _gripRadius = 0.017f;
+        [SerializeField] private bool _hasTrigger;
 
         [Header("Sound")]
         [SerializeField] private ImpactSound _impact = new(SoundType.ToolImpact);
@@ -39,18 +28,18 @@ namespace Gameplay.Entities.Interactive.Items
         public bool IsHandOnly => _isHandOnly;
         public Transform LeftGrip => _leftGrip;
         public Transform RightGrip => _rightGrip;
-        public bool IsTwoHanded => _rightGrip != null;
-        public bool HasHandPose => _hasHandPose;
-        public Vector3 HandPosition => _handPosition;
-        public Vector3 HandEuler => _handEuler;
-        public Vector3 HandAimPosition => _handAimPosition;
-        public Vector3 HandAimEuler => _handAimEuler;
-        public bool HoldInBodyHand => _holdInBodyHand;
-        public Vector3 BodyHoldPosition => _bodyHoldPosition;
-        public Vector3 BodyHoldEuler => _bodyHoldEuler;
-        public bool HasAimHold => _hasAimHold;
-        public Vector3 BodyAimPosition => _bodyAimPosition;
-        public Vector3 BodyAimEuler => _bodyAimEuler;
+        public float GripRadius => _gripRadius;
+        public bool HasTrigger => _hasTrigger;
+        public override Vector3 PullPoint => _body.worldCenterOfMass;
+
+        public override void BeginPull()
+        {
+            Release(transform.position, Vector3.zero);
+            SetPhysics(false);
+            SetCollidersEnabled(false);
+        }
+
+        public override void EndPull(Vector3 velocity) => Release(transform.position, velocity);
 
         protected override bool Store(IItemHolder holder) => holder.TakeTool(this);
 

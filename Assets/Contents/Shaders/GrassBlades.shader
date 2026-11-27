@@ -92,6 +92,7 @@ Shader "FlameBlame/GrassBlades"
                 float3 positionWS : TEXCOORD0;
                 // x = height along the blade, y = shade, z = gust, w = fog.
                 half4 data : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             float Hash(float2 cell)
@@ -114,6 +115,8 @@ Shader "FlameBlame/GrassBlades"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 UNITY_SETUP_INSTANCE_ID(input);
 
                 float3 origin = float3(UNITY_MATRIX_M._m03, UNITY_MATRIX_M._m13, UNITY_MATRIX_M._m23);
@@ -163,6 +166,7 @@ Shader "FlameBlame/GrassBlades"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 half3 albedo = lerp(_BaseColor.rgb, _TipColor.rgb, input.data.x) * input.data.y + _GustColor.rgb * input.data.z;
 
                 // Blades are lit as the lawn they grow from, so they melt into it instead of sparkling.

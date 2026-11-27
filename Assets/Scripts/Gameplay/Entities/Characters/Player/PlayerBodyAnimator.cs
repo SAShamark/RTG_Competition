@@ -16,26 +16,15 @@ namespace Gameplay.Entities.Characters.Player
         private static readonly int GroundedId = Animator.StringToHash("Grounded");
         private static readonly int VerticalSpeedId = Animator.StringToHash("VerticalSpeed");
         private static readonly int CarryingId = Animator.StringToHash("Carrying");
-        private static readonly int SprayingId = Animator.StringToHash("Spraying");
         private static readonly int HoldingToolId = Animator.StringToHash("HoldingTool");
         private static readonly int JumpId = Animator.StringToHash("Jump");
         private static readonly int HardLandId = Animator.StringToHash("HardLand");
-        private static readonly int PickUpId = Animator.StringToHash("PickUp");
-        private static readonly int ChopId = Animator.StringToHash("Chop");
-        private static readonly int AimingId = Animator.StringToHash("Aiming");
         private static readonly int HeldToolId = Animator.StringToHash("HeldTool");
-        private static readonly int ChopAltId = Animator.StringToHash("ChopAlt");
-        private static readonly int ChopBounceId = Animator.StringToHash("ChopBounce");
-        private static readonly int ChopSpeedId = Animator.StringToHash("ChopSpeed");
         private static readonly int LocomotionStateId = Animator.StringToHash("Locomotion");
         private static readonly int CarryLocomotionStateId = Animator.StringToHash("CarryLocomotion");
         private const int NoToolIndex = 0;
         private const int ExtinguisherIndex = 1;
         private const int AxeIndex = 2;
-        private const float FrozenSpeed = 0f;
-        private const float NormalSpeed = 1f;
-
-        private float _hitStop;
 
         [SerializeField] private Animator _animator;
         [SerializeField] private float _moveDamp = 0.12f;
@@ -55,13 +44,9 @@ namespace Gameplay.Entities.Characters.Player
         private float _warpYaw;
         private bool _wasGrounded;
 
-        public bool IsHitStopped => _hitStop > 0f;
-
-        public void Tick(Vector3 localVelocity, float runSpeed, bool isGrounded, float verticalSpeed, bool allowWarp, float deltaTime)
+        public void Tick(Vector3 localVelocity, float runSpeed, bool isGrounded, float verticalSpeed, float deltaTime)
         {
-            _hitStop = Mathf.Max(0f, _hitStop - deltaTime);
-            _animator.SetFloat(ChopSpeedId, IsHitStopped ? FrozenSpeed : NormalSpeed);
-            float targetYaw = allowWarp ? WarpYaw(localVelocity) : 0f;
+            float targetYaw = WarpYaw(localVelocity);
             _warpYaw = Mathf.LerpAngle(_warpYaw, targetYaw, Easing.Damp(_warpSharpness, deltaTime));
             _animator.transform.localRotation = Quaternion.Euler(0f, _warpYaw, 0f);
             localVelocity = Quaternion.Euler(0f, -_warpYaw, 0f) * localVelocity;
@@ -109,29 +94,18 @@ namespace Gameplay.Entities.Characters.Player
 
         public void Rest()
         {
-            _hitStop = 0f;
             _warpYaw = 0f;
             _animator.transform.localRotation = Quaternion.identity;
-            _animator.SetFloat(ChopSpeedId, NormalSpeed);
             _animator.SetFloat(MoveXId, 0f);
             _animator.SetFloat(MoveZId, 0f);
             _animator.SetFloat(SpeedId, 0f);
             _animator.SetFloat(VerticalSpeedId, 0f);
             _animator.SetBool(GroundedId, true);
-            _animator.SetBool(AimingId, false);
-            _animator.SetBool(SprayingId, false);
-            _animator.ResetTrigger(ChopId);
-            _animator.ResetTrigger(ChopBounceId);
-            _animator.ResetTrigger(PickUpId);
             _animator.ResetTrigger(JumpId);
             _animator.ResetTrigger(HardLandId);
         }
 
-        public void SetAiming(bool isAiming) => _animator.SetBool(AimingId, isAiming);
-
         public void SetCarrying(bool isCarrying) => _animator.SetBool(CarryingId, isCarrying);
-
-        public void SetSpraying(bool isSpraying) => _animator.SetBool(SprayingId, isSpraying);
 
         public void SetHoldingTool(bool isHolding) => _animator.SetBool(HoldingToolId, isHolding);
 
@@ -142,10 +116,6 @@ namespace Gameplay.Entities.Characters.Player
             ItemType.Hose => ExtinguisherIndex,
             _ => NoToolIndex,
         });
-
-        public void Bounce() => _animator.SetTrigger(ChopBounceId);
-
-        public void HitStop(float duration) => _hitStop = duration;
 
         public void Jump()
         {
@@ -160,15 +130,6 @@ namespace Gameplay.Entities.Characters.Player
             {
                 _animator.SetTrigger(HardLandId);
             }
-        }
-
-        public void PickUp() => _animator.SetTrigger(PickUpId);
-
-        public void Chop(bool isAlternate)
-        {
-            _animator.ResetTrigger(ChopBounceId);
-            _animator.SetBool(ChopAltId, isAlternate);
-            _animator.SetTrigger(ChopId);
         }
     }
 }

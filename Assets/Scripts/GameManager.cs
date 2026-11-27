@@ -26,7 +26,6 @@ public sealed class GameManager
         _gameplay.Tick(deltaTime);
     }
 
-    public void LateTick() => _gameplay.LateTick();
 
     public void Dispose()
     {

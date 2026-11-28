@@ -240,7 +240,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         private void PlaceMarks(AxeImpactLibrary.Impact impact, RaycastHit hit, Vector3 direction)
         {
-            if (impact.Mark == null || hit.rigidbody != null)
+            if (impact.Mark == null)
             {
                 return;
             }
@@ -329,16 +329,8 @@ namespace Gameplay.Entities.Interactive.Items
             }
 
             GameObject mark = UnityEngine.Object.Instantiate(prefab, point + normal * _markOffset, Quaternion.LookRotation(-normal, up));
-            mark.GetComponent<AxeMark>().Bind(surface);
             mark.transform.localScale *= size;
-
-            Transform target = surface.transform;
-            Vector3 scale = target.lossyScale;
-            if (Mathf.Approximately(scale.x, scale.y) && Mathf.Approximately(scale.y, scale.z))
-            {
-                mark.transform.SetParent(target, true);
-            }
-
+            mark.GetComponent<AxeMark>().Bind(surface);
             _marks.Enqueue(mark);
         }
     }

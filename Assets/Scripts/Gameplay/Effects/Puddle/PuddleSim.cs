@@ -6,6 +6,13 @@ namespace Gameplay.Effects.Puddle
     [Serializable]
     public sealed class PuddleSim
     {
+        private enum CellState : byte
+        {
+            Unknown,
+            Open,
+            Blocked,
+        }
+
         public const int Channels = 4;
 
         private const float LitreVolume = 0.001f;
@@ -40,15 +47,21 @@ namespace Gameplay.Effects.Puddle
         private float[] _next;
         private float[] _stain;
         private float[] _stir;
+        private CellState[] _states;
+        private Func<int, int, bool> _probe;
         private float _debt;
 
         public int Columns { get; private set; }
         public int Rows { get; private set; }
         public float[] Pixels { get; private set; }
         public bool IsWet { get; private set; }
+        public float SplashRadius => _splashRadius;
 
-        public void Init(float width, float length)
+        public void Init(float width, float length, Func<int, int, bool> probe)
         {
+            _probe = probe;
+            _debt = 0f;
+            IsWet = false;
             Columns = Mathf.CeilToInt(width / _cellSize);
             Rows = Mathf.CeilToInt(length / _cellSize);
             int count = Columns * Rows;
@@ -57,6 +70,7 @@ namespace Gameplay.Effects.Puddle
             _next = new float[count];
             _stain = new float[count];
             _stir = new float[count];
+            _states = new CellState[count];
             Pixels = new float[count * Channels];
             float frequency = _cellSize / _reliefSize;
             for (int y = 0; y < Rows; y++)
@@ -87,7 +101,12 @@ namespace Gameplay.Effects.Puddle
                 {
                     float sqr = (x - centreX) * (x - centreX) + (y - centreY) * (y - centreY);
                     int cell = y * Columns + x;
-                    _depth[cell] += peak * Mathf.Max(0f, 1f - sqr / (splash * splash));
+                    float mound = peak * (1f - sqr / (splash * splash));
+                    if (mound > 0f && IsOpen(cell))
+                    {
+                        _depth[cell] += mound;
+                    }
+
                     _stir[cell] = Mathf.Max(_stir[cell], 1f - sqr / (stir * stir));
                 }
             }
@@ -156,10 +175,52 @@ namespace Gameplay.Effects.Puddle
             (_depth, _next) = (_next, _depth);
         }
 
+        // Water crosses the shared edge of two neighbouring grids of the same size by the same downhill rule as inside one grid.
+        public void Exchange(PuddleSim other, bool isAlongColumns)
+        {
+            if (other.Columns != Columns || other.Rows != Rows)
+            {
+                return;
+            }
+
+            float share = Mathf.Min(_spreadRate * _stepTime, MaxSpreadShare);
+            int count = isAlongColumns ? Rows : Columns;
+            for (int i = 0; i < count; i++)
+            {
+                int mine = isAlongColumns ? i * Columns + Columns - 1 : (Rows - 1) * Columns + i;
+                int theirs = isAlongColumns ? i * Columns : i;
+                float drop = _ground[mine] + _depth[mine] - other._ground[theirs] - other._depth[theirs];
+                PuddleSim source = drop > 0f ? this : other;
+                PuddleSim target = drop > 0f ? other : this;
+                int from = drop > 0f ? mine : theirs;
+                int to = drop > 0f ? theirs : mine;
+                float limit = (source._depth[from] - _holdDepth) * NeighbourShare;
+                if (limit <= 0f || !target.IsOpen(to))
+                {
+                    continue;
+                }
+
+                float amount = Mathf.Min(Mathf.Abs(drop) * share, limit);
+                source._depth[from] -= amount;
+                target._depth[to] += amount;
+                target.IsWet = true;
+            }
+        }
+
+        private bool IsOpen(int cell)
+        {
+            if (_states[cell] == CellState.Unknown)
+            {
+                _states[cell] = _probe(cell % Columns, cell / Columns) ? CellState.Open : CellState.Blocked;
+            }
+
+            return _states[cell] == CellState.Open;
+        }
+
         private void Flow(int from, int to, float share, float limit)
         {
             float drop = _ground[from] + _depth[from] - _ground[to] - _depth[to];
-            if (drop <= 0f)
+            if (drop <= 0f || !IsOpen(to))
             {
                 return;
             }

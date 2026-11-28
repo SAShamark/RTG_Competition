@@ -75,7 +75,7 @@ MonoBehaviour:
     _pitch: 1
     _effect: {fileID: 141433446842962269, guid: 0fa9d5e033f344f429494d2c151aceb1, type: 3}
     _effectLifetime: 2
-    _mark: {fileID: 0}
+    _mark: {fileID: 1148999568100132814, guid: 0f62cda830cd9df4ab985b34df097e28, type: 3}
     _edgeMark: {fileID: 0}
     _cameraImpulse: 0.033333335
     _hitStop: 0.05

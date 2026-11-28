@@ -147,6 +147,8 @@ namespace Gameplay.Entities.Characters.Player
 
         public void HitStop(float duration) => _hitStop = duration;
 
+        public void SetFrozen(bool isFrozen) => _animator.speed = isFrozen ? FrozenSpeed : NormalSpeed;
+
         public void Jump()
         {
             _animator.ResetTrigger(HardLandId);

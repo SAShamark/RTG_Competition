@@ -10,7 +10,7 @@ using UnityEngine;
 namespace Gameplay.Entities.Characters.Player
 {
     [RequireComponent(typeof(CharacterController))]
-    public sealed class FirstPersonController : MonoBehaviour, IItemHolder, IRescueCarrier, IPropHolder, IDialogueActor
+    public sealed class FirstPersonController : MonoBehaviour, IItemHolder, IRescueCarrier, IPropHolder, IDialogueActor, IFreezable
     {
         private const float HalfTurn = 180f;
         private const float FullTurn = 360f;
@@ -27,6 +27,10 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField] private HoseLogic _hose = new();
         [SerializeField] private PlayerAudioLogic _audio = new();
         [SerializeField] private AxeLogic _axe = new();
+        [SerializeField] private ShieldLogic _shield = new();
+        [SerializeField] private FreezeLogic _freeze = new();
+        [SerializeField] private ElementGunLogic _elementGun = new();
+        [SerializeField] private FrostGrenadeLogic _frostGrenade = new();
         [SerializeField] private CarryLogic _carry = new();
         [SerializeField] private float _throwSpeed = 6.5f;
         [SerializeField] private float _throwLift = 1.5f;
@@ -82,6 +86,7 @@ namespace Gameplay.Entities.Characters.Player
         private float _swingSoundTimer = -1f;
         private float _chopAimWeight;
         private bool _isViewTogglePending;
+        private bool _returnsToFirstPerson;
 
         public event Action<ClutterItem> PropChanged;
 
@@ -91,6 +96,8 @@ namespace Gameplay.Entities.Characters.Player
         public ExtinguisherLogic Extinguisher => _extinguisher;
         public HoseLogic Hose => _hose;
         public AxeLogic Axe => _axe;
+        public ShieldLogic Shield => _shield;
+        public FreezeLogic Freezing => _freeze;
         public CarryLogic Carry => _carry;
         public ItemType HeldItem => _heldItem.HeldItem;
         public PlayerViewLogic View => _view;
@@ -100,7 +107,7 @@ namespace Gameplay.Entities.Characters.Player
         private bool HasFreeHands => !_carry.IsCarrying && !IsHoldingProp;
         private float ShakeFactor => _view.IsThirdPerson ? 1f : _firstPersonShake;
         private bool IsBodyBusy => _bodyAction.IsBusy;
-        private bool CanAct => !_hands.IsBusy && !IsBodyBusy;
+        private bool CanAct => !_hands.IsBusy && !IsBodyBusy && !_freeze.IsFrozen;
         private bool IsSpraying => _extinguisher.IsSpraying || _hose.IsSpraying;
         private float SprayPressure => _hose.IsSpraying ? 1f : _extinguisher.Pressure;
 
@@ -115,6 +122,12 @@ namespace Gameplay.Entities.Characters.Player
             _audio.Init(transform, _head);
             _axe.Init(_aim, transform, _heldItem);
             _axe.Struck += HandleAxeStruck;
+            _shield.Init(_heldItem, _characterController);
+            _freeze.Init(transform);
+            _freeze.Frozen += HandleFrozen;
+            _freeze.Thawed += HandleThawed;
+            _elementGun.Init(_aim, _heldItem, _characterController);
+            _frostGrenade.Init(_aim, _heldItem, _characterController);
             _hands.SetChopTiming(_swing.Contact, _swing.Duration, _swing.Windup);
             _carry.Init(transform);
             _view.Init();
@@ -136,6 +149,11 @@ namespace Gameplay.Entities.Characters.Player
         {
             _extinguisher.Dispose();
             _hose.Dispose();
+            _shield.Dispose();
+            _freeze.Frozen -= HandleFrozen;
+            _freeze.Thawed -= HandleThawed;
+            _elementGun.Dispose();
+            _frostGrenade.Dispose();
             _heldItem.ItemChanged -= HandleItemChanged;
             _carry.CarryChanged -= HandleCarryChanged;
             _view.ViewChanged -= HandleViewChanged;
@@ -168,19 +186,21 @@ namespace Gameplay.Entities.Characters.Player
         {
             float deltaTime = Time.deltaTime;
 
-            Vector2 look = GameInput.Look * _mouseSensitivity + _hose.AimKick(deltaTime);
+            Vector2 look = _freeze.IsFrozen ? Vector2.zero : GameInput.Look * _mouseSensitivity + _hose.AimKick(deltaTime);
             HandleLook(look);
             UpdateAim();
             _bodyAction.Tick(deltaTime, _body.IsHitStopped);
             TickSwingSound(deltaTime);
             _view.Tick(deltaTime);
             _motor.Tick(deltaTime);
+            _motor.Grip = FrostField.GripAt(transform.position);
             Vector3 move = HandleMovement(deltaTime);
             HandleViewToggle();
 
             _interactionLogic.Tick();
             HandleInteraction();
             HandlePrimaryAction();
+            HandleElementSwitch();
             HandleDrop();
             HandleHotbar();
 
@@ -192,6 +212,10 @@ namespace Gameplay.Entities.Characters.Player
             _extinguisher.Tick(canSpray, deltaTime);
             _hose.Tick(canSpray, deltaTime);
             _axe.Tick(deltaTime);
+            _shield.Tick(deltaTime);
+            _freeze.Tick(deltaTime);
+            _frostGrenade.Tick();
+            _elementGun.Tick(deltaTime);
             UpdateStance(wasSpraying);
             _hands.SetAiming(IsSpraying, SprayPressure);
             _hands.SetCarrying(_carry.IsCarrying);
@@ -224,6 +248,33 @@ namespace Gameplay.Entities.Characters.Player
         }
 
         public void SetTalking(bool isTalking) => _jaw.SetTalking(isTalking);
+
+        public void Freeze(Vector3 source)
+        {
+            if (!_shield.IsActive)
+            {
+                _freeze.Freeze(source);
+            }
+        }
+
+        private void HandleFrozen()
+        {
+            _body.SetFrozen(true);
+            _returnsToFirstPerson = !_view.IsThirdPerson;
+            if (_returnsToFirstPerson)
+            {
+                _view.Toggle();
+            }
+        }
+
+        private void HandleThawed()
+        {
+            _body.SetFrozen(false);
+            if (_returnsToFirstPerson && _view.IsThirdPerson)
+            {
+                _view.Toggle();
+            }
+        }
 
         public void BeginConversation()
         {
@@ -434,13 +485,13 @@ namespace Gameplay.Entities.Characters.Player
 
         private Vector3 HandleMovement(float deltaTime)
         {
-            Vector2 input = _bodyAction.LocksMovement ? Vector2.zero : GameInput.Move;
+            Vector2 input = _bodyAction.LocksMovement || _freeze.IsFrozen ? Vector2.zero : GameInput.Move;
             float speed = GetMoveSpeed(input) * _motor.LandingSpeedFactor;
             Vector3 target = _motor.Steer(input, speed, deltaTime);
             _motor.PlanarVelocity = _hose.LimitMove(_motor.PlanarVelocity);
 
             _jump.HeightBoost = _hose.JumpBoost;
-            _jump.Tick(GameInput.JumpPressed, GameInput.IsJumpHeld, !_carry.IsCarrying && !IsBodyBusy, _motor.Gravity, deltaTime);
+            _jump.Tick(GameInput.JumpPressed, GameInput.IsJumpHeld, !_carry.IsCarrying && !IsBodyBusy && !_freeze.IsFrozen, _motor.Gravity, deltaTime);
             Vector3 move = _motor.Move(_hose.RecoilPush(target), deltaTime);
             bool isFast = speed > _motor.WalkSpeed;
             bool isStriding = _body.TryGetStride(isFast, out float stride);
@@ -552,10 +603,45 @@ namespace Gameplay.Entities.Characters.Player
             {
                 ReleaseProp(true);
             }
+            else if (HasFreeHands && _shield.CanToggle)
+            {
+                PressShieldButton();
+            }
             else if (HasFreeHands && _axe.IsReady)
             {
                 StartChop();
             }
+            else if (HasFreeHands && _elementGun.IsReady)
+            {
+                _elementGun.Shoot();
+            }
+            else if (HasFreeHands && _frostGrenade.IsArmed)
+            {
+                StartToss(ThrowGrenade);
+            }
+            else if (HasFreeHands && _frostGrenade.IsHeld)
+            {
+                _frostGrenade.Arm();
+            }
+        }
+
+        private void HandleElementSwitch()
+        {
+            if (CanAct && HasFreeHands && _elementGun.IsHeld && GameInput.ElementSwitchPressed)
+            {
+                _elementGun.SwitchElement();
+            }
+        }
+
+        private void PressShieldButton()
+        {
+            if (_view.IsThirdPerson)
+            {
+                _shield.Toggle();
+                return;
+            }
+
+            _hands.Play(HandGesture.ThumbPress, _shield.Toggle);
         }
 
         private void HandleDrop()
@@ -571,17 +657,24 @@ namespace Gameplay.Entities.Characters.Player
             }
             else if (!IsHoldingProp && _heldItem.HeldTool != null)
             {
-                StartToss();
+                StartToss(DropHeldTool);
             }
         }
 
-        private void StartToss()
+        private void DropHeldTool()
         {
-            Action release = () =>
-            {
-                _heldItem.Drop(_head);
-                AudioService.Instance.Play(SoundType.ItemThrow);
-            };
+            _heldItem.Drop(_head);
+            AudioService.Instance.Play(SoundType.ItemThrow);
+        }
+
+        private void ThrowGrenade()
+        {
+            _frostGrenade.Throw();
+            AudioService.Instance.Play(SoundType.ItemThrow);
+        }
+
+        private void StartToss(Action release)
+        {
             if (!_view.IsThirdPerson)
             {
                 _hands.Play(HandGesture.Toss, release);
@@ -634,12 +727,12 @@ namespace Gameplay.Entities.Characters.Player
             _body.SetHeldTool(type);
             if (tool == null)
             {
-                _hands.SetLeftGrip(null);
+                _hands.SetTool(null, null);
                 _hands.SetHandPose(false, Vector3.zero, Vector3.zero);
                 return;
             }
 
-            _hands.SetLeftGrip(tool.LeftGrip);
+            _hands.SetTool(tool.transform, tool.LeftGrip);
             _hands.SetHandPose(tool.HasHandPose, tool.HandPosition, tool.HandEuler);
             if (tool.HasAimHold)
             {

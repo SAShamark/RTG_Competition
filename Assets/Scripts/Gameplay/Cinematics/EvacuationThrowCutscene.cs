@@ -1,3 +1,4 @@
+using Gameplay.Cinematics.EvacuationThrow;
 using Gameplay.Entities.Environment;
 using Gameplay.Entities.Interactive;
 using Services;
@@ -24,14 +25,9 @@ namespace Gameplay.Cinematics
         [SerializeField] private float _handOff = 0.7f;
         [SerializeField] private float _breakTime = 0.45f;
         [SerializeField] private float _hang = 0.25f;
-        [SerializeField] private float _flightTime = 1.25f;
-        [SerializeField] private float _bounceTime = 1.0f;
         [SerializeField] private float _endHold = 1.1f;
 
-        [Header("Arcs")]
-        [SerializeField] private float _flightApex = 0.9f;
-        [SerializeField] private float _bounceApex = 1.6f;
-        [SerializeField] private float _tumbleDegrees = 70f;
+        [SerializeField] private ThrowFlightPhysics _physics = new();
 
         [Header("Camera")]
         [SerializeField] private float _lookSharpness = 7f;
@@ -46,8 +42,6 @@ namespace Gameplay.Cinematics
         [SerializeField] private float _sillDrop = 0.3f;
         [SerializeField] private float _sillTilt = -40f;
         [SerializeField] private float _hangWobble = 0.06f;
-        [SerializeField] private float _tumbleStart = 0.45f;
-        [SerializeField] private float _settleSpeed = 1.3f;
         [SerializeField] private float _windowAimDrop = 0.4f;
         [SerializeField] private float _landingAimBlend = 0.4f;
 
@@ -68,15 +62,13 @@ namespace Gameplay.Cinematics
         private Quaternion _viewFrom;
         private SubtitleCue[] _subtitles = Array.Empty<SubtitleCue>();
         private bool _isOutside;
-        private bool _hasBounced;
 
         public override CinematicSettings Settings => _settings;
         public override SubtitleCue[] Subtitles => _subtitles;
 
         private float CutTime => _handOff;
         private float LaunchTime => _handOff + _hang;
-        private float LandTime => LaunchTime + _flightTime;
-        private float SafeTime => LandTime + _bounceTime;
+        private float SafeTime => LaunchTime + _physics.Duration;
         protected override float Duration => SafeTime + _endHold;
 
         private void Awake()
@@ -92,7 +84,6 @@ namespace Gameplay.Cinematics
             }
 
             _isOutside = false;
-            _hasBounced = false;
             _player = player;
             _resident = resident;
             _window = window;
@@ -111,6 +102,8 @@ namespace Gameplay.Cinematics
             _flightRotation = Quaternion.LookRotation(_outward) * Quaternion.Euler(resident.FlightEuler);
             _lyingRotation = Quaternion.LookRotation(Vector3.up, _outward);
             _cameraAnchor = window.CameraAnchor.position;
+            _physics.Build(_launch, _landing, _safe + Vector3.up * resident.Character.BodyCenterHeight, _flightRotation,
+                _lyingRotation, _safeRotation, _trampoline.MaxDent);
 
             _handOffFrom = resident.transform.position;
             _handOffFromRotation = resident.transform.rotation;
@@ -128,7 +121,7 @@ namespace Gameplay.Cinematics
         {
             _subtitles = new[]
             {
-                new SubtitleCue(CutTime, _hang + _flightTime, _resident.FlyLineId),
+                new SubtitleCue(CutTime, _hang + _physics.FlightTime, _resident.FlyLineId),
             };
         }
 
@@ -168,36 +161,10 @@ namespace Gameplay.Cinematics
                 float wobble = Mathf.Sin((t - CutTime) / _hang * Mathf.PI * 2f) * _hangWobble;
                 _resident.Character.SetCenterPose(_launch + Vector3.up * wobble, _flightRotation);
             }
-            else if (t < LandTime)
-            {
-                CutOutside();
-                _resident.Character.SetPose(CharacterPose.Flailing);
-                float u = (t - LaunchTime) / _flightTime;
-                // slight backward tumble, ending flat on the back for the bed
-                Quaternion tumble = Quaternion.Slerp(_flightRotation, _lyingRotation, Easing.Smooth(Mathf.InverseLerp(_tumbleStart, 1f, u)));
-                _resident.Character.SetCenterPose(Arc(_launch, _landing, _flightApex, u), tumble);
-            }
             else if (t < SafeTime)
             {
-                if (!_hasBounced)
-                {
-                    _hasBounced = true;
-                    _trampoline.Bounce();
-                }
-
-                float contact = _trampoline.ContactDuration;
-                float since = t - LandTime;
-                if (since < contact)
-                {
-                    _resident.Character.SetCenterPose(_landing + Vector3.up * _trampoline.SampleDent(_landing), _lyingRotation);
-                }
-                else
-                {
-                    float u = (since - contact) / (_bounceTime - contact);
-                    Vector3 safeCenter = _safe + Vector3.up * _resident.Character.BodyCenterHeight;
-                    _resident.Character.SetCenterPose(Arc(_landing, safeCenter, _bounceApex, u),
-                        Quaternion.Slerp(_lyingRotation, _safeRotation, Easing.Smooth(u * _settleSpeed)));
-                }
+                CutOutside();
+                _physics.Pose(t - LaunchTime, _resident.Character, _trampoline);
             }
             else
             {
@@ -251,6 +218,8 @@ namespace Gameplay.Cinematics
         protected override void OnStopped()
         {
             _window.Break(_outward);
+            _physics.LetGoOfCloth(_trampoline);
+
             Land();
 
             _camera.gameObject.SetActive(false);

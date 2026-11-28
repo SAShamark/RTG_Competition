@@ -14,6 +14,7 @@ namespace Gameplay.Entities.Characters.Player
         Chop = 5,
         Reach = 6,
         Toss = 7,
+        ThumbPress = 8,
     }
 
     [Serializable]
@@ -147,6 +148,13 @@ namespace Gameplay.Entities.Characters.Player
         [SerializeField] private float _sputterAmplitude = 0.012f;
         [SerializeField] private float _sputterFrequency = 23f;
 
+        [Header("Thumb press")]
+        [SerializeField] private Transform _rightThumb;
+        [SerializeField] private Vector3 _thumbPressEuler = new(14f, 0f, 0f);
+        [SerializeField] private float _thumbPressDuration = 0.4f;
+        [SerializeField] private float _thumbPressContactTime = 0.1f;
+
+        private float _thumbPress;
         private bool _hasAimPose;
         private Vector3 _handAimPosition;
         private Quaternion _handAimRotation = Quaternion.identity;
@@ -161,6 +169,7 @@ namespace Gameplay.Entities.Characters.Player
 
         private GestureState _gesture;
         private Transform _leftGrip;
+        private Transform _tool;
         private float _toolBlend;
         private float _holdBlend;
         private bool _isLeftFist;
@@ -221,9 +230,10 @@ namespace Gameplay.Entities.Characters.Player
             _carryKnee = farKnee;
         }
 
-        public void SetLeftGrip(Transform grip)
+        public void SetTool(Transform tool, Transform leftGrip)
         {
-            _leftGrip = grip;
+            _tool = tool;
+            _leftGrip = leftGrip;
         }
 
         public void SetHandPose(bool hasPose, Vector3 position, Vector3 euler)
@@ -261,6 +271,7 @@ namespace Gameplay.Entities.Characters.Player
                     HandGesture.Rattle or HandGesture.Pry => _longGestureDuration,
                     HandGesture.Chop => _chopDuration,
                     HandGesture.Toss => _tossDuration,
+                    HandGesture.ThumbPress => _thumbPressDuration,
                     _ => _gestureDuration,
                 },
                 ContactTime = gesture switch
@@ -268,6 +279,7 @@ namespace Gameplay.Entities.Characters.Player
                     HandGesture.Rattle => _rattleContactTime,
                     HandGesture.Chop => _chopContactTime,
                     HandGesture.Toss => _tossContactTime,
+                    HandGesture.ThumbPress => _thumbPressContactTime,
                     _ => _contactTime,
                 },
                 OnContact = onContact,
@@ -305,6 +317,7 @@ namespace Gameplay.Entities.Characters.Player
             bool isSwingingFists = run > _fistSwing;
             _reachWeight = 0f;
             _tossPitch = 0f;
+            _thumbPress = 0f;
 
             _sprayKick = Mathf.MoveTowards(_sprayKick, 0f, deltaTime * _sprayKickDecay);
             _aimBlend = Mathf.MoveTowards(_aimBlend, _isAiming ? 1f : 0f, deltaTime * _aimSpeed);
@@ -332,7 +345,9 @@ namespace Gameplay.Entities.Characters.Player
 
             bool hasGrip = _leftGrip != null && _leftGrip.gameObject.activeInHierarchy;
             bool isTwoHanded = hasGrip && _hasHandPose;
-            _holdBlend = Mathf.MoveTowards(_holdBlend, hasGrip ? 1f : 0f, deltaTime * _holdBlendSpeed);
+            bool isOneHandPosed = _hasHandPose && _leftGrip == null && _tool != null && _tool.gameObject.activeInHierarchy;
+            bool isHolding = hasGrip || isOneHandPosed;
+            _holdBlend = Mathf.MoveTowards(_holdBlend, isHolding ? 1f : 0f, deltaTime * _holdBlendSpeed);
             _toolBlend = Mathf.MoveTowards(_toolBlend, isTwoHanded ? 1f : 0f, deltaTime * (isTwoHanded ? _toolBlendSpeed : _toolReleaseSpeed));
             float hold = Easing.Smooth(_holdBlend);
             float twoHands = Easing.Smooth(_toolBlend);
@@ -340,7 +355,10 @@ namespace Gameplay.Entities.Characters.Player
             {
                 right += _oneHandRightOffset * hold;
                 rightEuler += _oneHandRightEuler * hold;
-                left += _oneHandLeftOffset * (hold * (1f - twoHands));
+                if (_leftGrip != null)
+                {
+                    left += _oneHandLeftOffset * (hold * (1f - twoHands));
+                }
             }
 
             float pose = _hasHandPose ? hold : 0f;
@@ -354,13 +372,15 @@ namespace Gameplay.Entities.Characters.Player
             bool isReachClosed = _gesture.Type == HandGesture.Reach && _gesture.ContactFired;
             bool isLeftReaching = _gesture.Type == HandGesture.Reach && _gesture.IsLeft;
             ApplyGesture(deltaTime, ref left, ref right, ref leftEuler, ref rightEuler);
+            _rightThumb.gameObject.SetActive(isOneHandPosed);
+            _rightThumb.localRotation = Quaternion.Euler(_thumbPressEuler * _thumbPress);
 
             // The off hand only closes on the tool once the reaching hand has brought it back.
             float gripTarget = twoHands * (1f - _reachWeight);
             _gripBlend = Mathf.MoveTowards(_gripBlend, gripTarget, deltaTime * (gripTarget < _gripBlend ? _toolBlendSpeed : _gripBlendSpeed));
             float gripWeight = Easing.Smooth(_gripBlend);
             SetLeftFist(gripWeight > _fistSwing || hasCarryGrips || (isSwingingFists && !isLeftReaching) || (isReachClosed && isLeftReaching));
-            SetRightFist(hasGrip || hasCarryGrips || (isSwingingFists && free > _fistSwing) || (isReachClosed && !isLeftReaching));
+            SetRightFist(isHolding || hasCarryGrips || (isSwingingFists && free > _fistSwing) || (isReachClosed && !isLeftReaching));
 
             _leftHand.localPosition = left;
             _rightHand.localPosition = right;
@@ -612,6 +632,10 @@ namespace Gameplay.Entities.Characters.Player
                     right += _pushRightOffset * reach;
                     rightEuler += _pushRightEuler * reach;
                     left += _pushLeftOffset * reach;
+                    break;
+
+                case HandGesture.ThumbPress:
+                    _thumbPress = reach;
                     break;
 
                 case HandGesture.Rattle:

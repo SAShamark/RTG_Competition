@@ -122,5 +122,7 @@ namespace Gameplay.Dialogue
         NavValve = 118,
         ToastComplaint = 119,
         HintTalk = 120,
+        ToastFrostGrenadeHint = 121,
+        FrozenTitle = 122,
     }
 }

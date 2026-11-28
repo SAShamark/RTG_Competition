@@ -22,6 +22,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         [Header("Runoff")]
         [SerializeField, Min(0f)] private float _flowRate = 6f;
+        [SerializeField] private WaterTraceLayer _traces = new();
 
         [Header("Push")]
         [SerializeField, Min(0f)] private float _pushForce = 60f;
@@ -77,7 +78,6 @@ namespace Gameplay.Entities.Interactive.Items
 
         public event Action<FireSource> FireHit;
         public event Action RanOut;
-        public event Action<Vector3, float> WaterLanded;
 
         public void Init(Transform aim, InventoryLogic items)
         {
@@ -147,7 +147,7 @@ namespace Gameplay.Entities.Interactive.Items
                 HitFires(deltaTime);
                 if (_path.HasImpact)
                 {
-                    WaterLanded?.Invoke(_path.ImpactPoint, _flowRate * supply * deltaTime);
+                    _traces.Wet(_path.ImpactCollider, _path.ImpactPoint, _path.ImpactNormal, _flowRate * supply * deltaTime);
                     ToolImpact.Apply(_path.ImpactCollider,
                         new ToolHit(ToolHitKind.Water, _path.ImpactPoint, _path.ImpactDirection, _pushForce * supply * deltaTime));
                 }

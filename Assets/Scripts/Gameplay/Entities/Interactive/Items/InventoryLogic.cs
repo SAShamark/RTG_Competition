@@ -21,6 +21,7 @@ namespace Gameplay.Entities.Interactive.Items
         public ToolItem HeldTool => _hand.Tool;
         public InventoryEntry Hand => _hand;
         public InventoryEntry Slot(int index) => _slots[index];
+        public bool IsHandLocked { get; set; }
 
         private bool IsHoldingHandOnly => _hand.Tool != null && _hand.Tool.IsHandOnly;
 
@@ -88,6 +89,11 @@ namespace Gameplay.Entities.Interactive.Items
                 return true;
             }
 
+            if (IsHandLocked)
+            {
+                return false;
+            }
+
             if (IsHoldingHandOnly)
             {
                 Release(Vector3.zero);
@@ -142,7 +148,7 @@ namespace Gameplay.Entities.Interactive.Items
         public void SelectSlot(int index)
         {
             InventoryEntry slot = _slots[index];
-            if (slot.IsEmpty && _hand.IsEmpty)
+            if (IsHandLocked || (slot.IsEmpty && _hand.IsEmpty))
             {
                 return;
             }
@@ -161,6 +167,15 @@ namespace Gameplay.Entities.Interactive.Items
 
         public void Drop(Transform head) => Release(head.forward * _dropSpeed + Vector3.up);
 
+        public void Throw(Vector3 velocity) => Release(velocity);
+
+        public void Consume()
+        {
+            IsHandLocked = false;
+            _hand.Clear();
+            Changed(true);
+        }
+
         private void Release(Vector3 velocity)
         {
             ToolItem dropped = _hand.Tool;
@@ -169,6 +184,7 @@ namespace Gameplay.Entities.Interactive.Items
                 return;
             }
 
+            IsHandLocked = false;
             _hand.Clear();
             dropped.gameObject.SetActive(true);
             dropped.Release(dropped.transform.position, velocity);

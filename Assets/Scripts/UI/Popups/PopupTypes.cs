@@ -10,5 +10,6 @@ namespace UI.Popups
         SafePuzzle = 6,
         Pause = 7,
         MainMenu = 8,
+        Death = 9,
     }
 }

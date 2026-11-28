@@ -1,10 +1,11 @@
+using Gameplay.Entities.Characters;
 using Services;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace Gameplay.Entities.Interactive.Items
 {
-    public sealed class PowderSplat : MonoBehaviour
+    public sealed class SurfaceSplat : MonoBehaviour
     {
         private const int AtlasCells = 2;
         private const float FullTurn = 360f;
@@ -18,6 +19,7 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField, Range(0f, 1f)] private float _startDensity = 0.25f;
         [SerializeField, Range(0f, 1f)] private float _minFade = 0.35f;
         [SerializeField] private float _fadeOutDuration = 0.7f;
+        [SerializeField, Min(0f)] private float _dryDuration;
 
         private Collider _surface;
         private Transform _anchor;
@@ -32,6 +34,18 @@ namespace Gameplay.Entities.Interactive.Items
         public Collider Surface => _surface;
         public Vector3 Point => transform.position;
         public Vector3 Normal => -transform.forward;
+
+        // A flat splat cannot ride a body that bends under it, and a fire is not a surface at all.
+        public static bool CanStickTo(Collider surface)
+        {
+            if (surface is CharacterController || surface.GetComponentInParent<CharacterControl>() != null || surface.GetComponentInParent<FireSource>() != null)
+            {
+                return false;
+            }
+
+            Animator animator = surface.GetComponentInParent<Animator>();
+            return animator == null || animator.GetComponentInChildren<SkinnedMeshRenderer>() == null;
+        }
 
         public void Place(Collider surface, Vector3 point, Vector3 normal)
         {
@@ -79,17 +93,29 @@ namespace Gameplay.Entities.Interactive.Items
             transform.SetPositionAndRotation(_anchor.TransformPoint(_localPoint), _anchor.rotation * _localRotation);
         }
 
-        // The splat rides on its surface; once the surface is gone it thins out and returns to the pool.
+        // The splat rides on its surface; once the surface is gone, or the splat has dried out, it thins away and returns to the pool.
         private void LateUpdate()
         {
-            if (_surface != null && _surface.enabled && _surface.gameObject.activeInHierarchy)
+            bool hasSurface = _surface != null && _surface.enabled && _surface.gameObject.activeInHierarchy;
+            if (hasSurface)
             {
                 Follow();
+            }
+            else
+            {
+                _presence -= Time.deltaTime / _fadeOutDuration;
+            }
+
+            if (_dryDuration > 0f)
+            {
+                _density -= Time.deltaTime / _dryDuration;
+            }
+            else if (hasSurface)
+            {
                 return;
             }
 
-            _presence -= Time.deltaTime / _fadeOutDuration;
-            if (_presence > 0f)
+            if (_presence > 0f && _density > 0f)
             {
                 Apply();
                 return;

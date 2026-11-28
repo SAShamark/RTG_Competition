@@ -1,4 +1,5 @@
 using Gameplay.Dialogue;
+using Gameplay.Cinematics.EvacuationThrow;
 using Gameplay.Cinematics.Finale;
 using Gameplay.Entities.Characters.Player;
 using Gameplay.Entities.Interactive;
@@ -43,21 +44,15 @@ namespace Gameplay.Cinematics
         [Header("Timing")]
         [SerializeField] private float _run = 1.1f;
         [SerializeField] private float _hang = 0.35f;
-        [SerializeField] private float _fall = 1.35f;
-        [SerializeField] private float _bounce = 1.0f;
         [SerializeField] private float _landHold = 1.0f;
         [SerializeField] private float _poseHold = 0.9f;
 
         [Header("Stunt")]
-        [SerializeField] private float _fallApex = 1.9f;
-        [SerializeField] private float _bounceApex = 2.0f;
+        [SerializeField] private ThrowFlightPhysics _physics = new(1.9f);
         [SerializeField] private float _landingLift = 0.25f;
         [SerializeField] private float _safeOffset = 1.1f;
         [SerializeField] private float _sillLift = 0.1f;
         [SerializeField] private float _sillTilt = -10f;
-        [SerializeField] private float _tumbleStart = 0.3f;
-        [SerializeField] private float _bounceStrength = 1.3f;
-        [SerializeField] private float _settleSpeed = 1.4f;
         [SerializeField] private float _stuntAimHeight = 0.9f;
         [SerializeField] private float _aimSharpness = 7f;
         [SerializeField] private float _landingAimBlend = 0.4f;
@@ -74,7 +69,6 @@ namespace Gameplay.Cinematics
 
         private SubtitleCue[] _subtitles;
         private Shot _shot;
-        private bool _hasBounced;
         private bool _exploded;
         private bool _isEnding;
         private FirstPersonController _player;
@@ -96,8 +90,9 @@ namespace Gameplay.Cinematics
         public Texture CapturedFrame => _frame;
 
         private float FallTime => _run + _hang;
-        private float LandTime => FallTime + _fall;
-        private float SafeTime => LandTime + _bounce;
+        private float SafeTime => FallTime + _physics.Duration;
+        private Quaternion Facing => Quaternion.LookRotation(_outward);
+        private Quaternion Lying => Quaternion.LookRotation(Vector3.up, _outward);
         private float JumpDuration => SafeTime + _landHold;
         private float OrbitTime => _uncleScene.RunIn + _uncleScene.Pee;
         protected override float Duration => _isEnding ? _uncleScene.Duration + _poseHold : JumpDuration;
@@ -139,7 +134,6 @@ namespace Gameplay.Cinematics
 
             _isEnding = false;
             _player = player;
-            _hasBounced = false;
             _exploded = false;
             _shot = Shot.None;
             _launch = _window.LaunchPoint.position;
@@ -147,6 +141,8 @@ namespace Gameplay.Cinematics
             _safeRotation = _window.Trampoline.SafeRotation;
             _safe = _window.Trampoline.SafePoint + _safeRotation * Vector3.right * _safeOffset;
             _outward = Vector3.ProjectOnPlane(_landing - _launch, Vector3.up).normalized;
+            _physics.Build(_launch + Vector3.up * _sillLift, _landing, _safe + Vector3.up * _stunt.BodyCenterHeight,
+                Facing * Quaternion.Euler(_sillTilt, 0f, 0f), Lying, _safeRotation, _window.Trampoline.MaxDent);
             _window.Break(_outward);
             _uncleScene.Prepare();
 
@@ -232,39 +228,14 @@ namespace Gameplay.Cinematics
                 Explode();
             }
 
-            Quaternion facing = Quaternion.LookRotation(_outward);
-            Quaternion lying = Quaternion.LookRotation(Vector3.up, _outward);
             if (t < FallTime)
             {
                 _stunt.SetPose(CharacterPose.Carried);
-                _stunt.SetCenterPose(_launch + Vector3.up * _sillLift, facing * Quaternion.Euler(_sillTilt, 0f, 0f));
-            }
-            else if (t < LandTime)
-            {
-                float u = (t - FallTime) / _fall;
-                _stunt.SetPose(CharacterPose.Flailing);
-                _stunt.SetCenterPose(Arc(_launch, _landing, _fallApex, u), Quaternion.Slerp(facing, lying, Easing.Smooth(Mathf.InverseLerp(_tumbleStart, 1f, u))));
+                _stunt.SetCenterPose(_launch + Vector3.up * _sillLift, Facing * Quaternion.Euler(_sillTilt, 0f, 0f));
             }
             else if (t < SafeTime)
             {
-                if (!_hasBounced)
-                {
-                    _hasBounced = true;
-                    _window.Trampoline.Bounce(_bounceStrength);
-                }
-
-                float contact = _window.Trampoline.ContactDuration;
-                float since = t - LandTime;
-                if (since < contact)
-                {
-                    _stunt.SetCenterPose(_landing + Vector3.up * _window.Trampoline.SampleDent(_landing), lying);
-                }
-                else
-                {
-                    float u = (since - contact) / (_bounce - contact);
-                    _stunt.SetCenterPose(Arc(_landing, _safe + Vector3.up * _stunt.BodyCenterHeight, _bounceApex, u),
-                        Quaternion.Slerp(lying, _safeRotation, Easing.Smooth(u * _settleSpeed)));
-                }
+                _physics.Pose(t - FallTime, _stunt, _window.Trampoline);
             }
             else
             {
@@ -342,6 +313,7 @@ namespace Gameplay.Cinematics
         {
             if (!_isEnding)
             {
+                _physics.LetGoOfCloth(_window.Trampoline);
                 Release(_player);
                 _player.enabled = true;
                 return;

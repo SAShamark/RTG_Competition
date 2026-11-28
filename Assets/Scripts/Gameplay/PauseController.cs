@@ -20,19 +20,26 @@ namespace Gameplay
         private FirstPersonController _player;
         private PausePopup _popup;
         private MainMenuPopup _menu;
+        private PausePopup _death;
         private int _openPopups;
         private int _lastClosedFrame = -1;
         private float _savedTimeScale;
         private bool _wasPlayerEnabled;
         private CursorLockMode _savedLock;
         private bool _savedCursorVisible;
+        private Vector3 _spawnPosition;
+        private Quaternion _spawnRotation;
 
         public static bool IsPaused { get; private set; }
+
+        public event Action Respawned;
 
         public void Init(IPopupsManager popups, FirstPersonController player)
         {
             _popups = popups;
             _player = player;
+            _spawnPosition = player.transform.position;
+            _spawnRotation = player.transform.rotation;
             _popups.PopupShowed += HandlePopupShowed;
             _popups.PopupHidden += HandlePopupHidden;
             if (_showMenuOnStart && !_isRestarting)
@@ -53,6 +60,11 @@ namespace Gameplay
             if (_popup != null)
             {
                 ReleasePopup();
+            }
+
+            if (_death != null)
+            {
+                ReleaseDeath();
             }
 
             _popups.PopupShowed -= HandlePopupShowed;
@@ -77,6 +89,36 @@ namespace Gameplay
             {
                 Pause();
             }
+        }
+
+        public void ShowDeath()
+        {
+            if (_popup != null)
+            {
+                Resume();
+            }
+
+            Freeze();
+            _death = _popups.ShowPopup<PausePopup>(PopupTypes.Death);
+            _death.RestartChosen += Respawn;
+            _death.MainMenuChosen += HandleMainMenuChosen;
+        }
+
+        private void Respawn()
+        {
+            PausePopup death = _death;
+            ReleaseDeath();
+            death.CloseTrigger();
+            Unfreeze();
+            _player.Teleport(_spawnPosition, _spawnRotation);
+            Respawned?.Invoke();
+        }
+
+        private void ReleaseDeath()
+        {
+            _death.RestartChosen -= Respawn;
+            _death.MainMenuChosen -= HandleMainMenuChosen;
+            _death = null;
         }
 
         private void ShowMenu()

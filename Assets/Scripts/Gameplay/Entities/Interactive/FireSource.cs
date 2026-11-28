@@ -85,6 +85,7 @@ namespace Gameplay.Entities.Interactive
 
         public float Intensity => _intensity;
         public bool IsOut { get; private set; }
+        public Collider Blocker => _blocker;
         public float HeatRadius => _heatRadius;
         public bool IsSuppressedByPowder { get; private set; }
 

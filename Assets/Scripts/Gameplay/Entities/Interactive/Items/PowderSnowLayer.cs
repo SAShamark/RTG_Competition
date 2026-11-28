@@ -42,7 +42,7 @@ namespace Gameplay.Entities.Interactive.Items
         [SerializeField, Range(0f, 1f)] private float _noiseAmount = 0.6f;
 
         [Header("Splats")]
-        [SerializeField] private PowderSplat _splatPrefab;
+        [SerializeField] private SurfaceSplat _splatPrefab;
         [SerializeField, Min(1)] private int _maxSplats = 320;
         [SerializeField] private float _splatMergeRadius = 0.14f;
         [SerializeField, Range(0f, 1f)] private float _splatMergeNormal = 0.8f;
@@ -51,8 +51,7 @@ namespace Gameplay.Entities.Interactive.Items
 
         private readonly Dictionary<(Vector3Int normal, int level, int u, int v), PowderSnowChunk> _chunks = new();
         private readonly Dictionary<Collider, SurfaceKind> _kinds = new();
-        private readonly List<PowderSplat> _splats = new();
-        private int _nextRecycle;
+        private SplatPool _splats;
 
         public bool IsFloor(Vector3 normal) => normal.y >= _minFloorNormal;
 
@@ -83,7 +82,7 @@ namespace Gameplay.Entities.Interactive.Items
                 return kind;
             }
 
-            if (surface is CharacterController || surface.GetComponentInParent<Animator>() != null || surface.GetComponentInParent<FireSource>() != null)
+            if (!SurfaceSplat.CanStickTo(surface))
             {
                 kind = SurfaceKind.Ignored;
             }
@@ -91,7 +90,7 @@ namespace Gameplay.Entities.Interactive.Items
             {
                 kind = SurfaceKind.Glass;
             }
-            else if (surface.attachedRigidbody != null)
+            else if (surface.attachedRigidbody != null || surface.GetComponentInParent<Animator>() != null)
             {
                 kind = SurfaceKind.Loose;
             }
@@ -106,52 +105,8 @@ namespace Gameplay.Entities.Interactive.Items
 
         private void DepositSplat(Vector3 point, Vector3 normal, Collider surface, float amount)
         {
-            PowderSplat nearest = null;
-            float nearestSqr = _splatMergeRadius * _splatMergeRadius;
-            foreach (PowderSplat splat in _splats)
-            {
-                if (splat.IsFree || splat.Surface != surface || Vector3.Dot(splat.Normal, normal) < _splatMergeNormal)
-                {
-                    continue;
-                }
-
-                float distanceSqr = (splat.Point - point).sqrMagnitude;
-                if (distanceSqr < nearestSqr)
-                {
-                    nearestSqr = distanceSqr;
-                    nearest = splat;
-                }
-            }
-
-            if (nearest != null)
-            {
-                nearest.Add(amount * _splatGrowth);
-                return;
-            }
-
-            Vector3 offset = Vector3.ProjectOnPlane(UnityEngine.Random.insideUnitSphere, normal) * _splatJitter;
-            TakeSplat().Place(surface, point + offset, normal);
-        }
-
-        private PowderSplat TakeSplat()
-        {
-            foreach (PowderSplat splat in _splats)
-            {
-                if (splat.IsFree)
-                {
-                    return splat;
-                }
-            }
-
-            if (_splats.Count < _maxSplats)
-            {
-                PowderSplat created = UnityEngine.Object.Instantiate(_splatPrefab);
-                _splats.Add(created);
-                return created;
-            }
-
-            _nextRecycle = (_nextRecycle + 1) % _splats.Count;
-            return _splats[_nextRecycle];
+            _splats ??= new SplatPool(_splatPrefab, _maxSplats, _splatMergeRadius, _splatMergeNormal, _splatJitter);
+            _splats.Deposit(surface, point, normal, amount * _splatGrowth);
         }
 
         private void DepositMound(Vector3 point, Vector3 normal, float amount)

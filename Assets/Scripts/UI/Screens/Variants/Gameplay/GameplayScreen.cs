@@ -30,6 +30,8 @@ namespace UI.Screens.Variants.Gameplay
         [SerializeField] private GameObject _dropHint;
         [SerializeField] private ToastWidget _toasts;
         [SerializeField] private HeatVignetteWidget _heat;
+        [SerializeField] private BurnFrameWidget _burnFrame;
+        [SerializeField] private FreezeWidget _freeze;
         [SerializeField] private PressureGaugeWidget _pressure;
         [SerializeField] private FireProgressWidget _fireProgress;
 
@@ -37,6 +39,7 @@ namespace UI.Screens.Variants.Gameplay
         private FireHeatLogic _fireHeat;
         private TextLibrary _texts;
         private bool _extinguisherHintShown;
+        private bool _grenadeHintShown;
         private bool _carryHintShown;
         private ClutterItem _heldProp;
         private Rescuable _carriedResident;
@@ -61,6 +64,8 @@ namespace UI.Screens.Variants.Gameplay
         public void SetDropHint(bool isVisible) => _dropHint.SetActive(isVisible);
 
         public void SetHeat(float intensity01) => _heat.SetIntensity(intensity01);
+
+        public void SetBurn(float burn01) => _burnFrame.SetFill(burn01);
 
         public void ShowFireProgress(float value01)
         {
@@ -103,6 +108,7 @@ namespace UI.Screens.Variants.Gameplay
             _fireHeat = fireHeat;
             _pressure.Init(player.Extinguisher, player.Axe);
             _texts = texts;
+            _freeze.Init(player.Freezing, texts[TextId.FrozenTitle]);
             HideRescued();
             SetHeat(0f);
             HideFireProgress();
@@ -111,6 +117,7 @@ namespace UI.Screens.Variants.Gameplay
             _player.Interaction.HintChanged += SetInteractionHint;
             _player.Interaction.TargetChanged += SetInteractionTarget;
             _fireHeat.HeatChanged += SetHeat;
+            _fireHeat.BurnChanged += SetBurn;
             _player.Items.ItemChanged += HandleItemChanged;
             _player.Items.InventoryChanged += RefreshInventory;
             _player.Items.InventoryFull += HandleInventoryFull;
@@ -124,6 +131,7 @@ namespace UI.Screens.Variants.Gameplay
             _player.Interaction.HintChanged -= SetInteractionHint;
             _player.Interaction.TargetChanged -= SetInteractionTarget;
             _fireHeat.HeatChanged -= SetHeat;
+            _fireHeat.BurnChanged -= SetBurn;
             _player.Items.ItemChanged -= HandleItemChanged;
             _player.Items.InventoryChanged -= RefreshInventory;
             _player.Items.InventoryFull -= HandleInventoryFull;
@@ -180,6 +188,11 @@ namespace UI.Screens.Variants.Gameplay
             {
                 _extinguisherHintShown = true;
                 ShowToast(_texts[TextId.ToastExtinguisherHint]);
+            }
+            else if (item == ItemType.FrostGrenade && !_grenadeHintShown)
+            {
+                _grenadeHintShown = true;
+                ShowToast(_texts[TextId.ToastFrostGrenadeHint]);
             }
         }
 

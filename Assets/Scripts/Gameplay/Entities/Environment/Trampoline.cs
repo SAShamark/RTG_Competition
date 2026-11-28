@@ -15,7 +15,6 @@ namespace Gameplay.Entities.Environment
         [SerializeField] private TrampolineRiderLogic _rider = new();
 
         [Header("Spring")]
-        [SerializeField, Min(0f)] private float _impactSpeed = 4.5f;
         [SerializeField, Min(0f)] private float _stiffness = 160f;
         [SerializeField, Min(0f)] private float _damping = 7f;
         [SerializeField, Min(0f)] private float _maxDent = 0.38f;
@@ -39,13 +38,12 @@ namespace Gameplay.Entities.Environment
         private float _wobbleVelocity;
         private float _wobbleWeight;
         private Vector3 _frameRest;
+        private bool _isPressed;
 
         public Vector3 LandingPoint => _landingPoint.position;
         public Vector3 SafePoint => _safePoint.position;
         public Quaternion SafeRotation => _safePoint.rotation;
-
-        // Half period of the damped spring: the time the cloth needs to dip and come back to rest height.
-        public float ContactDuration => Mathf.PI / Mathf.Sqrt(_stiffness - _damping * _damping * 0.25f);
+        public float MaxDent => _maxDent;
 
         private void Awake()
         {
@@ -57,6 +55,7 @@ namespace Gameplay.Entities.Environment
 
         private void OnDisable()
         {
+            _isPressed = false;
             _rider.Release();
         }
 
@@ -76,21 +75,38 @@ namespace Gameplay.Entities.Environment
             _rider.Exit(other);
         }
 
-        public void Bounce(float strength = 1f)
+        public void Press(Vector3 worldPoint, float offset)
         {
-            Vector3 local = _membrane.Surface.InverseTransformPoint(_landingPoint.position);
-            Hit(new Vector2(local.x, local.z), _impactSpeed * strength);
+            if (!_isPressed)
+            {
+                _isPressed = true;
+                AudioService.Instance.PlayAt(SoundType.TrampolineBoing, transform.position);
+            }
+
+            Vector3 local = _membrane.Surface.InverseTransformPoint(worldPoint);
+            _contact = new Vector2(local.x, local.z);
+            _offset = Mathf.Max(offset, -_maxDent);
+            _velocity = 0f;
+            _wobble = 0f;
+            _wobbleVelocity = 0f;
+            _membrane.Apply(_contact, _offset);
+            PoseFrame(_offset);
         }
 
-        public float SampleDent(Vector3 worldPoint)
+        public void Release(float velocity)
         {
-            Vector3 local = _membrane.Surface.InverseTransformPoint(worldPoint);
-            Vector2 point = new(local.x, local.z);
-            return point.sqrMagnitude <= _membrane.Radius * _membrane.Radius ? _membrane.Sample(point) : 0f;
+            _isPressed = false;
+            _velocity = velocity;
+            _wobbleVelocity = velocity * _wobbleKick;
         }
 
         private void Update()
         {
+            if (_isPressed)
+            {
+                return;
+            }
+
             _rider.Tick(_offset, _velocity);
             if (_rider.IsRiding || _rider.IsStanding)
             {

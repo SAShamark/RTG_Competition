@@ -33,6 +33,7 @@ namespace Services
         public static bool IsPrimaryHeld => Pointer.leftButton.isPressed;
         public static bool InteractPressed => Keys.eKey.wasPressedThisFrame;
         public static bool AltInteractPressed => Keys.qKey.wasPressedThisFrame;
+        public static bool ElementSwitchPressed => Keys.rKey.wasPressedThisFrame;
         public static bool DropPressed => Keys.gKey.wasPressedThisFrame;
         public static bool ViewTogglePressed => Keys.vKey.wasPressedThisFrame;
         public static bool RadioPressed => Keys.digit4Key.wasPressedThisFrame;

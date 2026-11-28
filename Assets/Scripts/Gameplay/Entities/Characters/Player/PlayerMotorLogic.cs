@@ -32,6 +32,7 @@ namespace Gameplay.Entities.Characters.Player
         public bool IsGrounded => _controller.isGrounded;
         public float LandingSpeedFactor => _landingRecovery > 0f ? _hardLandingSpeedFactor : 1f;
         public Vector3 PlanarVelocity { get; set; }
+        public float Grip { get; set; } = 1f;
 
         public void Init(CharacterController controller, Transform body, PlayerJumpLogic jump)
         {
@@ -86,7 +87,7 @@ namespace Gameplay.Entities.Characters.Player
                 return _airAcceleration;
             }
 
-            return target.sqrMagnitude >= PlanarVelocity.sqrMagnitude ? _groundAcceleration : _groundDeceleration;
+            return (target.sqrMagnitude >= PlanarVelocity.sqrMagnitude ? _groundAcceleration : _groundDeceleration) * Grip;
         }
     }
 }

@@ -69,5 +69,7 @@ namespace Services.Audio
         FootstepWoodRun = 66,
         FootstepConcreteRun = 67,
         FootstepMetalRun = 68,
+        GrenadePin = 69,
+        FrostBlast = 70,
     }
 }

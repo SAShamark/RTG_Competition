@@ -364,7 +364,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: d053756847a948be88445c00fefe7ea0, type: 3}
     - {fileID: 8300000, guid: d3d0bcb867245e2d15073ef9e51e9c7f, type: 3}
     _volume: 0.8
-    _pitch: {x: 0.9, y: 1.0}
+    _pitch: {x: 0.9, y: 1}
     _spatialBlend: 0.5
     _maxDistance: 15
   - _type: 47
@@ -379,7 +379,7 @@ MonoBehaviour:
     _clips:
     - {fileID: 8300000, guid: bbe35a354b93dab89f8680677c04c5a5, type: 3}
     _volume: 0.7
-    _pitch: {x: 0.95, y: 1.0}
+    _pitch: {x: 0.95, y: 1}
     _spatialBlend: 0.85
     _maxDistance: 20
   - _type: 49
@@ -410,7 +410,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 466c04c5d2e72330806bdc3690944a6d, type: 3}
     - {fileID: 8300000, guid: a45edd4d3a0f6049ae8c833d3bd0a68b, type: 3}
     _volume: 0.45
-    _pitch: {x: 0.9, y: 1.0}
+    _pitch: {x: 0.9, y: 1}
     _spatialBlend: 0
     _maxDistance: 10
   - _type: 55
@@ -557,3 +557,17 @@ MonoBehaviour:
     _pitch: {x: 0.92, y: 1.08}
     _spatialBlend: 0
     _maxDistance: 10
+  - _type: 69
+    _clips:
+    - {fileID: 8300000, guid: 9f1991fb3d7df384ba887f4fa6576e96, type: 3}
+    _volume: 0.8
+    _pitch: {x: 0.95, y: 1.05}
+    _spatialBlend: 0
+    _maxDistance: 25
+  - _type: 70
+    _clips:
+    - {fileID: 8300000, guid: 3bba35d654b20b9448fc7b66bb720e78, type: 3}
+    _volume: 1
+    _pitch: {x: 0.95, y: 1.05}
+    _spatialBlend: 1
+    _maxDistance: 45

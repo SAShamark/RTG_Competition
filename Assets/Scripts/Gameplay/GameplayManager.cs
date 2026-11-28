@@ -1,6 +1,5 @@
 using Gameplay.Cinematics;
 using Gameplay.Dialogue;
-using Gameplay.Effects.Puddle;
 using Gameplay.Entities.Environment;
 using Gameplay.Entities.Interactive;
 using Gameplay.Mission.Core;
@@ -36,7 +35,6 @@ namespace Gameplay
         [SerializeField] private MissionStats _stats = new();
         [SerializeField] private FacadeFirefight _facade = new();
         [SerializeField] private ResidentComplaints _complaints = new();
-        [SerializeField] private PuddleControl[] _puddles;
 
         [Header("Mission")]
         [SerializeField] private MissionFlow _mission = new();
@@ -69,7 +67,7 @@ namespace Gameplay
             _stats.Init(_screen, _texts);
             _fog.Init();
             _grass.Init();
-            _fireHeat.Init(_player.Head);
+            _fireHeat.Init(_player.Head, _player.Shield);
             _dialogue.Init(_screen, _player, _playerBody);
             _navigation.Init(_player.Head, _camera, _screen.NavMarker, _texts);
             _cinematics.Initialize(uiManager, _screen, _player, _camera);
@@ -93,7 +91,9 @@ namespace Gameplay
             _cinematics.FinaleJumpFinished += HandleFinaleJumpFinished;
             _facade.Completed += HandleFacadeCompleted;
             _cinematics.FinaleFinished += HandleFinaleFinished;
-            _player.Hose.WaterLanded += HandleWaterLanded;
+            _fireHeat.BurnedOut += _pause.ShowDeath;
+            _pause.Respawned += _fireHeat.Recover;
+            _player.Freezing.Frozen += _fireHeat.Recover;
 
             _pause.Init(_popups, _player);
             if (!_cinematics.TryPresentIntro())
@@ -110,7 +110,7 @@ namespace Gameplay
                 return;
             }
 
-            _fireHeat.Tick(deltaTime);
+            _fireHeat.Tick(deltaTime, _player.enabled);
             _dialogue.Tick(deltaTime);
             _mission.Tick(deltaTime);
             _stats.Tick(deltaTime);
@@ -156,7 +156,9 @@ namespace Gameplay
             _cinematics.FinaleJumpFinished -= HandleFinaleJumpFinished;
             _facade.Completed -= HandleFacadeCompleted;
             _cinematics.FinaleFinished -= HandleFinaleFinished;
-            _player.Hose.WaterLanded -= HandleWaterLanded;
+            _fireHeat.BurnedOut -= _pause.ShowDeath;
+            _pause.Respawned -= _fireHeat.Recover;
+            _player.Freezing.Frozen -= _fireHeat.Recover;
 
             _navigation.Dispose();
             _screen.Dispose();
@@ -175,14 +177,6 @@ namespace Gameplay
             _facade.Begin();
             _isFacadeLinePending = true;
             _sinceVoice = 0f;
-        }
-
-        private void HandleWaterLanded(Vector3 point, float litres)
-        {
-            foreach (PuddleControl puddle in _puddles)
-            {
-                puddle.Pour(point, litres);
-            }
         }
 
         private void HandleFacadeCompleted()
